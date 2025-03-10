@@ -3,6 +3,8 @@ package poczatek;
 public class Complex {
 	double x;
 	double y;
+	public static final Complex i = new Complex(0,1);
+	
 	public Complex(double x, double y){
 		this.x = x;
 		this.y = y;
@@ -15,7 +17,7 @@ public class Complex {
 		return new Complex(x, -y);
 	}
 	public double mod() {
-		return x*x+y*y;
+		return Math.sqrt(x*x+y*y);
 	}
 	public double arg() {
 		//w przedziale (-pi, pi]
@@ -28,7 +30,7 @@ public class Complex {
 		return new Complex(s1-s2, s3-s1-s2);
 	}
 	public Complex mult(Complex b) {
-		return Complex.mult(this,b);
+		return mult(this,b);
 	}
 	static public Complex div(Complex a, Complex b) {
 		if(b.x == 0 && b.y == 0) throw new IllegalArgumentException("Dzielenie przez 0");
@@ -37,18 +39,56 @@ public class Complex {
 		return new Complex(l.x/d, l.y/d);
 	}
 	public Complex div(Complex b) {
-		return Complex.div(this, b);
+		return div(this, b);
 	}
 	static public Complex add(Complex a, Complex b) {
 		return new Complex(a.x+b.x, a.y+b.y);
 	}
 	public Complex add(Complex b) {
-		return Complex.add(this, b);
+		return add(this, b);
 	}
 	public static Complex subt(Complex a, Complex b) {
 		return new Complex(a.x-b.x, a.y-b.y);
 	}
 	public Complex subt(Complex b) {
-		return Complex.subt(this, b);
+		return subt(this, b);
+	}
+	public static Complex exp(Complex a) {
+		return mult( new Complex(Math.exp(a.x)),   add( mult( i,new Complex(Math.sin(a.y)) ), new Complex(Math.cos(a.y)) ));
+	}
+	public static Complex Ln(Complex a) {
+		//Im(Ln) w (-pi, pi]
+		return new Complex(Math.log(a.mod()), a.arg());
+	}
+	public static Complex pow(Complex a, int n) {
+		Complex w = new Complex(1,0);
+		while(n > 0) {
+			if(n%2 == 0) {
+				n /= 2;
+				a = mult(a,a);
+			}else {
+				w = w.mult(a);
+				n -= 1;
+			}
+		}
+		return mult(a,w);
+	}
+	public static Complex pow(Complex a, Complex b) {
+		if(b.y == 0 && b.x == (int)b.x) {
+			return pow(a, (int)b.x);
+		}
+		return exp(b.mult(Ln(a)));
+	}
+	public Complex pow(Complex b) {
+		// TODO Auto-generated method stub
+		return pow(this,b);
+	}
+	public static void main(String[] args) {
+		Complex a = pow(new Complex(2,1), new Complex(1,1));
+		Complex c = new Complex(2,1);
+		Complex b = Ln(new Complex(1,1));
+		System.out.println(b.x + " + i" + b.y);
+		System.out.println(c.mult(b).x + " + i"+c.mult(b).y);
+		System.out.println(a.x + " + i" + a.y);
 	}
 }
