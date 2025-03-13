@@ -57,6 +57,19 @@ public class Functions {
 			return "phi";
 		}
 	};
+	final static Func i = new Func() {
+
+		@Override
+		public Complex evaluate(Complex z) {
+			return Complex.i;
+		}
+
+		@Override
+		public String write() {
+			return "i";
+		}
+		
+	};
 	final static Func Id = new Func() {
 		@Override
 		public Complex evaluate(Complex z) {

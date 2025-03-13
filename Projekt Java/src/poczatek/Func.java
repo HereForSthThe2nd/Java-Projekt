@@ -11,6 +11,7 @@ class FuncConst extends Func {
 	
 	@Override
 	public Complex evaluate(Complex z) {
+
 		return a;
 	}
 
@@ -109,6 +110,7 @@ class FuncPow extends Func{
 	}
 	@Override
 	public Complex evaluate(Complex z) {
+
 		return a.evaluate(z).pow(b.evaluate(z));
 	}
 	@Override
@@ -119,18 +121,17 @@ class FuncPow extends Func{
 	
 }
 
-abstract public class Func {
+abstract public class Func
+ {
 	static int calledReadCounter = 0;
 	static String[] var = {"z", "x", "y"};//po kolei: zmienna zespolona, część rzeczywista, część urojona
-	static String[] knownConstants = {"e", "pi", "phi"};
-	static Func[] knownConstantsVal = {Functions.e ,Functions.pi, Functions.phi};
+	static String[] knownConstants = {"e", "pi", "phi", "i"};
+	static Func[] knownConstantsVal = {Functions.e ,Functions.pi, Functions.phi, Functions.i};
 	static String[] knownFunctions = {
-			"exp[1]",
 			"exp",
 			"Ln"
 	};
 	static Func[] knownFunctionsVal = {
-			Functions.exp,
 			Functions.exp,
 			Functions.Ln
 	};
@@ -146,9 +147,10 @@ abstract public class Func {
 		str = str.replaceAll("[{]", "(");
 		str = str.replaceAll("[}]", ")");
 		str = BlokList.configureStr(str);
-		if(str.matches(".*[^"+BlokList.SPECJALNE+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE2 + "].*")) 
-			throw new WrongSyntaxException("Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.SPECJALNE+"|[a-zA-Z0-9]|"+BlokList.SPECJALNE2, ""));
-		if(str.matches(".*["+BlokList.SPECJALNE+"|[,.]]["+BlokList.SPECJALNE+"|[,.]].*"))
+		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE + "].*")) 
+			throw new WrongSyntaxException(
+					"Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.OPERATORY+"|[a-zA-Z0-9]|"+BlokList.SPECJALNE, ""));
+		if(str.matches(".*["+BlokList.OPERATORY+"|[,.]]["+BlokList.OPERATORY+"|[,.]].*"))
 			throw new WrongSyntaxException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
 		return str;
 	}
@@ -158,7 +160,6 @@ abstract public class Func {
 			BlokList newBloki = new BlokList(BlokList.configureStr(bloki.arr.get(0).str));
 			//System.out.println("usuwanie nawiasów na co zmienilo:");
 			//newBloki.print();
-			//System.out.println("usuwanie nawiasów cos zrobilo");
 			return newBloki;
 		}
 		return bloki;
@@ -166,16 +167,11 @@ abstract public class Func {
 	
 	public static Func read(BlokList bloki) throws WrongSyntaxException {
 		calledReadCounter++;
-		//System.out.println(calledReadCounter + "początek read");
-		if (calledReadCounter > 10)
-			//System.exit(0);
 		bloki = removeParenthases(bloki);
-		if(bloki.arr.size() == 0)
-			return new FuncConst(new Complex(1));
-		//System.out.println("wielkosc bloku:" + bloki.arr.size());
+		if(bloki.arr.size() == 0)//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
+			return new FuncConst(new Complex(0));
 		if(bloki.arr.size() == 1) {
 			Blok blok = bloki.arr.get(0);
-			//System.out.println(blok.type + "size = 1");
 			switch(blok.type) {
 			
 			case Blok.NUMBER:
@@ -189,7 +185,6 @@ abstract public class Func {
 				case -1:
 					break;
 				case 0:
-					//System.out.println("koniec (ID)");
 					return Functions.Id;
 				case 1:
 					return Functions.Re;
@@ -204,63 +199,55 @@ abstract public class Func {
 		}
 		int splitIndex;
 		splitIndex = bloki.find("+", 1);
-		//System.out.println("Przed plusem");
 		if(splitIndex != -1) {
 			Func lFunc = read(bloki.subList(0, splitIndex));
 			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
 			return new FuncAdd(lFunc, rFunc);
 		}
 		splitIndex = bloki.find("-",1);
-		//System.out.println("Przed minusem");
 		if(splitIndex != -1) {
 			Func lFunc = read(bloki.subList(0, splitIndex));
 			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
 			return new FuncAdd(lFunc, new FuncMult(new FuncConst(new Complex(-1.0)), rFunc));
 		}
 		splitIndex = bloki.find("*",1);
-		//System.out.println("Przed mnoz");
 		if(splitIndex != -1) {
-			//System.out.println("jl");
-			//bloki.subList(0, splitIndex).print();
 			Func lFunc = read(bloki.subList(0, splitIndex));
-			//System.out.println("jr");
-			//bloki.subList(splitIndex+1, bloki.arr.size()).print();
 			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
-			//bloki.subList(0, splitIndex).print();
 			return new FuncMult(lFunc, rFunc);
 		}
 		splitIndex = bloki.find("/",1);
-		//System.out.println("Przed dziel");
 		if(splitIndex != -1) {
 			Func lFunc = read(bloki.subList(0, splitIndex));
 			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
 			return new FuncMult(lFunc, new FuncPow(rFunc, new FuncConst(new Complex(-1.0))));
 		}
 		splitIndex = bloki.find("^",-1);
-		//System.out.println("Przed pot");
 		if(splitIndex != -1) {
 			int leftPowIndex = splitIndex;
 			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str == "^") {
 				leftPowIndex -= 2;
 			}
-			Func lFunc = read(bloki.subList(0, leftPowIndex-2));
-			Func rFunc = read(bloki.subList(splitIndex+2, bloki.arr.size()));
-			return new FuncMult(lFunc, new FuncMult(lFunc,
-					new FuncPow(read(bloki.subList(leftPowIndex-1, splitIndex-1)), read(bloki.subList(splitIndex+1, bloki.arr.size())))));
+			BlokList lBlok = bloki.subList(0, leftPowIndex-2);
+			BlokList rBlok = bloki.subList(splitIndex+2, bloki.arr.size());
+			Func lFunc = lBlok.arr.size()==0 ? new FuncConst(new Complex(1)) : read(lBlok);
+			Func rFunc = rBlok.arr.size()==0 ? new FuncConst(new Complex(1)) : read(rBlok);
+
+			return new FuncMult(lFunc, new FuncMult(rFunc,
+					new FuncPow(read(bloki.subList(leftPowIndex-1, splitIndex)), read(bloki.subList(splitIndex+1, bloki.arr.size())))));
 		}
-		//System.out.println("Przed samym koncem");
 		return new FuncMult(read(bloki.subList(0, 1)), read(bloki.subList(1, bloki.arr.size())));
 	}
 
 	public static void main(String[] args) throws WrongSyntaxException {
 
-		BlokList bloki = new BlokList(preliminaryChanges("exp[1](z+e)"));
+		BlokList bloki = new BlokList(preliminaryChanges("z^-2"));
 		bloki.print();
 		
 		Func f = read(bloki);
-		
-		System.out.println("a");
-		f.evaluate(new Complex(1.0, 1.0)).print();
+
+		//System.out.println(Complex.div(3.14, ));
+		f.evaluate(new Complex(0.8, 2)).print();
 		System.out.println("b");
 	}
 

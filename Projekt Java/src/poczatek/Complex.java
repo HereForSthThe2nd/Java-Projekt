@@ -65,8 +65,12 @@ public class Complex {
 		return new Complex(Math.log(a.mod()), a.arg());
 	}
 	public static Complex pow(Complex a, int n) {
+		if(n==0)
+			return new Complex(1);
 		Complex w = new Complex(1,0);
-		while(n > 0) {
+		if(n<0)
+			return Complex.div(new Complex(1.0), pow(a,-n));
+		while(n > 1) {
 			if(n%2 == 0) {
 				n /= 2;
 				a = mult(a,a);
@@ -84,7 +88,6 @@ public class Complex {
 		return exp(b.mult(Ln(a)));
 	}
 	public Complex pow(Complex b) {
-		// TODO Auto-generated method stub
 		return pow(this,b);
 	}
 	public static void main(String[] args) {

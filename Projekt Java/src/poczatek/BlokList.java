@@ -31,7 +31,7 @@ class Blok{
 		this.type = type;
 	}
 	public void print() {
-		System.out.println(str);
+		System.out.println(str + "type: " + type);
 	}
 }
 
@@ -54,13 +54,13 @@ class BlokWthFunction extends Blok{
 	
 	@Override
 	public void print() {
-		System.out.println(funkcja.write() + str);
+		System.out.println(funkcja.write() + str + "type: 2");
 	}
 }
 
 class BlokList{
-	protected final static String SPECJALNE2 = "[\\(\\)\\[\\]\\{\\}\\.,]";
-	protected final static String SPECJALNE = "[\\^\\*/\\+\\-]";
+	protected final static String SPECJALNE = "[\\(\\)\\[\\]\\{\\}\\.,]";
+	protected final static String OPERATORY = "[\\^\\*/\\+\\-]";
 	
 	ArrayList<Blok> arr = new ArrayList<Blok>();
 	
@@ -73,8 +73,10 @@ class BlokList{
 			arr.add(blok);
 			index = blok.kon;
 		}
-		if(arr.get(0).type == Blok.OPERATION || arr.get(arr.size()-1).type == Blok.OPERATION) {
-			throw new WrongSyntaxException("operacja gdzieś żle zapisana");
+		if((arr.get(0).type == Blok.OPERATION && arr.get(0).str.matches("[^+-]")) ||
+				(arr.get(arr.size()-1).type == Blok.OPERATION && arr.get(arr.size()-1).str.matches("[^+-]"))) {
+			throw new WrongSyntaxException("operacja gdzieś zle zapisana. cały str: "+str+".",
+					"operacja gdzieś żle zapisana");
 		}
 	}
 	
@@ -86,7 +88,7 @@ class BlokList{
 			}
 		}
 		if(side == -1) {
-			for(int i=str.length()-1;i>-1;i--) {
+			for(int i=arr.size()-1;i>-1;i--) {
 				if(arr.get(i).str.equals(str))
 					return i;
 			}
@@ -128,18 +130,10 @@ class BlokList{
 	
 	protected static boolean contains(String[] arr, String str) {
 		return indexOf(arr, str) == -1 ? false : true;
-	}		
-	
-	protected static boolean isLetter(char chr) {
-		return (""+chr).matches(".*[a-zA-Z].*");
-	}		
-	
-	protected static boolean isNum(char chr) {
-		return (""+chr).matches(".*[1-9].*");
 	}
 	
 	protected static boolean isSpecial(char chr) {
-		return (""+chr).matches(".*"+SPECJALNE+".*");
+		return (""+chr).matches(SPECJALNE);
 	}		
 	
 	protected static String configureStr(String str) {
@@ -207,7 +201,7 @@ class BlokList{
 		while(napotkaneNawiasyL != 1) {
 			konce[0] -= 1;
 			if(konce[0] == -1) break;
-			if( (""+str.charAt(konce[0])).matches(SPECJALNE + "|[\\(\\)]") ) {
+			if( (""+str.charAt(konce[0])).matches(OPERATORY + "|[\\(\\)]") ) {
 				konce[0] = -1;
 				break;
 			}
@@ -226,7 +220,7 @@ class BlokList{
 				konce[1] = -1;
 				break;
 			}
-			if((""+str.charAt(konce[1])).matches(SPECJALNE)) {
+			if((""+str.charAt(konce[1])).matches(OPERATORY+"|[\\(\\)]")) {
 				konce[1] = -1;
 				break;
 			}
@@ -324,9 +318,9 @@ class BlokList{
 		int[] konce = {index, index};
 		int type;
 		boolean isParenthases = (""+str.charAt(index)).matches("[\\(\\)]");
-		boolean isWord = isLetter(str.charAt(index));
-		boolean isNum = isNum(str.charAt(index));
-		boolean isOperation = (str.charAt(index) + "").matches(SPECJALNE);
+		boolean isWord = (""+str.charAt(index)).matches("[a-zA-Z]");
+		boolean isNum = (""+str.charAt(index)).matches("[0-9.]");
+		boolean isOperation = (str.charAt(index) + "").matches(OPERATORY);
 		boolean hasSquareBrackets = false;
 		if(checkSquareBrackets(str, index, konce)) {
 			isWord = true;
@@ -341,14 +335,14 @@ class BlokList{
 		}
 		if(isWord) {
 			type = Blok.WORD;
-			while(konce[1] < str.length() && !hasSquareBrackets && (isLetter(str.charAt(konce[1])) || str.charAt(konce[1]) == ']' || str.charAt(konce[1]) == '[')) {
+			while(konce[1] < str.length() && !hasSquareBrackets && ((""+str.charAt(konce[1])).matches("[a-zA-Z]") || str.charAt(konce[1]) == ']' || str.charAt(konce[1]) == '[')) {
 				if(str.charAt(konce[1]) == ']' || str.charAt(konce[1]) == '['){
 					checkSquareBrackets(str, konce[1], konce);
 					hasSquareBrackets = true;
 				}else 
 					konce[1] += 1;
 			}
-			while(konce[0] > -1 && (isLetter(str.charAt(konce[0])) || str.charAt(konce[0]) == '[')) {
+			while(konce[0] > -1 && ((""+str.charAt(konce[0])).matches("[a-zA-Z]") || str.charAt(konce[0]) == '[')) {
 				if(str.charAt(konce[0]) == '[') {
 					checkSquareBrackets(str, konce[0], konce);
 					hasSquareBrackets = true;
@@ -362,14 +356,14 @@ class BlokList{
 		if(isNum){
 			type = Blok.NUMBER;
 			int countCommas = str.charAt(index) == '.' ? -1 : 0;
-			while(isNum(str.charAt(konce[0]))) {
+			while((""+str.charAt(konce[0])).matches("[0-9\\.]")) {
 				countCommas += str.charAt(konce[0]) == '.' ? 1 : 0;
 				konce[0] -= 1;
 				if(konce[0] == -1)
 					break;
 			}
 			konce[0]++;
-			while(isNum(str.charAt(konce[1]))) {
+			while((""+str.charAt(konce[1])).matches("[0-9\\.]")) {
 				countCommas += str.charAt(konce[1]) == '.' ? 1 : 0;
 				konce[1] += 1;
 				if(konce[1] == str.length())
