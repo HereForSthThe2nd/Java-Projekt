@@ -8,7 +8,11 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
 import java.awt.image.ImageObserver;
+import java.io.File;
+import java.io.IOException;
 import java.text.AttributedCharacterIterator;
 import java.util.Random;
 import javax.swing.JLabel;
@@ -16,6 +20,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import java.awt.image.BufferedImage;
 
@@ -69,5 +74,13 @@ public class PointToColor {
 		frame.add(label);
 		frame.setSize(img.getWidth(), img.getHeight());
 		frame.setVisible(true);
+		File imgfile = new File("screenshot.png");
+		try {
+			ImageIO.write(img, "png", imgfile);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 }

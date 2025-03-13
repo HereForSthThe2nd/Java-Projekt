@@ -5,6 +5,10 @@ public class Complex {
 	double y;
 	public static final Complex i = new Complex(0,1);
 	
+	public void print() {
+		System.out.println(x + " + i" + y);
+	}
+	
 	public Complex(double x, double y){
 		this.x = x;
 		this.y = y;
@@ -33,7 +37,7 @@ public class Complex {
 		return mult(this,b);
 	}
 	static public Complex div(Complex a, Complex b) {
-		if(b.x == 0 && b.y == 0) throw new IllegalArgumentException("Dzielenie przez 0");
+		if(b.x == 0 && b.y == 0) return null;
 		double d = b.x*b.x + b.y*b.y;
 		Complex l = Complex.mult(a, b.conj());
 		return new Complex(l.x/d, l.y/d);

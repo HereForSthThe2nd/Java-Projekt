@@ -2,6 +2,26 @@ package poczatek;
 
 import java.util.ArrayList;
 
+class FuncConst extends Func {
+	final Complex a;
+
+	FuncConst(Complex a){
+		this.a = a;
+	}
+	
+	@Override
+	public Complex evaluate(Complex z) {
+		return a;
+	}
+
+	@Override
+	public String write() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+}
+
 class FuncMult extends Func {
 	Func f;
 	Func g;
@@ -11,7 +31,15 @@ class FuncMult extends Func {
 	}
 	@Override
 	public Complex evaluate(Complex z) {
+		//System.out.println("Funkcja mnożenie aktywowana");
+		//f.evaluate(z).print();
+		//g.evaluate(z).print();
 		return Complex.mult(f.evaluate(z), g.evaluate(z));
+	}
+	@Override
+	public String write() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 
@@ -26,8 +54,14 @@ class FuncAdd extends Func {
 	public Complex evaluate(Complex z) {
 		return Complex.add(f.evaluate(z), g.evaluate(z));
 	}
+	@Override
+	public String write() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
 
+/*
 class FuncSum extends Func {
 	Func[] f;
 	
@@ -45,7 +79,7 @@ class FuncSum extends Func {
 		}
 		return sum;
 	}
-}
+}*/
 
 class FuncComp extends Func {
 	Func f;
@@ -57,6 +91,11 @@ class FuncComp extends Func {
 	@Override
 	public Complex evaluate(Complex z) {
 		return f.evaluate(g.evaluate(z));
+	}
+	@Override
+	public String write() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 
@@ -72,156 +111,157 @@ class FuncPow extends Func{
 	public Complex evaluate(Complex z) {
 		return a.evaluate(z).pow(b.evaluate(z));
 	}
+	@Override
+	public String write() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }
 
 abstract public class Func {
-	final static int CONST = 1;
-	final static int NONCONST = 0;
-	final static Func exp = new Func() {
-		@Override
-		public Complex evaluate(Complex z) {
-			return Complex.exp(z);
-		}
-	};
-	final static Func Ln = new Func() {
-		@Override
-		public Complex evaluate(Complex z) {
-			return Complex.Ln(z);
-		}
-	};
+	static int calledReadCounter = 0;
 	static String[] var = {"z", "x", "y"};//po kolei: zmienna zespolona, część rzeczywista, część urojona
-	static String[] knownConstants = {"e", "pi", "phi", "i"};
-	static Complex[] knownConstantsVal = {new Complex(Math.E),new Complex(Math.PI), new Complex((Math.sqrt(5)+1)/2), Complex.i};
+	static String[] knownConstants = {"e", "pi", "phi"};
+	static Func[] knownConstantsVal = {Functions.e ,Functions.pi, Functions.phi};
 	static String[] knownFunctions = {
+			"exp[1]",
 			"exp",
 			"Ln"
 	};
 	static Func[] knownFunctionsVal = {
-			exp,
-			Ln
+			Functions.exp,
+			Functions.exp,
+			Functions.Ln
 	};
 	int type; //CONST lub NONCONST
 	
 	abstract public Complex evaluate(Complex z);
 	
-	public Func multiply(Complex C) {
-		return new Func() {
-			@Override
-			public Complex evaluate(Complex z) {
-				return Complex.mult(C, evaluate(z));
-			}
-		};
+	abstract public String write();
+	
+	private static String preliminaryChanges(String str) throws WrongSyntaxException {
+		if(str.charAt(0) == '=') str = str.substring(1);
+		str = str.replaceAll("\\s", "");
+		str = str.replaceAll("[{]", "(");
+		str = str.replaceAll("[}]", ")");
+		str = BlokList.configureStr(str);
+		if(str.matches(".*[^"+BlokList.SPECJALNE+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE2 + "].*")) 
+			throw new WrongSyntaxException("Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.SPECJALNE+"|[a-zA-Z0-9]|"+BlokList.SPECJALNE2, ""));
+		if(str.matches(".*["+BlokList.SPECJALNE+"|[,.]]["+BlokList.SPECJALNE+"|[,.]].*"))
+			throw new WrongSyntaxException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
+		return str;
 	}
 	
-	private static void readMult(String sfunc) {
-		//wczytuje funkcję ze stringa jeśli ona zawiera tylko konkatenację mnożenie oraz dzielenie (bez nawiasów)
-		// funkja ta będzie postaci C*z^n[0]*x^n[1]*y^n[2]
-		Complex C = new Complex(1.0);
-		int[] n = {0,0,0};
-		
-		int inDenom = 1; //+1 jeśli rozważamy licznik, -1 jeśli mianownik
-		while(true) {
-			inDenom = 1;
-			if(sfunc.charAt(0) == '/') {
-				inDenom = -1;
-				sfunc = sfunc.substring(1);
-			}
-			if(sfunc.charAt(0) == '*') {
-				sfunc = sfunc.substring(1);
-			}
-			int[] blok = StrOperations.blok(sfunc, 0);
-			//wiadomo, że blok[0] = 0
-			if(StrOperations.isNum(sfunc.charAt(blok[0]))) {
-				switch(inDenom) {
-				case 1: 
-					C = Complex.mult(C, new Complex(Double.parseDouble(sfunc.substring(blok[0], blok[1]))));
-					break;
-				case -1:
-					C = Complex.div(C, new Complex(Double.parseDouble(sfunc.substring(blok[0], blok[1]))));
-					break;
-				}
-			}
-			if(StrOperations.isLetter(sfunc.charAt(blok[0]))) {
-				if(StrOperations.contains(var, sfunc.substring(blok[0], blok[1]))) {
-					n[StrOperations.indexOf(var, sfunc.substring(blok[0], blok[1]))] += inDenom;
-				}
-				else {
-				if(StrOperations.contains(knownConstants, sfunc.substring(blok[0], blok[1]))) {
-					switch(inDenom) {
-					case 1:
-						C = Complex.mult(C, knownConstantsVal[StrOperations.indexOf(knownConstants, sfunc.substring(blok[0], blok[1]))]);
-						break;
-					case -1:
-						C = Complex.div(C, knownConstantsVal[StrOperations.indexOf(knownConstants, sfunc.substring(blok[0], blok[1]))]);
-						break;
-					}
-				}
-				else {
-					throw new IllegalArgumentException("Ciąg znaków " + sfunc.substring(blok[0], blok[1]) + " nie jest ani zmienną, ani stałą, ani funkcją.");
-				}
-				}
-			}
-			if(blok[1] == sfunc.length())
-				break;
-			sfunc = sfunc.substring(blok[1]);
-			//System.out.println(sfunc);
-			//System.out.println(blok[0]);
-			//System.out.println(blok[1]);
+	private static BlokList removeParenthases(BlokList bloki) throws WrongSyntaxException {
+		if(bloki.arr.size() == 1 && bloki.arr.get(0).type != Blok.FUNCTION) {
+			BlokList newBloki = new BlokList(BlokList.configureStr(bloki.arr.get(0).str));
+			//System.out.println("usuwanie nawiasów na co zmienilo:");
+			//newBloki.print();
+			//System.out.println("usuwanie nawiasów cos zrobilo");
+			return newBloki;
 		}
-		System.out.println("1");
-		System.out.println("C = " + C.x + " + i" + C.y + "\n" + 
-							"nz = " + n[0] + "\n" + 
-							"nx = " + n[1] + "\n" + 
-							"ny = " + n[2] + "\n");
+		return bloki;
 	}
-
-	private static void readPow(String sfunc) {
-
-		//wczytuje funkcję ze stringa jeśli ona zawiera tylko potęgi i mniejsze (bez nawiasów)
-		if(StrOperations.contains(StrOperations.SPECJALNE, sfunc.charAt(0))) 
-			throw new IllegalArgumentException("Niepoprawny zapis");
-		for(int i=0;i<sfunc.length();i++) {
-			String c = "" + sfunc.charAt(i);
-			//if(var.contains())
-		}
-		int i = sfunc.indexOf('^');
-		
-		if(i != -1) {
+	
+	public static Func read(BlokList bloki) throws WrongSyntaxException {
+		calledReadCounter++;
+		//System.out.println(calledReadCounter + "początek read");
+		if (calledReadCounter > 10)
+			//System.exit(0);
+		bloki = removeParenthases(bloki);
+		if(bloki.arr.size() == 0)
+			return new FuncConst(new Complex(1));
+		//System.out.println("wielkosc bloku:" + bloki.arr.size());
+		if(bloki.arr.size() == 1) {
+			Blok blok = bloki.arr.get(0);
+			//System.out.println(blok.type + "size = 1");
+			switch(blok.type) {
 			
+			case Blok.NUMBER:
+				return new FuncConst(new Complex(Double.parseDouble(blok.str)));
+			case Blok.FUNCTION:
+				return new FuncComp(((BlokWthFunction)blok).funkcja, read(new BlokList(blok.str)));
+			case Blok.WORD:
+				if(blok.str.equals("i"))
+					return new FuncConst(Complex.i);
+				switch(BlokList.indexOf(var, blok.str)) {
+				case -1:
+					break;
+				case 0:
+					//System.out.println("koniec (ID)");
+					return Functions.Id;
+				case 1:
+					return Functions.Re;
+				case 2:
+					return Functions.Im;
+				}
+				if(BlokList.indexOf(knownConstants, blok.str) != -1) {
+					return knownConstantsVal[BlokList.indexOf(knownConstants, blok.str)];
+				}
+				throw new WrongSyntaxException(blok.str + " nie jest znaną nazwą ani funkcji ani stałej");
+			}
 		}
+		int splitIndex;
+		splitIndex = bloki.find("+", 1);
+		//System.out.println("Przed plusem");
+		if(splitIndex != -1) {
+			Func lFunc = read(bloki.subList(0, splitIndex));
+			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
+			return new FuncAdd(lFunc, rFunc);
+		}
+		splitIndex = bloki.find("-",1);
+		//System.out.println("Przed minusem");
+		if(splitIndex != -1) {
+			Func lFunc = read(bloki.subList(0, splitIndex));
+			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
+			return new FuncAdd(lFunc, new FuncMult(new FuncConst(new Complex(-1.0)), rFunc));
+		}
+		splitIndex = bloki.find("*",1);
+		//System.out.println("Przed mnoz");
+		if(splitIndex != -1) {
+			//System.out.println("jl");
+			//bloki.subList(0, splitIndex).print();
+			Func lFunc = read(bloki.subList(0, splitIndex));
+			//System.out.println("jr");
+			//bloki.subList(splitIndex+1, bloki.arr.size()).print();
+			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
+			//bloki.subList(0, splitIndex).print();
+			return new FuncMult(lFunc, rFunc);
+		}
+		splitIndex = bloki.find("/",1);
+		//System.out.println("Przed dziel");
+		if(splitIndex != -1) {
+			Func lFunc = read(bloki.subList(0, splitIndex));
+			Func rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
+			return new FuncMult(lFunc, new FuncPow(rFunc, new FuncConst(new Complex(-1.0))));
+		}
+		splitIndex = bloki.find("^",-1);
+		//System.out.println("Przed pot");
+		if(splitIndex != -1) {
+			int leftPowIndex = splitIndex;
+			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str == "^") {
+				leftPowIndex -= 2;
+			}
+			Func lFunc = read(bloki.subList(0, leftPowIndex-2));
+			Func rFunc = read(bloki.subList(splitIndex+2, bloki.arr.size()));
+			return new FuncMult(lFunc, new FuncMult(lFunc,
+					new FuncPow(read(bloki.subList(leftPowIndex-1, splitIndex-1)), read(bloki.subList(splitIndex+1, bloki.arr.size())))));
+		}
+		//System.out.println("Przed samym koncem");
+		return new FuncMult(read(bloki.subList(0, 1)), read(bloki.subList(1, bloki.arr.size())));
 	}
-	
-	public static void read(String sfunc) {
-		sfunc = sfunc.replaceAll("\\s", "");
-		sfunc = sfunc.replaceAll("{", "(");
-		sfunc = sfunc.replaceAll("}", ")");
-		sfunc = sfunc.replaceAll(",", ".");
-		if(sfunc.charAt(0) == '=') sfunc = sfunc.substring(1);
-		for(int i=0;i<sfunc.length(); i++) {
-			char cTeraz = sfunc.charAt(i);
-			char cNast = sfunc.charAt( (i+1)%sfunc.length() );
-			if(!StrOperations.contains(StrOperations.ALFABET, cTeraz) && !StrOperations.contains(StrOperations.SPECJALNEaz))
-				throw new IllegalArgumentException("Niepoprawny zapis : występuje błędny znak");
-			if(StrOperations.contains(StrOperations.SPECJALNE + ".", cTeraz) && StrOperations.contains(StrOperations.SPECJALNE + ".", cNast))
-				throw new IllegalArgumentException("Niepoprawny zapis : dwa operatry obo siebie");
-		}
+
+	public static void main(String[] args) throws WrongSyntaxException {
+
+		BlokList bloki = new BlokList(preliminaryChanges("exp[1](z+e)"));
+		bloki.print();
 		
-	}
-
-	public static void main(String[] args) {
-		//System.out.println("ssss".charAt(5));
-		String str = "67.6abc[d35[[]5]..3]po";
-		for(int i=0;i<str.length();i++) {
-			System.out.println(str.substring(StrOperations.blok(str, i)[0], StrOperations.blok(str,i)[1]));
-		}
-		//readMult("5*5/x*x*z*z*z/y/y/x/pi");
-		/*String str2 = "[frfr]";
-		for(int i=0;i<str2.length();i++) {
-			System.out.print(StrOperations.wNawiasachKw(str2, i)[0] + "  ");
-			System.out.println(StrOperations.wNawiasachKw(str2, i)[1]);
-		}*/
-
+		Func f = read(bloki);
+		
+		System.out.println("a");
+		f.evaluate(new Complex(1.0, 1.0)).print();
+		System.out.println("b");
 	}
 
 }
