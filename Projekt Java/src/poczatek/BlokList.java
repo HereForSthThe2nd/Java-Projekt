@@ -31,20 +31,20 @@ class Blok{
 		this.type = type;
 	}
 	public void print() {
-		System.out.println(str + "type: " + type);
+		System.out.println(str + " type: " + type);
 	}
 }
 
-class BlokWthFunction extends Blok{
-	Func funkcja;
-	BlokWthFunction(String wejsc, int[] konce, int type, Func funkcja) {
+class BlokWthDefFunction extends Blok{
+	DefinedFunction funkcja;
+	BlokWthDefFunction(String wejsc, int[] konce, int type, DefinedFunction funkcja) {
 		super(wejsc, konce, type);
 		//System.out.println(type);
 		this.funkcja = funkcja;
 		if(type != Blok.FUNCTION)
 			throw new IllegalArgumentException("BlokWthFunction musi być typu Blok.FUNCTION");
 	}
-	BlokWthFunction(String wejsc, int pocz, int kon, int type, Func funkcja){
+	BlokWthDefFunction(String wejsc, int pocz, int kon, int type, DefinedFunction funkcja){
 		super(wejsc, pocz,kon,type);
 		this.pocz -=  wejsc.length();
 		this.funkcja = funkcja;
@@ -54,7 +54,8 @@ class BlokWthFunction extends Blok{
 	
 	@Override
 	public void print() {
-		System.out.println(funkcja.write() + str + "type: 2");
+
+		System.out.println(funkcja.name + str + " type: 2");
 	}
 }
 
@@ -142,39 +143,7 @@ class BlokList{
 		}
 		return str;
 	}
-	
-	static class OznaczonaListaStr{
-		final ArrayList<String> arr;
-		final ArrayList<Integer> znaki;
-		OznaczonaListaStr(ArrayList<String> arr, ArrayList<Integer> znaki){
-			this.arr = arr;
-			this.znaki = znaki;
-		}
-	}
-	
-	@Deprecated
-	protected static OznaczonaListaStr splitWthPM(String str){
-		//dzieli str wg plusów i minusów i zapamiętuje znak
-		//zakłada że nie występują dwa takie znaki z rzędu, oraz że nie ma takiego znaku na początku czy końcu str
-		//ignoruje nawiasy ( zapewne do usunięcia )
-		ArrayList<String> arr = new ArrayList<String>();
-		ArrayList<Integer> znaki = new ArrayList<Integer>();
-		char ostatniZnak = '+';
-		int index1 = 0;
-		for(int index2 = 0; index2<str.length()-1; index2++) {
-			if(str.charAt(index2)).match("[+-]")){
-				arr.add(str.substring(index1, index2));
-				znaki.add(ostatniZnak == '+' ? 1 : -1);
-				ostatniZnak = str.charAt(index2);
-				index2++;
-				index1 = index2;
-			}
-		}
-		arr.add(str.substring(index1, str.length()));
-		znaki.add(ostatniZnak == '+' ? 1 : -1);
-		return new OznaczonaListaStr(arr, znaki);
-	}
-	
+
  	private static int[] wNawiasachKwPom(String str, int index1, int index2) {
 		//zakłada, że pomiędzy indeksami inex1 i index2 występuje odpowiednia ilość nawiasów
 		//zwraca położenia najbardziej wewnętrznych możliwych możliwych
@@ -376,6 +345,9 @@ class BlokList{
 		if(isParenthases) {
 			type = Blok.PARENTHASES;
 			int[] temp = wNawiasach(str, index);
+			if(temp[0] * temp[1] < 0)
+				throw new WrongSyntaxException("Nawiasy () nie domykają się poprawnie.\n"
+						+ "Występuje nawias \'" + (temp[1]==-1 ? "(\'" : ")\'") + " bez odpowiadającego mu nawiasu \'" + (temp[0]==-1 ? "(\'." : ")\'."));
 			konce[0] = temp[0];
 			konce[1] = temp[1]+1;
 			return new Blok(str, konce, type);
@@ -386,16 +358,17 @@ class BlokList{
 	}
 
 	private static Blok znajdzBlok(String str, int index) throws WrongSyntaxException {
+
 		//zwraca położenia końców bloku wokół index. Zwraca indeks lewej strony oraz indeks+1 prawej.
 		Blok blok = znajdzBlokPom(str, index);
 		if(blok.type == Blok.WORD) {
-			if(contains(Func.knownFunctions, blok.str)) {
+			if(contains(Function.knownFunctions, blok.str)) {
 				if(blok.kon == str.length()+1)
 					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
 				Blok prawaStrona = znajdzBlokPom(str, blok.kon);
 				if(prawaStrona.type != Blok.PARENTHASES)
 					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
-				return new BlokWthFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Func.knownFunctionsVal[indexOf(Func.knownFunctions, blok.str )]);
+				return new BlokWthDefFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Function.knownFunctionsVal[indexOf(Function.knownFunctions, blok.str )]);
 			}
 				
 		}
@@ -403,14 +376,15 @@ class BlokList{
 			if(blok.pocz == 0)
 				return blok;
 			Blok lewaStrona = znajdzBlokPom(str, blok.pocz-1);
-			if(lewaStrona.type == Blok.WORD && contains(Func.knownFunctions, lewaStrona.str))
-				return new BlokWthFunction(str, blok.pocz, blok.kon, Blok.FUNCTION, Func.knownFunctionsVal[indexOf(Func.knownFunctions, lewaStrona.str )]);
+			if(lewaStrona.type == Blok.WORD && contains(Function.knownFunctions, lewaStrona.str))
+				return new BlokWthDefFunction(str, blok.pocz, blok.kon, Blok.FUNCTION, Function.knownFunctionsVal[indexOf(Function.knownFunctions, lewaStrona.str )]);
 		}
 		return blok;
 
 	}
 	
 	public static void main(String[] args) throws WrongSyntaxException {
+
 		znajdzBlokPom("[]", 0).print();
 	}
 }

@@ -1,5 +1,7 @@
 package poczatek;
 
+import java.text.DecimalFormat;
+
 public class Complex {
 	double x;
 	double y;
@@ -9,7 +11,26 @@ public class Complex {
 		System.out.println(x + " + i" + y);
 	}
 	
+	public String print(int doubleAcc) {
+		DecimalFormat noplus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"));
+		DecimalFormat plus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"));
+		plus.setPositivePrefix("+");
+		if(equals(new Complex(0)))
+			return "0";
+		if(y==1.0) {
+			return x==0 ? "i" : noplus.format(x)+"+i";
+		}
+		if(x!=0 && y!=0)
+			return noplus.format(x)+plus.format(y)+"i";
+		if(y==0)
+			return noplus.format(x);
+		return noplus.format(y)+"i";
+
+		
+	}
+	
 	public Complex(double x, double y){
+
 		this.x = x;
 		this.y = y;
 	}
@@ -20,10 +41,14 @@ public class Complex {
 	public Complex conj() {
 		return new Complex(x, -y);
 	}
+	public boolean equals(Complex z) {
+		return x==z.x && y==z.y;
+	}
 	public double mod() {
 		return Math.sqrt(x*x+y*y);
 	}
 	public double arg() {
+
 		//w przedziale (-pi, pi]
 		return Math.atan2(y, x);
 	}
@@ -61,6 +86,7 @@ public class Complex {
 		return mult( new Complex(Math.exp(a.x)),   add( mult( i,new Complex(Math.sin(a.y)) ), new Complex(Math.cos(a.y)) ));
 	}
 	public static Complex Ln(Complex a) {
+
 		//Im(Ln) w (-pi, pi]
 		return new Complex(Math.log(a.mod()), a.arg());
 	}
@@ -94,8 +120,9 @@ public class Complex {
 		Complex a = pow(new Complex(2,1), new Complex(1,1));
 		Complex c = new Complex(2,1);
 		Complex b = Ln(new Complex(1,1));
-		System.out.println(b.x + " + i" + b.y);
-		System.out.println(c.mult(b).x + " + i"+c.mult(b).y);
-		System.out.println(a.x + " + i" + a.y);
+		System.out.println(b.print(1));
+		System.out.println(c.print(3));
+		System.out.println(a.print(4));
 	}
 }
+
