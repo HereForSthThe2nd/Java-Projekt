@@ -40,6 +40,7 @@ public class FunctionPowloka {
 		System.out.println(f.write(set));
 	}
 	public static void main(String[] args) throws WrongSyntaxException {
+		System.out.println("haha");
 		FunctionPowloka fp = new FunctionPowloka("Ln(z+i-1)/w");
 		System.out.println("a");
 		FunctionPowloka fp2 = new FunctionPowloka("exp(2i)-i+1");
