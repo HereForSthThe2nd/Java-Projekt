@@ -2,6 +2,15 @@ package poczatek;
 
 import java.util.ArrayList;
 
+class Bool<T>{
+	final T f;
+	final boolean p;
+	Bool(T f, boolean p){
+		this.f = f;
+		this.p = p;
+	}
+}
+
 abstract public class Function
  {
 	static int calledReadCounter = 0;
@@ -13,16 +22,16 @@ abstract public class Function
 		this.type=type;
 		this.nofArg = nofArg;
 	}
-	
-
-
 	abstract public Complex evaluate(Complex[] arg);
 	
-	abstract public String write(PrintSettings settings);//doubleAcc >= 1
+	abstract public String write(PrintSettings settings);
+	
+	abstract public boolean equals(Function f);
 	
 	abstract public Function putArguments(Function[] args);
 	
-	abstract public Function expand();
+	//TODO: w przyszłości dodać ustawienia do expand, aby istaniała decyzja czy rozszerzać zmienne oraz stałe, czy nie
+	abstract public Bool<Function> expand();
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.charAt(0) == '=') str = str.substring(1);

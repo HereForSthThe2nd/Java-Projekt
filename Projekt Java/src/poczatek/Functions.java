@@ -4,123 +4,53 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class FuncNamed extends Function{
-	//żadne 2 funkcje FuncNamed nie mogą mieć tego samego pola name
-	final String name;
-	public FuncNamed(int type, int nofArg, String name) {
-		super(type, nofArg);
-		this.name = name;
+
+class FuncComp extends Function {
+	FuncNamed f;
+	Function[] g;
+	public FuncComp(FuncNamed f, Function[] g) {
+		super(Functions.COMPOSITE, Functions.countArguments(g));
+		this.f = f;
+		if(g.length<f.nofArg)
+			throw new IllegalArgumentException("Funkcja " + f.name + " musi przyjmować " + f.nofArg + " argumenty a nie "+g.length);
+		Function[] args = new Function[f.nofArg];
+		for(int i = 0;i<f.nofArg;i++) {
+			args[i] = g[i];
+		}
+		this.g = args;
+	}
+	@Override
+	public Complex evaluate(Complex[] arg) {
+		return f.evaluate(Functions.evaluate(g, arg));
 	}
 	@Override
 	public String write(PrintSettings settings) {
-			return name;
-	}
-}
-
-abstract class FuncDefault extends FuncNamed{
-
-	public FuncDefault(int nofArg, String name) {
-		super(Functions.FUNC, nofArg, name);
-	}
-
-	@Override
-	public Function putArguments(Function[] args) {
-		return new FuncComp(this, args);
-	}
-
-	@Override
-	public Function expand() {
-		return this;
-	}
-}
-
-abstract class FuncConstDefault extends FuncNamed{
-	public FuncConstDefault(String name) {
-		super(Functions.WORD, 0, name);
-	}
-
-	@Override
-	public Function putArguments(Function[] args) {
-		return this;
-	}
-	@Override
-	public Function expand() {
-		return this;
-	}
-}
-
-class FuncGivenName extends FuncNamed{
-	final Function f;
-	public FuncGivenName(Function f, String name) {
-		super(Functions.FUNC, f.nofArg, name);
-		this.f=f;
-	}
-
-	@Override
-	public Complex evaluate(Complex[] arg) {
-		return f.evaluate(arg);
-	}
-
-	@Override
-	public Function putArguments(Function[] args) {
-		return new FuncComp(this, args);
-	}
-	
-	@Override
-	public Function expand() {
-		return f;
-	}
-}
-
-class FuncVar extends FuncNamed{
-	final Function f;
-	public FuncVar(String name, Function f) {
-		super(Functions.WORD, f.nofArg, name);
-		this.f=f;
-	}
-
-	@Override
-	public Complex evaluate(Complex[] arg) {
-		return f.evaluate(arg);
-	}
-
-	@Override
-	public Function putArguments(Function[] args) {
-		return f.putArguments(args);
-	}
-	
-	@Override
-	public Function expand() {
-		return f;
-	}
-}
-
-class FuncConstGivenName extends FuncNamed{
-	final Function f;
-	public FuncConstGivenName(String name, Function f) {
-		super(Functions.WORD, 0, name);
-		if(f.nofArg != 0) {
-			throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Podana funkxja: " + f.write(PrintSettings.defaultSettings));
+		String str = f.name + "(" + g[0].write(settings);
+		for(int i=1; i<g.length;i++) {
+			str += ", " + g[i].write(settings);
 		}
-		this.f=f;
+		str += ")";
+		return str;
 	}
-
-	@Override
-	public Complex evaluate(Complex[] arg) {
-		return f.evaluate(new Complex[] {});
-	}
-
 	@Override
 	public Function putArguments(Function[] args) {
-		return this;
+		return new FuncComp(f, Functions.putArguments(g, args));
 	}
-
 	@Override
-	public Function expand() {
-		return f;
+	public Bool<Function> expand() {
+		Bool<Function> inner = f.expand();
+		if(inner.p)
+			return new Bool<Function> (inner.f.putArguments(g), inner.p);
+		Bool<Function[]> a = Functions.expand(g);
+		return new Bool<Function> (inner.f.putArguments(a.f), a.p);
+	}
+	@Override
+	public boolean equals(Function f) {
+		if(f.type == this.type)
+			return Functions.equals(this.g, ((FuncComp)f).g);
+		return false;
 	}
 }
-
 
 class FuncNumConst extends Function {
 	final static int DODR=1, //1.09, i, 0  //chodzi o to czy trzeba dodawać nawiasy przy wypisywaniu
@@ -130,6 +60,7 @@ class FuncNumConst extends Function {
 	final Complex a;
 	final int form;
 	FuncNumConst(Complex a){
+
 
 		super(Functions.NUMCONST, 0);
 		this.a = a;
@@ -168,10 +99,20 @@ class FuncNumConst extends Function {
 	}
 
 	@Override
-	public Function expand() {
-		return this;
+	public Bool<Function> expand() {
+
+		return new Bool<Function>(this, false);
+	}
+
+	@Override
+	public boolean equals(Function f) {
+		if(f.type != this.type)
+			return false;
+		return this.a == ((FuncNumConst)f).a;
 	}	
 }
+
+
 
 class FuncSum extends Function {
 	Function[] f;
@@ -193,6 +134,7 @@ class FuncSum extends Function {
 	//TODO: zrobić z możliwymi minusami jeśli będzie możliwość
 	@Override
 	public String write(PrintSettings settings) {
+
 		String str = f[0].write(settings);
 		for(int i=1;i<f.length;i++) {
 			str += " + "+f[i].write(settings);
@@ -206,8 +148,16 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	public Function expand() {
-		return new FuncSum(Functions.expand(f));
+	public Bool<Function> expand() {
+		Bool<Function[]>ret = Functions.expand(f);
+		return new Bool<Function> (new FuncSum(ret.f), ret.p);
+	}
+
+	@Override
+	public boolean equals(Function f) {
+		if(f.type == this.type)
+			return Functions.equals(this.f, ((FuncSum)f).f);
+		return false;
 	}
 }
 
@@ -243,45 +193,15 @@ class FuncMult extends Function {
 		return new FuncMult(Functions.putArguments(f, args));
 	}
 	@Override
-	public Function expand() {
-		return new FuncMult(Functions.expand(f));
-	}
-}
-
-class FuncComp extends Function {
-	FuncNamed f;
-	Function[] g;
-	public FuncComp(FuncNamed f, Function[] g) {
-		super(Functions.FUNC, Functions.countArguments(g));
-		this.f = f;
-		if(g.length<f.nofArg)
-			throw new IllegalArgumentException("Funkcja " + f.name + " musi przyjmować " + f.nofArg + " a nie "+g.length);
-		Function[] args = new Function[f.nofArg];
-		for(int i = 0;i<f.nofArg;i++) {
-			args[i] = g[i];
-		}
-		this.g = args;
+	public Bool<Function> expand() {
+		Bool<Function[]>ret = Functions.expand(f);
+		return new Bool<Function> (new FuncMult(ret.f), ret.p);
 	}
 	@Override
-	public Complex evaluate(Complex[] arg) {
-		return f.evaluate(Functions.evaluate(g, arg));
-	}
-	@Override
-	public String write(PrintSettings settings) {
-		String str = f.name + "(" + g[0].write(settings);
-		for(int i=1; i<g.length;i++) {
-			str += ", " + g[i].write(settings);
-		}
-		str += ")";
-		return str;
-	}
-	@Override
-	public Function putArguments(Function[] args) {
-		return new FuncComp(f, Functions.putArguments(g, args));
-	}
-	@Override
-	public Function expand() {
-		return f.expand().putArguments(g);
+	public boolean equals(Function f) {
+		if(f.type == this.type)
+			return Functions.equals(this.f, ((FuncMult)f).f);
+		return false;
 	}
 }
 
@@ -306,19 +226,28 @@ class FuncPow extends Function{
 		return new FuncPow(f.putArguments(args), g.putArguments(args));
 	}
 	@Override
-	public Function expand() {
-		return new FuncPow(f.expand(), g.expand());
+	public Bool<Function> expand() {
+		Bool<Function> fExp = f.expand();
+		Bool<Function> gExp = g.expand();
+		return new Bool<Function> (new FuncPow(fExp.f, gExp.f), fExp.p || gExp.p);
+	}
+	@Override
+	public boolean equals(Function f) {
+		if(f.type == this.type)
+			return this.f.equals(((FuncPow)f).f) && this.g.equals(((FuncPow)f).g);
+		return false;
 	}
 }
 
 
 public class Functions {
-	final static int NUMCONST = 1,
-			WORD = 2,
+	final static int 
+			NUMCONST = 1,
+			NAMED = 2,
 			ADD=3,
 			MULT=4,
 			POW=5,
-			FUNC=6;
+			COMPOSITE=6;
 	
 	static int countArguments(Function[] f) {
 		int max=0;
@@ -329,12 +258,27 @@ public class Functions {
 		return max;
 	}
 	
-	public static Function[] expand(Function[] f) {
-		Function[] g = new Function[f.length];
-		for(int i=0; i< g.length; i++) {
-			g[i] = f[i].expand();
+	
+	public static boolean equals(Function[] f, Function g[]) {
+		if(f.length != g.length)
+			return false;
+		for(int i=0;i<f.length;i++) {
+			if(!f[i].equals(g[i]))
+				return false;
 		}
-		return g;
+		return true;
+	}
+	
+	public static Bool<Function[]> expand(Function[] f) {
+		Function[] g = new Function[f.length];
+		boolean changed = false;
+		for(int i=0; i< g.length; i++) {
+			 Bool<Function> gib = f[i].expand();
+			 g[i] = gib.f;
+			 if(gib.p)
+				 changed = true;
+		}
+		return new Bool<Function[]>(g,changed);
 	}
 
 	protected static Complex[] evaluate(Function[] functions, Complex[] args) {
@@ -441,6 +385,8 @@ public class Functions {
 	public static nameAndValue<FuncNamed> userVar = new nameAndValue<FuncNamed>();
 	
 	static void addNmdFunc(FuncNamed f) {
+		if(ckeckIfVar(f.name) || checkIfNmdFunc(f.name))
+			throw new IllegalArgumentException("Już istnieje " + (ckeckIfVar(f.name) ? "zmienna":"funkcja") + " o takiej nazwie.");
 		userFunctions.add(f, f.name);
 	}
 	
@@ -454,8 +400,10 @@ public class Functions {
 		return defaultFunctions.checkIfContained(str) ? defaultFunctions.functionOf(str) : userFunctions.functionOf(str);
 	}
 
-	static void addVar(FuncNamed f, String str) {
-		userVar.add(f, str);
+	static void addVar(FuncNamed f) {
+		if(ckeckIfVar(f.name) || checkIfNmdFunc(f.name))
+			throw new IllegalArgumentException("Już istnieje " + (ckeckIfVar(f.name) ? "zmienna":"funkcja") + " o takiej nazwie.");
+		userVar.add(f, f.name);
 	}
 	
 	static boolean ckeckIfVar(String str) {
@@ -473,7 +421,8 @@ public class Functions {
 			return userVar.functionOf(str);
 
 		if(str.equals("z") || str.equals("z[0]")) 
-			return new FuncNamed(WORD,1, "z") {
+			return new FuncNamed(1, "z") {
+
 				@Override
 				public Complex evaluate(Complex[] arg) {
 					return arg[0];
@@ -483,12 +432,13 @@ public class Functions {
 					return args[0];
 				}
 				@Override
-				public Function expand() {
-					return this;
+				public Bool<Function> expand() {
+
+					return new Bool<Function>(this, false);
 				}
 			};
 		if(str.equals("x") || str.equals("x[0]")) 
-			return new FuncNamed(WORD, 1, "x") {
+			return new FuncNamed(1, "x") {
 				@Override
 				public Complex evaluate(Complex[] arg) {
 					return new Complex(arg[0].x,0);
@@ -500,13 +450,15 @@ public class Functions {
 				}
 
 				@Override
-				public Function expand() {
-					return this;
+				public Bool<Function> expand() {
+
+					return new Bool<Function>(this, false);
 				}
 			
 			};
 		if(str.equals("y") || str.equals("y[0]")) 
-			return new FuncNamed(WORD, 1, "y") {
+			return new FuncNamed(1, "y") {
+
 				@Override
 				public Complex evaluate(Complex[] arg) {
 					return new Complex(0,arg[0].y);
@@ -518,12 +470,13 @@ public class Functions {
 				}
 
 				@Override
-				public Function expand() {
-					return this;
+				public Bool<Function> expand() {
+
+					return new Bool<Function>(this, false);
 				}
 			};
 		if(str.equals("w")) {
-			return new FuncNamed(WORD, 2, "z[1]") {
+			return new FuncNamed(2, "z[1]") {
 				@Override
 				public Complex evaluate(Complex[] arg) {
 					return arg[1];
@@ -535,8 +488,8 @@ public class Functions {
 				}
 
 				@Override
-				public Function expand() {
-					return this;
+				public Bool<Function> expand() {
+					return new Bool<Function>(this, false);
 				}
 			};
 		}
@@ -544,7 +497,7 @@ public class Functions {
 		int k = Integer.parseInt(str.substring(2, str.length()-1));
 		switch(str.charAt(0)) {
 		case 'z':
-			return new FuncNamed(WORD,k+1, str) {
+			return new FuncNamed(k+1, str) {
 				@Override
 				public Complex evaluate(Complex[] arg) {
 					return arg[k];
@@ -556,12 +509,13 @@ public class Functions {
 				}
 
 				@Override
-				public Function expand() {
-					return this;
+				public Bool<Function> expand() {
+					return new Bool<Function>(this, false);
 				}
 			};
 		case 'x':
-			return new FuncNamed(WORD,k+1, str) {
+			return new FuncNamed(k+1, str) {
+
 
 				@Override
 				public Complex evaluate(Complex[] arg) {
@@ -574,12 +528,14 @@ public class Functions {
 				}
 
 				@Override
-				public Function expand() {
-					return this;
+				public Bool<Function> expand() {
+
+					return new Bool<Function>(this, false);
 				}
 			};
 		case 'y':
-			return new FuncNamed(WORD,k+1, "y") {
+			return new FuncNamed(k+1, "y") {
+
 				@Override
 				public Complex evaluate(Complex[] arg) {
 					return new Complex(0,arg[k].y);
@@ -591,8 +547,9 @@ public class Functions {
 				}
 
 				@Override
-				public Function expand() {
-					return this;
+				public Bool<Function> expand() {
+
+					return new Bool<Function>(this, false);
 				}
 			};
 		}

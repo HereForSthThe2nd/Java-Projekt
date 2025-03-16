@@ -33,26 +33,39 @@ public class FunctionPowloka {
 	}
 	
 	public void expand() {
-		f = f.expand();
+
+		f = f.expand().f;
 	}
 	
 	public void print(PrintSettings set) {
 		System.out.println(f.write(set));
 	}
-	public static void main(String[] args) throws WrongSyntaxException {
-		System.out.println("haha");	
-		FunctionPowloka fp = new FunctionPowloka("Ln(z+i-1)/w");
-		System.out.println("a");
+	
+	static public void test1() throws WrongSyntaxException {
+		System.out.println("Powinno zwrócić 2 + 2i");
+		FunctionPowloka fp = new FunctionPowloka("Ln(z+i-1)/w*z[2]");
 		FunctionPowloka fp2 = new FunctionPowloka("exp(2i)-i+1");
-		System.out.println("b");
-		fp2.changeToConst("alpha");
-		System.out.println("c");
+		FunctionPowloka fp3 = new FunctionPowloka("z[1]/z[2]");
 		fp.putTogether("f");
-		System.out.println("d");
-		FunctionPowloka h = new FunctionPowloka("f(alpha, z)");
-		System.out.println("e");
-		Complex g = h.evaluate(new Complex[] {Complex.i});
-		System.out.println("f");
+		fp2.changeToConst("alpha");
+		fp3.changeToVar("zmienna");
+		FunctionPowloka h = new FunctionPowloka("f(alpha, 1/zmienna, 1/z[2])");
+		h.print(PrintSettings.defaultSettings);
+		Complex g = h.evaluate(new Complex[] {Complex.i, new Complex(1,1), Complex.i});
 		g.print();
+		h.expand();
+		h.print(PrintSettings.defaultSettings);
+		h.evaluate(new Complex[] {Complex.i, new Complex(1,1), Complex.i}).print();
+		h.expand();
+		h.print(PrintSettings.defaultSettings);
+		h.evaluate(new Complex[] {Complex.i, new Complex(1,1), Complex.i}).print();
+		h.expand();
+		h.print(PrintSettings.defaultSettings);
+		h.evaluate(new Complex[] {Complex.i, new Complex(1,1), Complex.i}).print();
+
+	}
+	
+	public static void main(String[] args) throws WrongSyntaxException {
+		test1();
 	}
 }
