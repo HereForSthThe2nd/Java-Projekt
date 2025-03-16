@@ -5,17 +5,7 @@ import java.util.ArrayList;
 abstract public class Function
  {
 	static int calledReadCounter = 0;
-	static String[] var = {"z", "x", "y"};//po kolei: zmienna zespolona, część rzeczywista, część urojona
-	static String[] knownConstants = {"e", "pi", "phi", "i"};
-	static Function[] knownConstantsVal = {Functions.e ,Functions.pi, Functions.phi, Functions.i};
-	static String[] knownFunctions = {
-			"exp",
-			"Ln"
-	};
-	static DefinedFunction[] knownFunctionsVal = {
-			Functions.exp,
-			Functions.Ln
-	};
+	
 	final int type;
 	final int nofArg;
 	
@@ -30,11 +20,13 @@ abstract public class Function
 	
 	abstract public String write(PrintSettings settings);//doubleAcc >= 1
 	
+	abstract public Function putArguments(Function[] args);
+	
+	abstract public Function expand();
+	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.charAt(0) == '=') str = str.substring(1);
 		str = str.replaceAll("\\s", "");
-		str = str.replaceAll("[{]", "(");
-		str = str.replaceAll("[}]", ")");
 		str = BlokList.configureStr(str);
 		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE + "].*")) 
 			throw new WrongSyntaxException(
@@ -58,35 +50,25 @@ abstract public class Function
 		calledReadCounter++;
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0)//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
-			return new FuncConst(new Complex(0));
+			return new FuncNumConst(new Complex(0));
 		if(bloki.arr.size() == 1) {
 			Blok blok = bloki.arr.get(0);
 			switch(blok.type) {
 			case Blok.NUMBER:
-				return new FuncConst(new Complex(Double.parseDouble(blok.str)));
+				return new FuncNumConst(new Complex(Double.parseDouble(blok.str)));
 			case Blok.FUNCTION:
-				String[] strArg = blok.str.split(",");
-				System.out.println(strArg[0]);
+				String[] strArg = blok.str.substring(1, blok.str.length()-1).split(",");
 				Function[] arg = new Function[strArg.length];
 				for(int i=0; i<strArg.length;i++) {
 					arg[i] = read(new BlokList(strArg[i]));
+
 				}
 				return new FuncComp(((BlokWthDefFunction)blok).funkcja, arg);
 			case Blok.WORD:
-				switch(BlokList.indexOf(var, blok.str)) {
-				case -1:
-					break;
-				case 0:
-					return Functions.Id;
-				case 1:
-					return Functions.Re;
-				case 2:
-					return Functions.Im;
+				if(Functions.ckeckIfVar(blok.str)) {
+					return Functions.returnVar(blok.str);
 				}
-				if(BlokList.indexOf(knownConstants, blok.str) != -1) {
-					return knownConstantsVal[BlokList.indexOf(knownConstants, blok.str)];
-				}
-				throw new WrongSyntaxException(blok.str + " nie jest znaną nazwą ani funkcji ani stałej");
+				throw new WrongSyntaxException(blok.str + " nie jest znaną nazwą ani funkcji ani zmiennej ani stałej.");
 			}
 		}
 		int splitIndex;
@@ -96,11 +78,11 @@ abstract public class Function
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
 			return new FuncSum(new Function[] {lFunc, rFunc});
 		}
-		splitIndex = bloki.find("-",1);
+		splitIndex = bloki.find("-",-1);
 		if(splitIndex != -1) {
 			Function lFunc = read(bloki.subList(0, splitIndex));
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
-			return new FuncSum(new Function[] {lFunc, new FuncMult(new Function[] {new FuncConst(new Complex(-1.0)), rFunc})});
+			return new FuncSum(new Function[] {lFunc, new FuncMult(new Function[] {new FuncNumConst(new Complex(-1.0)), rFunc})});
 		}
 		splitIndex = bloki.find("*",1);
 		if(splitIndex != -1) {
@@ -108,11 +90,11 @@ abstract public class Function
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
 			return new FuncMult(new Function[] {lFunc, rFunc});
 		}
-		splitIndex = bloki.find("/",1);
+		splitIndex = bloki.find("/",-1);
 		if(splitIndex != -1) {
 			Function lFunc = read(bloki.subList(0, splitIndex));
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
-			return new FuncMult(new Function[] {lFunc, new FuncPow(rFunc, new FuncConst(new Complex(-1.0)))});
+			return new FuncMult(new Function[] {lFunc, new FuncPow(rFunc, new FuncNumConst(new Complex(-1.0)))});
 		}
 		splitIndex = bloki.find("^",-1);
 		if(splitIndex != -1) {
@@ -122,8 +104,8 @@ abstract public class Function
 			}
 			BlokList lBlok = bloki.subList(0, leftPowIndex-2);
 			BlokList rBlok = bloki.subList(splitIndex+2, bloki.arr.size());
-			Function lFunc = lBlok.arr.size()==0 ? new FuncConst(new Complex(1)) : read(lBlok);
-			Function rFunc = rBlok.arr.size()==0 ? new FuncConst(new Complex(1)) : read(rBlok);
+			Function lFunc = lBlok.arr.size()==0 ? new FuncNumConst(new Complex(1)) : read(lBlok);
+			Function rFunc = rBlok.arr.size()==0 ? new FuncNumConst(new Complex(1)) : read(rBlok);
 
 			return new FuncMult(new Function[] {lFunc, rFunc,
 					new FuncPow(read(bloki.subList(leftPowIndex-1, splitIndex)), read(bloki.subList(splitIndex+1, bloki.arr.size()))) });
@@ -131,15 +113,51 @@ abstract public class Function
 		return new FuncMult(new Function[] {read(bloki.subList(0, 1)), read(bloki.subList(1, bloki.arr.size()))});
 	}
 
-	public static void main(String[] args) throws WrongSyntaxException {
-
-		BlokList bloki = new BlokList(preliminaryChanges("exp(1+z^8/z^7+2pi*i-1)"));
-		//bloki.print();
+	private static void test() throws WrongSyntaxException {
+		BlokList bloki = new BlokList(preliminaryChanges("exp(z+w)/exp(x+i*y)/exp(z[1])"));
+		bloki.print();
 		
 		Function f = read(bloki);
 
-		//System.out.println(Complex.div(3.14, ));
-		f.evaluate(new Complex[] {new Complex(0, Math.PI)}).print();
+		f.evaluate(new Complex[] {new Complex(1,0), new Complex(3,1)}).print();
 		System.out.println(f.write(PrintSettings.defaultSettings));
+
+	}
+	
+	private static void test2() throws WrongSyntaxException {
+		BlokList bloki1 = new BlokList(preliminaryChanges("z + z[1] * z[3]+0.78+i"));
+		Function f0 = read(bloki1);
+		System.out.println("f0 liczba argumentów 4 == " + f0.nofArg);
+		BlokList bloki2 = new BlokList(preliminaryChanges("z[2]+z[1]"));
+		Function f2 = read(bloki2);
+		System.out.println("f2 liczba argumentów 3 == " + f2.nofArg);
+		BlokList bloki3 = new BlokList(preliminaryChanges("x[2]"));
+		Function f3 = read(bloki3);
+		System.out.println("f3 liczba argumentów 3 == " + f3.nofArg);
+		BlokList bloki4 = new BlokList(preliminaryChanges("exp(z+w)/exp(x+i*y)/exp(z[1])"));
+		Function f4 = read(bloki4);
+		System.out.println("f4 liczba argumentów 2 == " + f4.nofArg);
+		BlokList bloki5 = new BlokList(preliminaryChanges("z"));
+		Function f5 = read(bloki5);
+		System.out.println("f5 liczba argumentów 1 == " + f5.nofArg);
+		Complex[] ars = new Complex[] { new Complex(2,3), new Complex(1,1), new Complex(1.4,2) };
+		Function g1 = f0.putArguments(new Function[] {f2,f3,f4,f5});
+		System.out.println("g1 liczba argumentów 3 == " + g1.nofArg);
+		System.out.println(g1.write(PrintSettings.defaultSettings));
+		g1.evaluate(ars).print();
+		
+		Function g2 = read(new BlokList(preliminaryChanges(g1.write(PrintSettings.defaultSettings))));
+		System.out.println(g2.write(PrintSettings.defaultSettings));
+		g2.evaluate(ars).print();
+		
+		FuncNamed f = new FuncGivenName(f0, "f");
+		Function g = new FuncComp(f, new Function[] {f2,f3,f4,f5});
+		System.out.println(g.write(PrintSettings.defaultSettings));
+		Function gEx = g.expand();
+		System.out.println(gEx.write(PrintSettings.defaultSettings));
+	}
+	
+	public static void main(String[] args) throws WrongSyntaxException {
+
 	}
 }

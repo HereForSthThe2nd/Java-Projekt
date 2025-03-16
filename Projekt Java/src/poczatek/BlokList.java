@@ -5,6 +5,7 @@ import java.util.List;
 
 
 class Blok{
+	
 	final static int 
 		WORD = 1,
 		FUNCTION = 2,
@@ -36,15 +37,15 @@ class Blok{
 }
 
 class BlokWthDefFunction extends Blok{
-	DefinedFunction funkcja;
-	BlokWthDefFunction(String wejsc, int[] konce, int type, DefinedFunction funkcja) {
+	FuncNamed funkcja;
+	BlokWthDefFunction(String wejsc, int[] konce, int type, FuncNamed funkcja) {
 		super(wejsc, konce, type);
 		//System.out.println(type);
 		this.funkcja = funkcja;
 		if(type != Blok.FUNCTION)
 			throw new IllegalArgumentException("BlokWthFunction musi być typu Blok.FUNCTION");
 	}
-	BlokWthDefFunction(String wejsc, int pocz, int kon, int type, DefinedFunction funkcja){
+	BlokWthDefFunction(String wejsc, int pocz, int kon, int type, FuncNamed funkcja){
 		super(wejsc, pocz,kon,type);
 		this.pocz -=  wejsc.length();
 		this.funkcja = funkcja;
@@ -54,6 +55,7 @@ class BlokWthDefFunction extends Blok{
 	
 	@Override
 	public void print() {
+
 
 		System.out.println(funkcja.name + str + " type: 2");
 	}
@@ -71,13 +73,17 @@ class BlokList{
 		int index = 0;
 		while(index<str.length()) {
 			Blok blok = znajdzBlok(str, index);
+			if(blok.pocz == -1 || blok.kon == -1) {
+				throw new WrongSyntaxException("Nawiasy się nie domykają.", "pełny string: " + str + "chyba w normalnych okolicznościach nie powinno do tego błędu dochodzić, sprawdzić to");
+			}
 			arr.add(blok);
 			index = blok.kon;
 		}
-		if((arr.get(0).type == Blok.OPERATION && arr.get(0).str.matches("[^+-]")) ||
-				(arr.get(arr.size()-1).type == Blok.OPERATION && arr.get(arr.size()-1).str.matches("[^+-]"))) {
-			throw new WrongSyntaxException("operacja gdzieś zle zapisana. cały str: "+str+".",
-					"operacja gdzieś żle zapisana");
+		if((arr.get(0).type == Blok.OPERATION && arr.get(0).str.matches("[^+-]"))) {
+			throw new WrongSyntaxException("Operacja " + arr.get(0).str + " nie może stać na początku wyrażenia." , "cały str: "+str+".");
+		}
+		if((arr.get(arr.size()-1).type == Blok.OPERATION && arr.get(arr.size()-1).str.matches("[^+-]"))) {
+			throw new WrongSyntaxException("Operacja " + arr.get(arr.size()-1).str + " nie może stać na końcu wyrażenia." , "cały str: "+str+".");
 		}
 	}
 	
@@ -129,6 +135,15 @@ class BlokList{
 		return -1;
 	}
 	
+	protected static int indexOf(ArrayList<String> arr, String str) {
+		for(int i=0;i<arr.size();i++) {
+			if(arr.get(i).equals(str))
+				return i;
+		}
+		return -1;
+
+	}
+	
 	protected static boolean contains(String[] arr, String str) {
 		return indexOf(arr, str) == -1 ? false : true;
 	}
@@ -138,8 +153,10 @@ class BlokList{
 	}		
 	
 	protected static String configureStr(String str) {
-		while(str.charAt(0) == '(' && str.charAt(str.length()-1) == ')') {
+		int[] konce = wNawiasach(str, 0);
+		while(konce[0]==0 && konce[1] == str.length()-1) {
 			str = str.substring(1, str.length()-1);
+			konce = wNawiasach(str, 0);
 		}
 		return str;
 	}
@@ -170,7 +187,7 @@ class BlokList{
 		while(napotkaneNawiasyL != 1) {
 			konce[0] -= 1;
 			if(konce[0] == -1) break;
-			if( (""+str.charAt(konce[0])).matches(OPERATORY + "|[\\(\\)]") ) {
+			if( (""+str.charAt(konce[0])).matches(OPERATORY + "|[\\(\\)\\{\\}]") ) {
 				konce[0] = -1;
 				break;
 			}
@@ -189,7 +206,7 @@ class BlokList{
 				konce[1] = -1;
 				break;
 			}
-			if((""+str.charAt(konce[1])).matches(OPERATORY+"|[\\(\\)]")) {
+			if((""+str.charAt(konce[1])).matches(OPERATORY+"|[\\(\\)\\{\\}]")) {
 				konce[1] = -1;
 				break;
 			}
@@ -220,7 +237,66 @@ class BlokList{
 		return konce;
 	}
 
-	protected static int[] wNawiasach(String str, int index) {
+	
+	private static int[] wNawiasachKl(String str, int index) throws WrongSyntaxException {
+		//sprawdza czy pole o indeksie index jest zawarte pomiędzy dwoma nawiasami {}. niedozwolona jest sytuacja, w której takie nawiasy są w sobie zwarte
+		//jeśli tak zwraca ich położenia jeśli nie zwraca -1 dla odpowiednich stron. wynik {-1, (.)!=-1} lub odwrotnie oznacza błędną składnię
+		//zwraca położenia najbardzei wewnętrznych nawiasów możliwych
+		int[] konce = {index, index};
+		boolean napotkanoL = false;
+		boolean napotkanoP = false;
+		boolean napotkanoOkrągły = false;
+		if(str.charAt(index) == '{') napotkanoL = true;
+		if(str.charAt(index) == '}') napotkanoP = true;
+		while(!napotkanoL) {
+			konce[0]--;
+			if(konce[0] == -1)
+				break;
+			switch(str.charAt(konce[0])) {
+			case '{':
+				napotkanoL = true;
+				break;
+			case '}':
+				konce[0] = -1;
+				napotkanoL = true;
+				break;
+			case '(':
+				napotkanoOkrągły = true;
+				break;
+			case ')':
+				napotkanoOkrągły = true;
+				break;
+			}
+		}
+		while(!napotkanoP) {
+			konce[1]++;
+			if(konce[1] == str.length()) {
+				konce[1] = -1;
+				break;
+			}
+			switch(str.charAt(konce[1])) {
+			case '{':
+				konce[1] = -1;
+				napotkanoP = true;
+				break;
+			case '}':
+				napotkanoP = true;
+				break;
+			case '(':
+				napotkanoOkrągły = true;
+				break;
+			case ')':
+				napotkanoOkrągły = true;
+				break;
+			}
+		}
+		if(napotkanoOkrągły && konce[0] > 0 && konce[1]>0)
+			throw new WrongSyntaxException("W nawiasach klamrowych nie mogą występować okrągłe nawiasy.\nString: " + str + "indek:" + index+".",
+					"W nawiasach klamrowych nie mogą występować okrągłe nawiasy.");
+		return konce;
+	} 
+	
+	private static int[] wNawiasach(String str, int index) {
 		//sprawdza czy pole o indeksie index jest zawarte pomiędzy dwoma nawiasami ()
 		//jeśli tak zwraca ich położenia jeśli nie zwraca -1 dla odpowiednich stron. wynik {-1, (.)!=-1} lub odwrotnie oznacza błędną składnię
 		//zwraca położenia najbardzei jwewnętrznych nawiasów możliwych
@@ -263,14 +339,28 @@ class BlokList{
 	
 	private static boolean checkSquareBrackets(String str, int index, int[] konce) throws WrongSyntaxException {
 		//tylko i wyłącznie dla metody blok
+		//modyfikuje argumenty int[] konce
 		int[] temp = wNawiasachKw(str, index);
-		if(temp[0] * temp[1] < 0) {
-			throw new WrongSyntaxException(
-				String.format("Kwadratowe nawiasy się nie zamykają\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str),
-				"Kwadratowe nawiasy się nie zamykają.");
+		if((temp[0] == -1 && !(temp[1] == -1)) || (temp[1] == -1 && !(temp[0] == -1))) {
+			throw new WrongSyntaxException("Kwadratowe nawiasy się nie zamykają", String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
 		}
 		if(temp[0] > -1 && temp[1] > -1) {
-			konce[0] = temp[0] = temp[0]-1;
+			konce[0] = temp[0];
+			konce[1] = temp[1]+1;
+			return true;
+		}
+		return false;
+	}
+	
+	private static boolean checkKlamBrackets(String str, int index, int[] konce) throws WrongSyntaxException {
+		//tylko i wyłącznie dla metody blok
+		//modyfikuje argumenty int[] konce
+		int[] temp = wNawiasachKl(str, index);
+		if(temp[0] * temp[1] < 0) {
+			throw new WrongSyntaxException("Klamrowe nawiasy się nie zamykają", String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
+		}
+		if(temp[0] > -1 && temp[1] > -1) {
+			konce[0] = temp[0];
 			konce[1] = temp[1]+1;
 			return true;
 		}
@@ -291,31 +381,53 @@ class BlokList{
 		boolean isNum = (""+str.charAt(index)).matches("[0-9.]");
 		boolean isOperation = (str.charAt(index) + "").matches(OPERATORY);
 		boolean hasSquareBrackets = false;
+		boolean hasKlBrackets = false;
 		if(checkSquareBrackets(str, index, konce)) {
+			konce[0] -= 1;
+			if(konce[0] == -1)
+				throw new WrongSyntaxException("Nawiasy kwadratowe nie mogą wystąpić na początku funkcji.");
 			isWord = true;
 			isNum = false;
 			isParenthases = false;
 			isOperation = false;
 			hasSquareBrackets = true;
-		}
+		}else
+			if(checkKlamBrackets(str, index, konce)) {
+				konce[0] -= 1;
+				if(konce[0] == -1)
+					throw new WrongSyntaxException("Nawiasy klamrowe nie mogą wystąpić na początku funkcji.");
+				isWord = true;
+				isNum = false;
+				isParenthases = false;
+				isOperation = false;
+				hasKlBrackets = true;
+			}
 		if(isOperation) {
 			type = Blok.OPERATION;
 			return new Blok(str, index, index+1, type);
 		}
 		if(isWord) {
 			type = Blok.WORD;
-			while(konce[1] < str.length() && !hasSquareBrackets && ((""+str.charAt(konce[1])).matches("[a-zA-Z]") || str.charAt(konce[1]) == ']' || str.charAt(konce[1]) == '[')) {
-				if(str.charAt(konce[1]) == ']' || str.charAt(konce[1]) == '['){
+			while(konce[1] < str.length() && !hasSquareBrackets  && !hasKlBrackets && (""+str.charAt(konce[1])).matches("[a-zA-Z\\[\\{]")) {
+				switch(str.charAt(konce[1])) {
+				case '[':
 					checkSquareBrackets(str, konce[1], konce);
 					hasSquareBrackets = true;
-				}else 
+					konce[0] -= 1;
+					break;
+				case '{':
+					checkKlamBrackets(str, konce[1], konce);
+					hasKlBrackets = true;
+					konce[0] -= 1;
+					break;
+				default: 
 					konce[1] += 1;
+					break;
+				}
 			}
-			while(konce[0] > -1 && ((""+str.charAt(konce[0])).matches("[a-zA-Z]") || str.charAt(konce[0]) == '[')) {
-				if(str.charAt(konce[0]) == '[') {
-					checkSquareBrackets(str, konce[0], konce);
-					hasSquareBrackets = true;
-				}else 
+			if(!(""+str.charAt(konce[0])).matches("[a-zA-Z]"))
+				throw new WrongSyntaxException("Przed nawiasem " + str.charAt(konce[0]+1) + " musi stać litera, a stoi znak " + str.charAt(konce[0]+1) + ".");
+			while(konce[0] > -1 && (""+str.charAt(konce[0])).matches("[a-zA-Z]")) {
 					konce[0] -= 1;
 			}
 			konce[0]++;
@@ -345,14 +457,15 @@ class BlokList{
 		if(isParenthases) {
 			type = Blok.PARENTHASES;
 			int[] temp = wNawiasach(str, index);
-			if(temp[0] * temp[1] < 0)
-				throw new WrongSyntaxException("Nawiasy () nie domykają się poprawnie.\n"
-						+ "Występuje nawias \'" + (temp[1]==-1 ? "(\'" : ")\'") + " bez odpowiadającego mu nawiasu \'" + (temp[0]==-1 ? "(\'." : ")\'."));
+			if((temp[0] == -1 && !(temp[1] == -1)) || (temp[1] == -1 && !(temp[0] == -1)))
+				throw new WrongSyntaxException(	"Nawiasy () nie domykają się poprawnie.\n "
+								+ "Występuje nawias \'" + (temp[1]==-1 ? "(\'" : ")\'") + " bez odpowiadającego mu nawiasu \'" + (temp[0]==-1 ? "(\'." : ")\'."),
+								"\n caly str: " + str);
 			konce[0] = temp[0];
 			konce[1] = temp[1]+1;
 			return new Blok(str, konce, type);
 		}
-		else
+		else //TODO: może nie będzie trzeba robić, ale tutaj chyba powinien być WrongSyntaksException
 			throw new IllegalArgumentException("Niepoprawne argumenty. Podanemu indeksowi nie można przypisać ani cyfry ani litery (ani [])\nindex:"+
 						index+".  cos na indeksie:"+str.charAt(index) + ".  cały str: " + str+".");
 	}
@@ -361,14 +474,15 @@ class BlokList{
 
 		//zwraca położenia końców bloku wokół index. Zwraca indeks lewej strony oraz indeks+1 prawej.
 		Blok blok = znajdzBlokPom(str, index);
+
 		if(blok.type == Blok.WORD) {
-			if(contains(Function.knownFunctions, blok.str)) {
+			if(Functions.checkIfNmdFunc(blok.str)) {
 				if(blok.kon == str.length()+1)
 					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
 				Blok prawaStrona = znajdzBlokPom(str, blok.kon);
 				if(prawaStrona.type != Blok.PARENTHASES)
 					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
-				return new BlokWthDefFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Function.knownFunctionsVal[indexOf(Function.knownFunctions, blok.str )]);
+				return new BlokWthDefFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Functions.returnNmdFunc(blok.str));
 			}
 				
 		}
@@ -376,8 +490,8 @@ class BlokList{
 			if(blok.pocz == 0)
 				return blok;
 			Blok lewaStrona = znajdzBlokPom(str, blok.pocz-1);
-			if(lewaStrona.type == Blok.WORD && contains(Function.knownFunctions, lewaStrona.str))
-				return new BlokWthDefFunction(str, blok.pocz, blok.kon, Blok.FUNCTION, Function.knownFunctionsVal[indexOf(Function.knownFunctions, lewaStrona.str )]);
+			if(lewaStrona.type == Blok.WORD && Functions.checkIfNmdFunc(lewaStrona.str))
+				return new BlokWthDefFunction(str, blok.pocz, blok.kon, Blok.FUNCTION, Functions.returnNmdFunc(lewaStrona.str));
 		}
 		return blok;
 
@@ -385,6 +499,6 @@ class BlokList{
 	
 	public static void main(String[] args) throws WrongSyntaxException {
 
-		znajdzBlokPom("[]", 0).print();
+		new BlokList("1.0a{5.90[]}d2.3dsa[32.13243[dsd[]][]]as[]j[]").print();
 	}
 }
