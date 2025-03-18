@@ -19,6 +19,11 @@ abstract class FuncNamed extends Function{
 		}
 		return false;
 	}
+	@Override
+	public Bool<Function> simplify() {
+		return new Bool<Function>(this,false);
+	}
+
 }
 
 abstract class FuncDefault extends FuncNamed{

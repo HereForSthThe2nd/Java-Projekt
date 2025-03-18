@@ -39,16 +39,25 @@ class FuncComp extends Function {
 	@Override
 	public Bool<Function> expand() {
 		Bool<Function> inner = f.expand();
-		if(inner.p)
-			return new Bool<Function> (inner.f.putArguments(g), inner.p);
+		if(inner.bool)
+			return new Bool<Function> (inner.f.putArguments(g), inner.bool);
 		Bool<Function[]> a = Functions.expand(g);
-		return new Bool<Function> (inner.f.putArguments(a.f), a.p);
+		return new Bool<Function> (inner.f.putArguments(a.f), a.bool);
 	}
 	@Override
 	public boolean equals(Function f) {
 		if(f.type == this.type)
 			return Functions.equals(this.g, ((FuncComp)f).g);
 		return false;
+	}
+	@Override
+	public Bool<Function> simplify() {
+		if(g[0].type == Functions.NAMED) {
+			if(f.name == "exp" && ((FuncNamed)g[0]).name == "Ln")
+				return new Bool<Function> (g[0].simplify().f, true);
+		}
+		Bool<Function[]> newArg = Functions.simplifyAll(g);
+		return new Bool<Function> (new FuncComp(f, newArg.f), newArg.bool);
 	}
 }
 
@@ -60,8 +69,6 @@ class FuncNumConst extends Function {
 	final Complex a;
 	final int form;
 	FuncNumConst(Complex a){
-
-
 		super(Functions.NUMCONST, 0);
 		this.a = a;
 		if(a.x==0 && a.y==1) {
@@ -108,58 +115,16 @@ class FuncNumConst extends Function {
 	public boolean equals(Function f) {
 		if(f.type != this.type)
 			return false;
-		return this.a == ((FuncNumConst)f).a;
+		return this.a.equals( ((FuncNumConst)f).a );
+	}
+
+	@Override
+	public Bool<Function> simplify() {
+		return new Bool<Function>(this, false);
 	}	
 }
 
 
-
-class FuncSum extends Function {
-	Function[] f;
-	public FuncSum(Function[] f) {
-		super(Functions.ADD, Functions.countArguments(f));
-		if(f.length == 0) 
-			throw new IllegalArgumentException("Podany ciąg musi mieć co najmniej jeden element");
-		this.f=f;
-	}
-	
-	@Override
-	public Complex evaluate(Complex[] arg) {
-		Complex sum = new Complex(0);
-		for(int i=0; i<f.length; i++) {
-			sum = sum.add(f[i].evaluate(arg));
-		}
-		return sum;
-	}
-	//TODO: zrobić z możliwymi minusami jeśli będzie możliwość
-	@Override
-	public String write(PrintSettings settings) {
-
-		String str = f[0].write(settings);
-		for(int i=1;i<f.length;i++) {
-			str += " + "+f[i].write(settings);
-		}
-		return str;
-	}
-
-	@Override
-	public Function putArguments(Function[] args) {
-		return new FuncSum(Functions.putArguments(f, args));
-	}
-
-	@Override
-	public Bool<Function> expand() {
-		Bool<Function[]>ret = Functions.expand(f);
-		return new Bool<Function> (new FuncSum(ret.f), ret.p);
-	}
-
-	@Override
-	public boolean equals(Function f) {
-		if(f.type == this.type)
-			return Functions.equals(this.f, ((FuncSum)f).f);
-		return false;
-	}
-}
 
 class FuncMult extends Function {
 	Function[] f;
@@ -169,11 +134,15 @@ class FuncMult extends Function {
 			throw new IllegalArgumentException("Podany ciąg musi mieć co najmniej jeden element");
 		this.f=f;
 	}
+	public FuncMult(Function f, Function g) {
+		super(Functions.MULT, Functions.countArguments(new Function[] {f,g}));
+		this.f=new Function[] {f,g};
+	}
 	@Override
 	public Complex evaluate(Complex[] arg) {
 		Complex mult = new Complex(1);
 		for(int i=0; i<f.length; i++) {
-			mult = mult.mult(f[i].evaluate(arg));
+			mult.mult(f[i].evaluate(arg));
 		}
 		return mult;
 	}
@@ -182,8 +151,14 @@ class FuncMult extends Function {
 	//TODO: usuwać nawiasy kiedy to możliwe
 	@Override
 	public String write(PrintSettings settings) {
-		String str = "("+f[0].write(settings) + ")";
-		for(int i=1;i<f.length;i++) {
+		int i = 0;
+		String str = "";
+		if(f[0].equals(new FuncNumConst(new Complex(-1)))) {
+			str += "-";
+			i++;
+		}
+		str += "("+f[i].write(settings) + ")";
+		for(i++;i<f.length;i++) {
 			str += " * ("+f[i].write(settings) + ")";
 		}
 		return str;
@@ -195,13 +170,18 @@ class FuncMult extends Function {
 	@Override
 	public Bool<Function> expand() {
 		Bool<Function[]>ret = Functions.expand(f);
-		return new Bool<Function> (new FuncMult(ret.f), ret.p);
+		return new Bool<Function> (new FuncMult(ret.f), ret.bool);
 	}
 	@Override
 	public boolean equals(Function f) {
 		if(f.type == this.type)
 			return Functions.equals(this.f, ((FuncMult)f).f);
 		return false;
+	}
+	@Override
+	public Bool<Function> simplify() {
+		// TODO Auto-generated method stub
+		return new Bool<Function>(this, false);
 	}
 }
 
@@ -229,13 +209,18 @@ class FuncPow extends Function{
 	public Bool<Function> expand() {
 		Bool<Function> fExp = f.expand();
 		Bool<Function> gExp = g.expand();
-		return new Bool<Function> (new FuncPow(fExp.f, gExp.f), fExp.p || gExp.p);
+		return new Bool<Function> (new FuncPow(fExp.f, gExp.f), fExp.bool || gExp.bool);
 	}
 	@Override
 	public boolean equals(Function f) {
 		if(f.type == this.type)
 			return this.f.equals(((FuncPow)f).f) && this.g.equals(((FuncPow)f).g);
 		return false;
+	}
+	@Override
+	public Bool<Function> simplify() {
+		// TODO Auto-generated method stub
+		return new Bool<Function>(this,false);
 	}
 }
 
@@ -257,8 +242,20 @@ public class Functions {
 		}
 		return max;
 	}
-	
-	
+
+	public static Bool<Function[]> simplifyAll(Function[] g) {
+		Function[] g2 = new Function[g.length];
+		boolean sthChanged = false;
+		for(int i = 0; i<g.length;i++) {
+			Bool<Function> simp = g[i].simplify();
+			g2[i] = simp.f;
+			if(simp.bool) {
+				sthChanged = true;
+			}
+		}
+		return new Bool<Function[]>(g2, sthChanged);
+	}
+
 	public static boolean equals(Function[] f, Function g[]) {
 		if(f.length != g.length)
 			return false;
@@ -275,7 +272,7 @@ public class Functions {
 		for(int i=0; i< g.length; i++) {
 			 Bool<Function> gib = f[i].expand();
 			 g[i] = gib.f;
-			 if(gib.p)
+			 if(gib.bool)
 				 changed = true;
 		}
 		return new Bool<Function[]>(g,changed);
@@ -339,13 +336,7 @@ public class Functions {
 			return new Complex((Math.sqrt(5)+1)/2);
 		}
 	};	
-	final static Function i = new FuncConstDefault("i") {
-		@Override
-		public Complex evaluate(Complex[] arg) {
-			return Complex.i;
-		}
-	};		
-
+	final static Function i = new FuncNumConst(Complex.i);
 	
 	static class nameAndValue<rFunc>{
 
@@ -453,8 +444,7 @@ public class Functions {
 				public Bool<Function> expand() {
 
 					return new Bool<Function>(this, false);
-				}
-			
+				}			
 			};
 		if(str.equals("y") || str.equals("y[0]")) 
 			return new FuncNamed(1, "y") {

@@ -9,7 +9,7 @@ public class FunctionPowloka {
 	public FunctionPowloka(String str) throws WrongSyntaxException {
 		f = Function.read(new BlokList(Function.preliminaryChanges(str)));
 	}
-	public FunctionPowloka(Function f, PrintSettings set) {
+	public FunctionPowloka(Function f) {
 		this.f = f;
 	}
 	
@@ -32,11 +32,18 @@ public class FunctionPowloka {
 		Functions.userVar.add((FuncNamed)f, str);
 	}
 	
+	public boolean equals(FunctionPowloka fP) {
+		return f.equals(fP.f);
+	}
+	
 	public void expand() {
 
 		f = f.expand().f;
 	}
 	
+	public void simplify() {
+		this.f = f.simplify().f;
+	}
 	public void print(PrintSettings set) {
 		System.out.println(f.write(set));
 	}
@@ -66,6 +73,17 @@ public class FunctionPowloka {
 	}
 	
 	public static void main(String[] args) throws WrongSyntaxException {
-		test1();
+		System.out.println((new FunctionPowloka("exp(x^2+1+2)")).equals(new FunctionPowloka("exp(x^2+1+2)")));
+		//FunctionPowloka f = new FunctionPowloka(new FuncSum(new Function[] {Function.read(new BlokList("exp(z)")), Function.read(new BlokList("9")), Function.read(new BlokList("exp(z)"))}));//new FunctionPowloka("exp(z)+9+exp(z)");
+		FunctionPowloka g = new FunctionPowloka("9+exp(z)+9.89+2i-i+3exp(z)+i*exp(z)+exp(x)");
+		//f.print(PrintSettings.defaultSettings);
+		g.print(PrintSettings.defaultSettings);
+		//f.simplify();
+		g.simplify();
+		//czemuuu nie dziaała
+		//f.print(PrintSettings.defaultSettings);
+		g.print(PrintSettings.defaultSettings);
+		g.simplify();
+		g.print(PrintSettings.defaultSettings);
 	}
 }

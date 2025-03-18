@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 class Bool<T>{
 	final T f;
-	final boolean p;
+	final boolean bool;
 	Bool(T f, boolean p){
 		this.f = f;
-		this.p = p;
+		this.bool = p;
 	}
 }
 
@@ -24,6 +24,8 @@ abstract public class Function
 	}
 	abstract public Complex evaluate(Complex[] arg);
 	
+	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
+	
 	abstract public String write(PrintSettings settings);
 	
 	abstract public boolean equals(Function f);
@@ -32,6 +34,8 @@ abstract public class Function
 	
 	//TODO: w przyszłości dodać ustawienia do expand, aby istaniała decyzja czy rozszerzać zmienne oraz stałe, czy nie
 	abstract public Bool<Function> expand();
+	//bardzo podstawowe
+	abstract public Bool<Function> simplify();
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.charAt(0) == '=') str = str.substring(1);
@@ -91,13 +95,13 @@ abstract public class Function
 		if(splitIndex != -1) {
 			Function lFunc = read(bloki.subList(0, splitIndex));
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
-			return new FuncSum(new Function[] {lFunc, new FuncMult(new Function[] {new FuncNumConst(new Complex(-1.0)), rFunc})});
+			return new FuncSum(new Function[] {lFunc, new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc)});
 		}
 		splitIndex = bloki.find("*",1);
 		if(splitIndex != -1) {
 			Function lFunc = read(bloki.subList(0, splitIndex));
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
-			return new FuncMult(new Function[] {lFunc, rFunc});
+			return new FuncMult(lFunc, rFunc);
 		}
 		splitIndex = bloki.find("/",-1);
 		if(splitIndex != -1) {
@@ -123,7 +127,7 @@ abstract public class Function
 	}
 
 	private static void test() throws WrongSyntaxException {
-		BlokList bloki = new BlokList(preliminaryChanges("exp(z+w)/exp(x+i*y)/exp(z[1])"));
+		BlokList bloki = new BlokList(preliminaryChanges("-1-z^2"));
 		bloki.print();
 		
 		Function f = read(bloki);
@@ -162,11 +166,11 @@ abstract public class Function
 		FuncNamed f = new FuncGivenName(f0, "f");
 		Function g = new FuncComp(f, new Function[] {f2,f3,f4,f5});
 		System.out.println(g.write(PrintSettings.defaultSettings));
-		Function gEx = g.expand();
+		Function gEx = g.expand().f;
 		System.out.println(gEx.write(PrintSettings.defaultSettings));
 	}
 	
 	public static void main(String[] args) throws WrongSyntaxException {
-
+		test();
 	}
 }

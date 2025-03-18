@@ -58,8 +58,10 @@ public class Complex {
 		double s3 = (a.x+a.y)*(b.x+b.y);
 		return new Complex(s1-s2, s3-s1-s2);
 	}
-	public Complex mult(Complex b) {
-		return mult(this,b);
+	public void mult(Complex b) {
+		Complex cmplx = mult(this,b);
+		this.x = cmplx.x;
+		this.y = cmplx.y;
 	}
 	static public Complex div(Complex a, Complex b) {
 		if(b.x == 0 && b.y == 0) return null;
@@ -67,20 +69,24 @@ public class Complex {
 		Complex l = Complex.mult(a, b.conj());
 		return new Complex(l.x/d, l.y/d);
 	}
-	public Complex div(Complex b) {
-		return div(this, b);
+	public void div(Complex b) {
+		Complex cmplx = div(this, b);
+		this.x = cmplx.x;
+		this.y = cmplx.y;
 	}
 	static public Complex add(Complex a, Complex b) {
 		return new Complex(a.x+b.x, a.y+b.y);
 	}
-	public Complex add(Complex b) {
-		return add(this, b);
+	public void add(Complex b) {
+		this.x += b.x;
+		this.y += b.y;
 	}
 	public static Complex subt(Complex a, Complex b) {
 		return new Complex(a.x-b.x, a.y-b.y);
 	}
-	public Complex subt(Complex b) {
-		return subt(this, b);
+	public void subt(Complex b) {
+		this.x -= b.x;
+		this.y -= b.y;
 	}
 	public static Complex exp(Complex a) {
 		return mult( new Complex(Math.exp(a.x)),   add( mult( i,new Complex(Math.sin(a.y)) ), new Complex(Math.cos(a.y)) ));
@@ -101,7 +107,7 @@ public class Complex {
 				n /= 2;
 				a = mult(a,a);
 			}else {
-				w = w.mult(a);
+				w.mult(a);
 				n -= 1;
 			}
 		}
@@ -111,18 +117,18 @@ public class Complex {
 		if(b.y == 0 && b.x == (int)b.x) {
 			return pow(a, (int)b.x);
 		}
-		return exp(b.mult(Ln(a)));
+		return exp(mult(b, Ln(a)));
 	}
 	public Complex pow(Complex b) {
 		return pow(this,b);
 	}
 	public static void main(String[] args) {
-		Complex a = pow(new Complex(2,1), new Complex(1,1));
+		Complex a = new Complex(1,1);
 		Complex c = new Complex(2,1);
 		Complex b = Ln(new Complex(1,1));
-		System.out.println(b.print(1));
-		System.out.println(c.print(3));
-		System.out.println(a.print(4));
+		Complex.add(a, c).print();
+		a.add(c);
+		a.print();
 	}
 }
 
