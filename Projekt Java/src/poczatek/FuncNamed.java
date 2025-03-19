@@ -20,8 +20,8 @@ abstract class FuncNamed extends Function{
 		return false;
 	}
 	@Override
-	public Bool<Function> simplify() {
-		return new Bool<Function>(this,false);
+	public Function simplify() {
+		return this;
 	}
 
 }
@@ -35,7 +35,6 @@ abstract class FuncDefault extends FuncNamed{
 
 	@Override
 	public Function putArguments(Function[] args) {
-
 		return new FuncComp(this, args);
 	}
 

@@ -5,62 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-class FuncComp extends Function {
-	FuncNamed f;
-	Function[] g;
-	public FuncComp(FuncNamed f, Function[] g) {
-		super(Functions.COMPOSITE, Functions.countArguments(g));
-		this.f = f;
-		if(g.length<f.nofArg)
-			throw new IllegalArgumentException("Funkcja " + f.name + " musi przyjmować " + f.nofArg + " argumenty a nie "+g.length);
-		Function[] args = new Function[f.nofArg];
-		for(int i = 0;i<f.nofArg;i++) {
-			args[i] = g[i];
-		}
-		this.g = args;
-	}
-	@Override
-	public Complex evaluate(Complex[] arg) {
-		return f.evaluate(Functions.evaluate(g, arg));
-	}
-	@Override
-	public String write(PrintSettings settings) {
-		String str = f.name + "(" + g[0].write(settings);
-		for(int i=1; i<g.length;i++) {
-			str += ", " + g[i].write(settings);
-		}
-		str += ")";
-		return str;
-	}
-	@Override
-	public Function putArguments(Function[] args) {
-		return new FuncComp(f, Functions.putArguments(g, args));
-	}
-	@Override
-	public Bool<Function> expand() {
-		Bool<Function> inner = f.expand();
-		if(inner.bool)
-			return new Bool<Function> (inner.f.putArguments(g), inner.bool);
-		Bool<Function[]> a = Functions.expand(g);
-		return new Bool<Function> (inner.f.putArguments(a.f), a.bool);
-	}
-	@Override
-	public boolean equals(Function f) {
-		if(f.type == this.type)
-			return Functions.equals(this.g, ((FuncComp)f).g);
-		return false;
-	}
-	@Override
-	public Bool<Function> simplify() {
-		if(g[0].type == Functions.NAMED) {
-			if(f.name == "exp" && ((FuncNamed)g[0]).name == "Ln")
-				return new Bool<Function> (g[0].simplify().f, true);
-		}
-		Bool<Function[]> newArg = Functions.simplifyAll(g);
-		return new Bool<Function> (new FuncComp(f, newArg.f), newArg.bool);
-	}
-}
-
 class FuncNumConst extends Function {
 	final static int DODR=1, //1.09, i, 0  //chodzi o to czy trzeba dodawać nawiasy przy wypisywaniu
 			DODUR=2, //2i, 2.11i
@@ -119,72 +63,13 @@ class FuncNumConst extends Function {
 	}
 
 	@Override
-	public Bool<Function> simplify() {
-		return new Bool<Function>(this, false);
+	public Function simplify() {
+		return this;
 	}	
 }
 
 
-
-class FuncMult extends Function {
-	Function[] f;
-	public FuncMult(Function[] f) {
-		super(Functions.MULT, Functions.countArguments(f));
-		if(f.length == 0) 
-			throw new IllegalArgumentException("Podany ciąg musi mieć co najmniej jeden element");
-		this.f=f;
-	}
-	public FuncMult(Function f, Function g) {
-		super(Functions.MULT, Functions.countArguments(new Function[] {f,g}));
-		this.f=new Function[] {f,g};
-	}
-	@Override
-	public Complex evaluate(Complex[] arg) {
-		Complex mult = new Complex(1);
-		for(int i=0; i<f.length; i++) {
-			mult.mult(f[i].evaluate(arg));
-		}
-		return mult;
-	}
-	//TODO: niekiedy będzie zapewne lepiej zapisać mnożenie przez konkatenację a nie *
-	//TODO: zrobić z możliwymi dzieleniami (znakami /)
-	//TODO: usuwać nawiasy kiedy to możliwe
-	@Override
-	public String write(PrintSettings settings) {
-		int i = 0;
-		String str = "";
-		if(f[0].equals(new FuncNumConst(new Complex(-1)))) {
-			str += "-";
-			i++;
-		}
-		str += "("+f[i].write(settings) + ")";
-		for(i++;i<f.length;i++) {
-			str += " * ("+f[i].write(settings) + ")";
-		}
-		return str;
-	}
-	@Override
-	public Function putArguments(Function[] args) {
-		return new FuncMult(Functions.putArguments(f, args));
-	}
-	@Override
-	public Bool<Function> expand() {
-		Bool<Function[]>ret = Functions.expand(f);
-		return new Bool<Function> (new FuncMult(ret.f), ret.bool);
-	}
-	@Override
-	public boolean equals(Function f) {
-		if(f.type == this.type)
-			return Functions.equals(this.f, ((FuncMult)f).f);
-		return false;
-	}
-	@Override
-	public Bool<Function> simplify() {
-		// TODO Auto-generated method stub
-		return new Bool<Function>(this, false);
-	}
-}
-
+@Deprecated
 class FuncPow extends Function{
 	Function f;
 	Function g;
@@ -218,9 +103,9 @@ class FuncPow extends Function{
 		return false;
 	}
 	@Override
-	public Bool<Function> simplify() {
+	public Function simplify() {
 		// TODO Auto-generated method stub
-		return new Bool<Function>(this,false);
+		return this;
 	}
 }
 
@@ -243,25 +128,29 @@ public class Functions {
 		return max;
 	}
 
-	public static Bool<Function[]> simplifyAll(Function[] g) {
+	public static Function[] simplifyAll(Function[] g) {
 		Function[] g2 = new Function[g.length];
-		boolean sthChanged = false;
 		for(int i = 0; i<g.length;i++) {
-			Bool<Function> simp = g[i].simplify();
-			g2[i] = simp.f;
-			if(simp.bool) {
-				sthChanged = true;
-			}
+			g2[i] = g[i].simplify();
 		}
-		return new Bool<Function[]>(g2, sthChanged);
+		return g2;
 	}
 
-	public static boolean equals(Function[] f, Function g[]) {
+	public static boolean equals(Function[] f, Function g[]) {//zwraca prawdę, nawet jeśli drugie jest permutacją pierwszego
 		if(f.length != g.length)
 			return false;
+		ArrayList<Integer> usedIndekses = new ArrayList<Integer>();
+		outer:
 		for(int i=0;i<f.length;i++) {
-			if(!f[i].equals(g[i]))
-				return false;
+			for(int j=0;j<g.length;j++) {
+				if(usedIndekses.contains(j))
+					continue;
+				if(f[i].equals(g[j])) {
+					usedIndekses.add(j);
+					continue outer;
+				}
+			return false;
+			}
 		}
 		return true;
 	}
@@ -294,6 +183,7 @@ public class Functions {
 		return ret;
 	}
 	final private static FuncNamed Ln = new FuncDefault(1, "Ln") {
+		//przy upraszczaniu pamięta konkretną gałąz
 		@Override
 		public Complex evaluate(Complex[] arg) {
 			return Complex.Ln(arg[0]);
@@ -318,19 +208,26 @@ public class Functions {
 			return new Complex(arg[0].y);
 		}
 	};
-	final static Function e = new FuncConstDefault("e") {
+	final static FuncNamed Pow = new FuncDefault(2,"Pow") {
+		//przy upraszczaniu pamięta gałąz
+		@Override
+		public Complex evaluate(Complex[] arg) {
+			return arg[0].pow(arg[1]);
+		}
+	};
+	final static FuncNamed e = new FuncConstDefault("e") {
 		@Override
 		public Complex evaluate(Complex[] arg) {
 			return new Complex(Math.E);
 		}
 	};
-	final static Function pi = new FuncConstDefault("pi") {
+	final static FuncNamed pi = new FuncConstDefault("pi") {
 		@Override
 		public Complex evaluate(Complex[] arg) {
 			return new Complex(Math.PI);
 		}
 	};
-	final static Function phi = new FuncConstDefault("phi") {
+	final static FuncNamed phi = new FuncConstDefault("phi") {
 		@Override
 		public Complex evaluate(Complex[] arg) {
 			return new Complex((Math.sqrt(5)+1)/2);

@@ -41,9 +41,23 @@ public class FunctionPowloka {
 		f = f.expand().f;
 	}
 	
-	public void simplify() {
-		this.f = f.simplify().f;
+	public void simplifyOnce() {
+		 f = f.simplify();
 	}
+	
+	public void simplify() throws Exception {
+		int i = 0;
+		Function fNew = f.simplify();
+		while(!fNew.equals(f)) {
+			f = fNew;
+			
+			fNew = f.simplify();
+			i++;
+			if(i >= 5000)//zmienić na bardziej konkretny błąd, ale jeszcze nie wiem co
+				throw new Exception("Podczas simplify po 5000 iteracjach program nadal mówi, że jaszcze się ni skończyło.");
+		}
+	}
+	
 	public void print(PrintSettings set) {
 		System.out.println(f.write(set));
 	}
@@ -72,15 +86,14 @@ public class FunctionPowloka {
 
 	}
 	
-	public static void main(String[] args) throws WrongSyntaxException {
-		System.out.println((new FunctionPowloka("exp(x^2+1+2)")).equals(new FunctionPowloka("exp(x^2+1+2)")));
+	public static void main(String[] args) throws Exception {
+		//System.out.println((new FunctionPowloka("exp(x^2+1+2)")).equals(new FunctionPowloka("exp(x^2+1+2)")));
 		//FunctionPowloka f = new FunctionPowloka(new FuncSum(new Function[] {Function.read(new BlokList("exp(z)")), Function.read(new BlokList("9")), Function.read(new BlokList("exp(z)"))}));//new FunctionPowloka("exp(z)+9+exp(z)");
-		FunctionPowloka g = new FunctionPowloka("9+exp(z)+9.89+2i-i+3exp(z)+i*exp(z)+exp(x)");
+		FunctionPowloka g = new FunctionPowloka("exp(exp(Ln(2i*1/2^x)))*(1+i) + exp(exp(Ln(2i*1/2^x)))*(25)");
 		//f.print(PrintSettings.defaultSettings);
 		g.print(PrintSettings.defaultSettings);
 		//f.simplify();
 		g.simplify();
-		//czemuuu nie dziaała
 		//f.print(PrintSettings.defaultSettings);
 		g.print(PrintSettings.defaultSettings);
 		g.simplify();

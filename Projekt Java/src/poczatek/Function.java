@@ -35,7 +35,7 @@ abstract public class Function
 	//TODO: w przyszłości dodać ustawienia do expand, aby istaniała decyzja czy rozszerzać zmienne oraz stałe, czy nie
 	abstract public Bool<Function> expand();
 	//bardzo podstawowe
-	abstract public Bool<Function> simplify();
+	abstract public Function simplify();
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.charAt(0) == '=') str = str.substring(1);
@@ -107,21 +107,22 @@ abstract public class Function
 		if(splitIndex != -1) {
 			Function lFunc = read(bloki.subList(0, splitIndex));
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()));
-			return new FuncMult(new Function[] {lFunc, new FuncPow(rFunc, new FuncNumConst(new Complex(-1.0)))});
+			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.Pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
 		}
 		splitIndex = bloki.find("^",-1);
 		if(splitIndex != -1) {
 			int leftPowIndex = splitIndex;
-			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str == "^") {
+			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str.equals("^")) {
 				leftPowIndex -= 2;
 			}
-			BlokList lBlok = bloki.subList(0, leftPowIndex-2);
+			BlokList lBlok = bloki.subList(0, leftPowIndex-1);
 			BlokList rBlok = bloki.subList(splitIndex+2, bloki.arr.size());
 			Function lFunc = lBlok.arr.size()==0 ? new FuncNumConst(new Complex(1)) : read(lBlok);
 			Function rFunc = rBlok.arr.size()==0 ? new FuncNumConst(new Complex(1)) : read(rBlok);
-
 			return new FuncMult(new Function[] {lFunc, rFunc,
-					new FuncPow(read(bloki.subList(leftPowIndex-1, splitIndex)), read(bloki.subList(splitIndex+1, bloki.arr.size()))) });
+					new FuncComp(Functions.Pow,
+							new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex)), read(bloki.subList(splitIndex+1, bloki.arr.size()))})});
+
 		}
 		return new FuncMult(new Function[] {read(bloki.subList(0, 1)), read(bloki.subList(1, bloki.arr.size()))});
 	}

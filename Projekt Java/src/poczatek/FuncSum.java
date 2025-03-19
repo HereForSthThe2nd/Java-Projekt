@@ -3,12 +3,12 @@ package poczatek;
 import java.util.ArrayList;
 
 class FuncSum extends Function {
-	final Function[] f;
+	final Function[] summands;
 	public FuncSum(Function[] f) {
 		super(Functions.ADD, Functions.countArguments(f));
 		if(f.length == 0) 
 			throw new IllegalArgumentException("Podany ciąg musi mieć co najmniej jeden element");
-		this.f=f;
+		this.summands=f;
 	}
 	
 	private boolean canPutTogetherPom(Function f, Function g) {
@@ -61,120 +61,111 @@ class FuncSum extends Function {
 		return null;
 	}
 	
-	private Bool<ArrayList<Function>> putEveryThingTogether(Function[] arr, ArrayList<Integer> zabronioneIndeksy){
+	private ArrayList<Function> putEveryThingTogether(ArrayList<Function> arr, ArrayList<Integer> zabronioneIndeksy){
 		ArrayList<Integer> uzyteIndeksy = zabronioneIndeksy; 
-		if(arr.length == 0)
+		if(arr.size() == 0)
 			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
 		ArrayList<Function> ret = new ArrayList<Function>();
-		boolean sthChanged = false;
 		int countIndex = 0;
-		for(int i=0;i<arr.length;i++) {
+		for(int i=0;i<arr.size();i++) {
 			if(uzyteIndeksy.contains(i))
 				continue;
-			ret.add(arr[i]);
-			for(int j=i+1;j<arr.length;j++) {
-				if(canPutTogether(arr[j], arr[i])) {
-						ret.set(countIndex, putTogether(arr[j], ret.get(countIndex)));
-						sthChanged = true;
+			ret.add(arr.get(i));
+			for(int j=i+1;j<arr.size();j++) {
+				if(canPutTogether(arr.get(j), arr.get(i))) {
+						ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
 						uzyteIndeksy.add(j);
 				}
 			}
 			countIndex++;
 		}
-		return new Bool<ArrayList<Function>>(ret, sthChanged);
+		return ret;
 	}
 	
 	@Override
 	public Complex evaluate(Complex[] arg) {
 		Complex sum = new Complex(0);
-		for(int i=0; i<f.length; i++) {
-			sum.add(f[i].evaluate(arg));
+		for(int i=0; i<summands.length; i++) {
+			sum.add(summands[i].evaluate(arg));
 		}
 		return sum;
 	}
 
 	@Override
 	public String write(PrintSettings settings) {
-		String str = f[0].write(settings);
-		for(int i=1;i<f.length;i++) {
-			if(f[i].type == Functions.MULT) {
-				if(((FuncMult)f[i]).f[0].equals(new FuncNumConst(new Complex(-1))))
-					str += f[i].write(settings);
+		String str = summands[0].write(settings);
+		for(int i=1;i<summands.length;i++) {
+			if(summands[i].type == Functions.MULT) {
+				if(((FuncMult)summands[i]).f[0].equals(new FuncNumConst(new Complex(-1))))
+					str += summands[i].write(settings);
 				else
-					str += " + "+f[i].write(settings);
+					str += " + "+summands[i].write(settings);
 			}else
-				str += " + "+f[i].write(settings);
+				str += " + "+summands[i].write(settings);
 		}
 		return str;
 	}
 
 	@Override
 	public Function putArguments(Function[] args) {
-		return new FuncSum(Functions.putArguments(f, args));
+		return new FuncSum(Functions.putArguments(summands, args));
 	}
 
 	@Override
 	public Bool<Function> expand() {
-		Bool<Function[]>ret = Functions.expand(f);
+		Bool<Function[]>ret = Functions.expand(summands);
 		return new Bool<Function> (new FuncSum(ret.f), ret.bool);
 	}
 
 	@Override
 	public boolean equals(Function f) {
 		if(f.type == this.type)
-			return Functions.equals(this.f, ((FuncSum)f).f);
+			return Functions.equals(this.summands, ((FuncSum)f).summands);
 		return false;
 	}
 
 	@Override
-	public Bool<Function> simplify() {
+	public Function simplify() {
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
-		if(f.length == 1)
-			return new Bool<Function> (f[0].simplify().f, true);
-		ArrayList<Function> arr = new ArrayList<Function>();
-		Bool<Function[]> f2p = Functions.simplifyAll(f);
-		Function[] f2 = f2p.f;
-		ArrayList<Function> f2Pom = new ArrayList<Function>();
-		for(int i=0;i<f2.length;i++) {
-			if(f2[i].type == Functions.ADD) {
-				for(int j=0;j<((FuncSum)f2[i]).f.length;j++) {
-					f2Pom.add(((FuncSum)f2[i]).f[j]);
+		if(summands.length == 1)
+			return summands[0].simplify();
+		ArrayList<Function> organisedSummands = new ArrayList<Function>();
+		Function[] simplSummands = Functions.simplifyAll(summands);
+		ArrayList<Function> extendedSummands = new ArrayList<Function>();
+		for(int i=0;i<simplSummands.length;i++) {
+			if(simplSummands[i].type == Functions.ADD) {
+				for(int j=0;j<((FuncSum)simplSummands[i]).summands.length;j++) {
+					extendedSummands.add(((FuncSum)simplSummands[i]).summands[j]);
 				}
 			}
 			else {
-				f2Pom.add(f2[i]);
+				extendedSummands.add(simplSummands[i]);
 			}
 		}
-		f2=f2Pom.toArray(new Function[f2Pom.size()]);
-		boolean sthChanged = f2p.bool;
 		ArrayList<Integer> zabronioneIndeksy = new ArrayList<Integer>();
 		Complex numConst = new Complex(0);
-		for(int i=0;i<f.length;i++) {
-			if(f[i].type == Functions.NUMCONST) {
-				numConst.add(((FuncNumConst)f[i]).a);
-				sthChanged = i==0 ? false : true;
+		for(int i=0;i<summands.length;i++) {
+			if(summands[i].type == Functions.NUMCONST) {
+				numConst.add(((FuncNumConst)summands[i]).a);
 				zabronioneIndeksy.add(i);
 			}
 		}
-		Bool<ArrayList<Function>> arrPomp= putEveryThingTogether(f2, zabronioneIndeksy);
-		ArrayList<Function> arrPom = arrPomp.f;
-		if(arrPomp.bool)
-			sthChanged = true;
+		ArrayList<Function> summandsPutTogether = putEveryThingTogether(extendedSummands, zabronioneIndeksy);
 		if(!numConst.equals(new Complex(0))) {
-			arr.add(new FuncNumConst(numConst));
+			organisedSummands.add(new FuncNumConst(numConst));
 		}
-		for(int i=0;i<arrPom.size();i++) {
-			if(arrPom.get(i).nofArg == 0) {
-				arr.add(arrPom.get(i));
-				arrPom.remove(i);
+		for(int i=0;i<summandsPutTogether.size();i++) {
+			if(summandsPutTogether.get(i).nofArg == 0) {
+				organisedSummands.add(summandsPutTogether.get(i));
+				summandsPutTogether.remove(i);
 				i--;
-			}else
-				{sthChanged = true;}
+			}
 		}
-		arr.addAll(arrPom);
-		if(arr.size() == 0)
-			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
-		return new Bool<Function>(new FuncSum((Function[])(arr.toArray(new Function[arr.size()]))), sthChanged);
+		organisedSummands.addAll(summandsPutTogether);
+
+		if(organisedSummands.size() == 0)
+			return new FuncNumConst(new Complex(0));
+		return new FuncSum((Function[])(organisedSummands.toArray(new Function[organisedSummands.size()])));
 	}
 }
