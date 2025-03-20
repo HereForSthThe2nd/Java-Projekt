@@ -97,7 +97,7 @@ class FuncSum extends Function {
 		for(int i=1;i<summands.length;i++) {
 			if(summands[i].type == Functions.MULT) {
 				if(((FuncMult)summands[i]).f[0].equals(new FuncNumConst(new Complex(-1))))
-					str += summands[i].write(settings);
+					str += " " + summands[i].write(settings);
 				else
 					str += " + "+summands[i].write(settings);
 			}else

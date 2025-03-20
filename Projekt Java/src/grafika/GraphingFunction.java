@@ -22,6 +22,8 @@ import javax.swing.JPanel;
 
 import funkcja.Complex;
 import funkcja.Function;
+import funkcja.FunctionPowloka;
+import funkcja.Settings;
 import funkcja.WrongSyntaxException;
 
 import javax.swing.JComponent;
@@ -33,7 +35,7 @@ import java.awt.image.BufferedImage;
 public class GraphingFunction extends JLabel {
 	BufferedImage img;
 	JLabel label;
-	public GraphingFunction(Function f, Complex lewyDolny, Complex prawyGorny) {
+	public GraphingFunction(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double lSpeedChange) {
 		double A = Math.sqrt((prawyGorny.x-lewyDolny.x)/(prawyGorny.y-lewyDolny.y));
 		//setSize((int)(500*A), (int)(500/A));
 		img = new BufferedImage((int)(500*A),(int)(500/A),BufferedImage.TYPE_INT_RGB);
@@ -47,7 +49,7 @@ public class GraphingFunction extends JLabel {
 				x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
 				y = yI*(prawyGorny.y-lewyDolny.y)/img.getWidth()+lewyDolny.y;
 				Complex[] z = new Complex[] {new Complex(x,y)};
-				int[] RGBColor = HSLToRGB(pointToHSL(f.evaluate(z)));
+				int[] RGBColor = HSLToRGB(pointToHSL(f.evaluate(z),lSpeedChange));
 				img.setRGB(xI, yI, rgbToHex(RGBColor));
 			}
 		}
@@ -59,12 +61,13 @@ public class GraphingFunction extends JLabel {
 		ImageIO.write(img, "png", imgfile);
 	}
 	
-	static double[] pointToHSL(Complex z) {
+	static double[] pointToHSL(Complex z, double lSpeedChange) {
 		//TODO: abyładnie wyglądało, zapewne dać użytkownikowi parę opcji
 		double[] HSL = new double[3];
 		HSL[0] = z.arg() + 2.0/3*Math.PI;
 		HSL[1] = 1;
-		HSL[2] = 2/Math.PI*Math.atan( Math.log((z.mod())+1) );
+		//HSL[2] = 2/Math.PI*Math.atan( Math.log(Math.pow(z.mod(), 1/lSpeedChange)+1) );
+		HSL[2] = 2/Math.PI*Math.atan( Math.pow(Math.log((z.mod()+1)), 1/lSpeedChange ));
 		if(HSL[2]>1 || HSL[2]<0) {
 		}
 		return HSL;
@@ -95,15 +98,13 @@ public class GraphingFunction extends JLabel {
 	
 	public static void main(String[] args) throws WrongSyntaxException, IOException {
 		//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
-		Function funkcja = Function.read(new BlokList(Function.preliminaryChanges("exp(z)")), Settings.defaultSettings);
-		System.out.println(funkcja.write(Settings.defaultSettings));
-		//funkcja.evaluate(null).print();
-		
-		GraphingFunction a = new GraphingFunction(funkcja, new Complex(-10,-10), new Complex(10,10));
-		//a.save(funkcja.write(3, false));
+		Settings set = new Settings();
+		FunctionPowloka f1 = new FunctionPowloka("z^pi", set);
+		GraphingFunction graf = new GraphingFunction(f1, new Complex(-10,-10), new Complex(2,5), 2);
 		JFrame frame = new JFrame();
-		frame.add(a);
-		frame.setSize(a.img.getWidth(), a.img.getHeight());
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.add(graf);
+		frame.setSize(graf.img.getWidth(), graf.img.getHeight());
 		frame.setVisible(true);
 
 	}

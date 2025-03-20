@@ -152,7 +152,7 @@ public class FunctionPowloka {
 	
 	public static void main(String[] args) throws Exception {
 		Settings set = new Settings();
-		FunctionPowloka f = new FunctionPowloka("exp(z^3+1)", set);
+		FunctionPowloka f = new FunctionPowloka("1+(-z^2+1)/2", set);
 		(f.evaluate(new Complex[] {new Complex(1,1)})).print();
 		System.out.println("sys1");
 		f.simplify(set);

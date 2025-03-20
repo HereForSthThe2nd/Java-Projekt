@@ -118,14 +118,32 @@ class FuncMult extends Function {
 		int i = 0;
 		String str = "";
 		if(f[0].equals(new FuncNumConst(new Complex(-1)))) {
-			str += "-";
+			if(f.length == 1)
+				return "-1";
+			i++;
+			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).f.name.equals("pow")) {
+				if(((FuncComp)f[i]).g[1].equals(new FuncNumConst(new Complex(-1)))) {
+					if(putParenthases(((FuncComp)f[i]).g[0], true))
+						str += "1 / ("+((FuncComp)f[i]).g[0].write(settings) + ")";
+					else
+						str += "1 / "+((FuncComp)f[i]).g[0].write(settings);
+				}else
+					str += "- "+f[i].write(settings);
+			}else {
+				if(putParenthases(f[i], false))
+					str += "-("+f[i].write(settings) + ")";
+				else
+					str += "- "+f[i].write(settings);
+			}
+			
 		}else
 			if(putParenthases(f[i], false))
 				str += "("+f[i].write(settings) + ")";
 			else
 				str += f[i].write(settings);
+		
 		for(i++;i<f.length;i++) {
-			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).f.name.equals("Pow")) {
+			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).f.name.equals("pow")) {
 					if(((FuncComp)f[i]).g[1].equals(new FuncNumConst(new Complex(-1)))) {
 						if(putParenthases(((FuncComp)f[i]).g[0], true))
 							str += " / ("+((FuncComp)f[i]).g[0].write(settings) + ")";
