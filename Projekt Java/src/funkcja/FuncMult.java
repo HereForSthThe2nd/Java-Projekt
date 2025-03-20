@@ -1,4 +1,4 @@
-package poczatek;
+package funkcja;
 
 import java.util.ArrayList;
 
@@ -16,17 +16,19 @@ class FuncMult extends Function {
 	}
 	
 	private boolean canPutTogetherPom(Function f, Function g) {
-		if(f.type == Functions.COMPOSITE)
-			if(((FuncComp)f).checkComponents("Pow", g))
+		if(f.type == Functions.COMPOSITE) {
+			if(((FuncComp)f).checkComponents1("pow", g))
 				return true;
+		}
 		return false;
 	}
 	
 	private boolean canPutTogetherPom2(Function f, Function g) {
-		if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE)
-			if(((FuncComp)f).f.name == "Pow")
-				if(((FuncComp)g).checkComponents("Pow", ((FuncComp)f).g[0]))
+		if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE) {
+			if(((FuncComp)f).f.name.equals("pow"))
+				if(((FuncComp)g).checkComponents1("pow", ((FuncComp)f).g[0]))
 						return true;
+		}
 		return false;
 	}
 	
@@ -40,27 +42,27 @@ class FuncMult extends Function {
 		if(!canPutTogether(f, g))
 			try {
 				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
-						+ " Podane funkcja f: " + f.write(PrintSettings.defaultSettings) + " podana funkcja g: " + g.write(PrintSettings.defaultSettings));
+						+ " Podane funkcja f: " + f.write(new Settings()) + " podana funkcja g: " + g.write(new Settings()));
 			}catch(Exception e) {
 				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
 			}
 		if(f.equals(g))
-			return new FuncComp(Functions.Pow, new Function[] {f, new FuncNumConst(new Complex(2))});
+			return new FuncComp(Functions.pow, new Function[] {f, new FuncNumConst(new Complex(2))});
 		if(canPutTogetherPom(f, g)) {
 			Function fExponent = ((FuncComp)f).g[1];
-			return new FuncComp(Functions.Pow, new Function[] {g, new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
+			return new FuncComp(Functions.pow, new Function[] {g, new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
 		}
 		if(canPutTogetherPom(g,f)) {
 			Function gExponent = ((FuncComp)g).g[1];
-			return new FuncComp(Functions.Pow, new Function[] {f, new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
+			return new FuncComp(Functions.pow, new Function[] {f, new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
 		}
 		if(canPutTogetherPom2(f,g)) {
 			Function fExponent = ((FuncComp)f).g[1];
 			Function gExponent = ((FuncComp)g).g[1];
-			return new FuncComp(Functions.Pow, new Function[] {((FuncComp)g).g[0], new FuncSum(new Function[] {gExponent,fExponent})});
+			return new FuncComp(Functions.pow, new Function[] {((FuncComp)g).g[0], new FuncSum(new Function[] {gExponent,fExponent})});
 		}
-		System.out.println("FuncSum w PutTogether - coś poszło nie tak, program nie powinien tutaj dojść.");
-		return null;
+		//System.out.println("FuncSum w PutTogether - coś poszło nie tak, program nie powinien tutaj dojść.");
+		throw new IllegalArgumentException("coś poszło nie tak, program nie powinien tutaj dojść.");
 	}
 	
 	private ArrayList<Function> putEveryThingTogether(ArrayList<Function> arr, ArrayList<Integer> zabronioneIndeksy){
@@ -92,20 +94,51 @@ class FuncMult extends Function {
 		}
 		return mult;
 	}
+	
+	private boolean putParenthases(Function f, boolean division) {
+		if(f.type == Functions.ADD)
+			return true;
+		if(f.type == Functions.NUMCONST) {
+			switch(((FuncNumConst)f).form) {
+			case FuncNumConst.UJEMNYPIERWSZY, FuncNumConst.ZES:
+				return true;
+			case FuncNumConst.DODR, FuncNumConst.DODUR:
+				return false;
+			}
+		}
+		if(division && f.type == Functions.MULT)
+			return true;
+		return false;
+	}
 	//TODO: niekiedy będzie zapewne lepiej zapisać mnożenie przez konkatenację a nie *
 	//TODO: zrobić z możliwymi dzieleniami (znakami /)
 	//TODO: usuwać nawiasy kiedy to możliwe
 	@Override
-	public String write(PrintSettings settings) {
+	public String write(Settings settings) {
 		int i = 0;
 		String str = "";
 		if(f[0].equals(new FuncNumConst(new Complex(-1)))) {
 			str += "-";
-			i++;
-		}
-		str += "("+f[i].write(settings) + ")";
+		}else
+			if(putParenthases(f[i], false))
+				str += "("+f[i].write(settings) + ")";
+			else
+				str += f[i].write(settings);
 		for(i++;i<f.length;i++) {
-			str += " * ("+f[i].write(settings) + ")";
+			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).f.name.equals("Pow")) {
+					if(((FuncComp)f[i]).g[1].equals(new FuncNumConst(new Complex(-1)))) {
+						if(putParenthases(((FuncComp)f[i]).g[0], true))
+							str += " / ("+((FuncComp)f[i]).g[0].write(settings) + ")";
+						else
+							str += " / "+((FuncComp)f[i]).g[0].write(settings);
+					}else
+						str += " * "+f[i].write(settings);
+			}else {
+				if(putParenthases(f[i], false))
+					str += " * ("+f[i].write(settings) + ")";
+				else
+					str += " * "+f[i].write(settings);
+			}
 		}
 		return str;
 	}
@@ -125,13 +158,13 @@ class FuncMult extends Function {
 		return false;
 	}
 	@Override
-	public Function simplify() {
+	public Function simplify(Settings settings) {
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(f.length == 1)
-			return f[0].simplify();
+			return f[0].simplify(settings);
 		ArrayList<Function> organisedMult = new ArrayList<Function>();
-		Function[] simplMult = Functions.simplifyAll(f);
+		Function[] simplMult = Functions.simplifyAll(f, settings);
 		ArrayList<Function> extendedMult = new ArrayList<Function>();
 		for(int i=0;i<simplMult.length;i++) {
 			if(simplMult[i].type == Functions.MULT) {
@@ -145,9 +178,9 @@ class FuncMult extends Function {
 		}
 		ArrayList<Integer> zabronioneIndeksy = new ArrayList<Integer>();
 		Complex numConst = new Complex(1);
-		for(int i=0;i<f.length;i++) {
-			if(f[i].type == Functions.NUMCONST) {
-				numConst.mult(((FuncNumConst)f[i]).a);
+		for(int i=0;i<extendedMult.size();i++) {
+			if(extendedMult.get(i).type == Functions.NUMCONST) {
+				numConst.mult(((FuncNumConst)extendedMult.get(i)).a);
 				zabronioneIndeksy.add(i);
 			}
 		}

@@ -1,4 +1,4 @@
-package poczatek;
+package funkcja;
 
 import java.util.ArrayList;
 
@@ -37,7 +37,7 @@ class FuncSum extends Function {
 		if(!canPutTogether(f, g))
 			try {
 				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
-						+ " Podane funkcja f: " + f.write(PrintSettings.defaultSettings) + " podana funkcja g: " + g.write(PrintSettings.defaultSettings));
+						+ " Podane funkcja f: " + f.write(new Settings()) + " podana funkcja g: " + g.write(new Settings()));
 			}catch(Exception e) {
 				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
 			}
@@ -92,7 +92,7 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	public String write(PrintSettings settings) {
+	public String write(Settings settings) {
 		String str = summands[0].write(settings);
 		for(int i=1;i<summands.length;i++) {
 			if(summands[i].type == Functions.MULT) {
@@ -125,13 +125,13 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	public Function simplify() {
+	public Function simplify(Settings settings) {
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(summands.length == 1)
-			return summands[0].simplify();
+			return summands[0].simplify(settings);
 		ArrayList<Function> organisedSummands = new ArrayList<Function>();
-		Function[] simplSummands = Functions.simplifyAll(summands);
+		Function[] simplSummands = Functions.simplifyAll(summands, settings);
 		ArrayList<Function> extendedSummands = new ArrayList<Function>();
 		for(int i=0;i<simplSummands.length;i++) {
 			if(simplSummands[i].type == Functions.ADD) {
@@ -145,9 +145,9 @@ class FuncSum extends Function {
 		}
 		ArrayList<Integer> zabronioneIndeksy = new ArrayList<Integer>();
 		Complex numConst = new Complex(0);
-		for(int i=0;i<summands.length;i++) {
-			if(summands[i].type == Functions.NUMCONST) {
-				numConst.add(((FuncNumConst)summands[i]).a);
+		for(int i=0;i<extendedSummands.size();i++) {
+			if(extendedSummands.get(i).type == Functions.NUMCONST) {
+				numConst.add(((FuncNumConst)extendedSummands.get(i)).a);
 				zabronioneIndeksy.add(i);
 			}
 		}
