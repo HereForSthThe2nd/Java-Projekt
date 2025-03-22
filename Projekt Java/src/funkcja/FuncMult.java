@@ -23,7 +23,7 @@ class FuncMult extends Function {
 	
 	private boolean sameBasesPom(Function f, Function g) {
 		if(f.type == Functions.COMPOSITE) {
-			if(((FuncComp)f).checkComponents1("pow", g))
+			if(((FuncComp)f).checkComponents("pow", g))
 				return true;
 		}
 		return false;

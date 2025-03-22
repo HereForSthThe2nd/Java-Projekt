@@ -70,6 +70,11 @@ class FuncNumConst extends Function {
 	}	
 }
 
+interface NonStandardFuncStr{
+	FuncDefault returnFunc(String str);
+	boolean check(String str);
+}
+
 public class Functions {
 	final static int 
 			NUMCONST = 1,
@@ -191,26 +196,26 @@ public class Functions {
 			return Complex.Ln(arg[0]);
 		}
 	};
-	final private static FuncNamed exp = new FuncDefault(1, "exp") {
+	final protected static FuncNamed exp = new FuncDefault(1, "exp") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return Complex.exp(arg[0]);
 		}
 	};
-	final private static FuncNamed Re = new FuncDefault(1, "Re") {
+	final protected static FuncNamed Re = new FuncDefault(1, "Re") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(arg[0].x);
 		}
 	};
-	final private static FuncNamed Im = new FuncDefault(1, "Im") {
+	final protected static FuncNamed Im = new FuncDefault(1, "Im") {
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(arg[0].y);
 		}
 	};
-	final static FuncNamed pow = new FuncDefault(2,"pow") {
+	final protected static FuncNamed pow = new FuncDefault(2,"pow") {
 		//przy upraszczaniu niekoniecznie pamięta gałąź
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -223,25 +228,25 @@ public class Functions {
 			return "pow";
 		}
 	};
-	final static FuncNamed e = new FuncConstDefault("e") {
+	final protected static FuncNamed e = new FuncConstDefault("e") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(Math.E);
 		}
 	};
-	final static FuncNamed pi = new FuncConstDefault("pi") {
+	final protected static FuncNamed pi = new FuncConstDefault("pi") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(Math.PI);
 		}
 	};
-	final static FuncNamed phi = new FuncConstDefault("phi") {
+	final protected static FuncNamed phi = new FuncConstDefault("phi") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex((Math.sqrt(5)+1)/2);
 		}
 	};	
-	final static Function i = new FuncNumConst(Complex.i);
+	final protected static Function i = new FuncNumConst(Complex.i);
 		
 	protected final static nameAndValue<Function> defaultVar = new nameAndValue<Function>(new ArrayList<String>(List.of("e", "pi", "phi", "i")),
 			new ArrayList<Function>(List.of(e ,pi, phi, i)));
@@ -278,48 +283,97 @@ public class Functions {
 		userFunctions.add(f, f.name);
 		return f;
 	}
+	static class Log implements NonStandardFuncStr{
+			boolean check(String str) {
+				if(str.equals("ln")||str.equals("Ln"))
+					return true;
+				if(str.length() >= 4) {
+					if(!str.matches("ln\\{.*\\}"))
+						return false;
+					try {
+						FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+						if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
+							return true;
+						}
+					}
+					catch(WrongSyntaxException e) {}
+				}
+				return false;
+			}
 	
-	static private boolean checkIfLog(String str) {
-		if(str.length() >= 4)
+		FuncDefault returnFunc(String str){
+			if(str.equals("ln")||str.equals("Ln"))
+				return (FuncDefault)defaultFunctions.functionOf(str);
+			if(!check(str))
+				throw new IllegalArgumentException();
 			try {
 				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
-				if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
-					return true;
-				}
+				double d = f.evaluate(new Complex[] {}).x;
+				return new FuncDefault(1, "ln{"+d+"}") {
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return Complex.ln(arg[0], d);
+					}
+				};
 			}
-			catch(WrongSyntaxException e) {}
-		return false;
+			catch(WrongSyntaxException e){
+				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
+			}
+		}
 	}
-
-	static private FuncDefault returnLog(String str){
-		if(!checkIfLog(str))
-			throw new IllegalArgumentException();
-		try {
-			FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
-			double d = f.evaluate(new Complex[] {}).x;
-			return new FuncDefault(1, "ln{"+d+"}") {
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return Complex.ln(arg[0], d);
+	static Log logChecker = new Log();
+	static class Pow implements NonStandardFuncStr{
+		boolean check(String str) {
+			if(str.equals("pow")||str.equals("Pow"))
+				return true;
+			if(str.length() >= 5) {
+				if(!str.matches("pow\\{.*\\}"))
+					return false;
+				try {
+					FunctionPowloka f = new FunctionPowloka(str.substring(4, str.length()-1), new Settings());
+					if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
+						return true;
+					}
 				}
-				
-			};
+				catch(WrongSyntaxException e) {}
+			}
+			return false;
 		}
-		catch(WrongSyntaxException e){
-			throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
-		}
-
-	}
 	
-	static protected boolean checkIfNmdFunc(String str) {			
-		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || checkIfLog(str);
+		FuncDefault returnFunc(String str){
+			if(!check(str))
+				throw new IllegalArgumentException();
+			if(str.equals("pow")||str.equals("Pow"))
+				return (FuncDefault)defaultFunctions.functionOf(str);
+			try {
+				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+				double d = f.evaluate(new Complex[] {}).x;
+				return new FuncDefault(2, "pow{"+d+"}") {
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return Complex.pow(arg[0], arg[1], d);
+					}
+					
+				};
+			}
+			catch(WrongSyntaxException e){
+				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
+			}
+		}
+	}
+	static Pow powChecker = new Pow();
+	
+	static protected boolean checkIfNmdFunc(String str) {
+		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || logChecker.check(str) || logChecker.check(str);
 	}
 	
 	static protected FuncNamed returnNmdFunc(String str) throws WrongSyntaxException {
 		if(!checkIfNmdFunc(str))
 			throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej funkcji.");
-		if(checkIfLog(str))
-			return returnLog(str);
+		if(logChecker.check(str))
+			return logChecker.returnFunc(str);
+		if(!powChecker.check(str))
+			return powChecker.returnFunc(str);
 		return defaultFunctions.checkIfContained(str) ? defaultFunctions.functionOf(str) : userFunctions.functionOf(str);
 	}
 

@@ -71,26 +71,26 @@ class FuncComp extends Function {
 		return false;
 	}
 
+	protected boolean checkComponents(NonStandardFuncStr outer, Function inner) {
+		if(outer.equals(f.name)) {
+			if( g[0].equals(inner) )
+				return true;
+		}
+		return false;
+	}
+
 	
-	protected boolean checkComponents1(String nameOuter, Function inner) {
+	protected boolean checkComponents(String nameOuter, Function inner) {
 		if(f.name == nameOuter) {
 			if( g[0].equals(inner) )
 				return true;
 		}
 		return false;
 	}
-	
-	protected boolean checkComponents2(String nameOuter, Function inner) {
-		if(f.name == nameOuter && f.nofArg >= 2) {
-			if( g[1].equals(inner) )
-				return true;
-		}
-		return false;
-	}
-	
+		
 	protected boolean checkComponents(String nameOuter, String nameInner) {
 		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
-		if(f.name == nameOuter) {
+		if(f.name.equals(nameOuter)) {
 			if(g[0].type == Functions.COMPOSITE)
 				if(((FuncComp)g[0]).f.type == Functions.NAMED)
 					if( ((FuncNamed)((FuncComp)g[0]).f).name == nameInner)
@@ -99,20 +99,71 @@ class FuncComp extends Function {
 		return false;
 	}
 	
+	protected boolean checkComponents(String nameOuter, NonStandardFuncStr inner) {
+		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
+		if(f.name.equals(nameOuter)) {
+			if(g[0].type == Functions.COMPOSITE)
+				if(((FuncComp)g[0]).f.type == Functions.NAMED)
+					if( inner.check(((FuncNamed)((FuncComp)g[0]).f).name) )
+						return true;
+		}
+		return false;
+	}
+	
+	protected boolean checkComponents(NonStandardFuncStr outer, String nameInner) {
+		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
+		if(outer.check(f.name)) {
+			if(g[0].type == Functions.COMPOSITE)
+				if(((FuncComp)g[0]).f.type == Functions.NAMED)
+					if( nameInner.equals(((FuncNamed)((FuncComp)g[0]).f).name) )
+						return true;
+		}
+		return false;
+	}
+
+	protected boolean checkComponents(NonStandardFuncStr outer, NonStandardFuncStr inner) {
+		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
+		if(outer.check(f.name)) {
+			if(g[0].type == Functions.COMPOSITE)
+				if(((FuncComp)g[0]).f.type == Functions.NAMED)
+					if( inner.check(((FuncNamed)((FuncComp)g[0]).f).name) )
+						return true;
+		}
+		return false;
+	}
+
+	protected boolean checkComponents2(String nameOuter, Function inner) {
+		if(f.name == nameOuter && f.nofArg >= 2) {
+			if( g[1].equals(inner) )
+				return true;
+		}
+		return false;
+	}
+	
+	protected boolean checkComponents2(NonStandardFuncStr outer, Function inner) {
+		if(outer.check(f.name) && f.nofArg >= 2) {
+			if( g[1].equals(inner) )
+				return true;
+		}
+		return false;
+	}
+
+	
 	@Override
 	protected Function simplify(Settings setting) {
-		if(checkComponents("exp", "Ln") || checkComponents("ln", "exp") || checkComponents("exp", "ln"))
+		if(checkComponents("ln", "exp") || checkComponents("exp", Functions.logChecker))
 			return ((FuncComp)g[0]).g[0];
-		if(checkComponents2("pow", new FuncNumConst(new Complex(0))) || checkComponents1("pow", new FuncNumConst(new Complex(1)))) 
+		if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(0))) || checkComponents("pow", new FuncNumConst(new Complex(1)))) 
 			return new FuncNumConst(new Complex(1));
-		if(checkComponents2("pow", new FuncNumConst(new Complex(1))))
+		if(checkComponents("pow", "e"))
+			return new FuncComp(Functions.exp, new Function[] {g[1]});
+		if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(1))))
 			return g[0];
-		if(checkComponents1("pow", new FuncNumConst(new Complex(0))))
+		if(checkComponents(Functions.powChecker, new FuncNumConst(new Complex(0))))
 			return new FuncNumConst(new Complex(0));
 		if(checkComponents("pow", "pow") && !setting.strictPow)
 			return new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )});
-		if(checkComponents("pow", "pow") && setting.strictPow) {
-			System.out.println("w funcconmp.simplify: strictpow");
+		if(checkComponents(Functions.powChecker, Functions.powChecker) && setting.strictPow) {
 			if(((FuncComp)g[0]).g[1].equals(new FuncNumConst(new Complex(-1)))) {
 				return new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )});
 			}
@@ -121,6 +172,7 @@ class FuncComp extends Function {
 					return new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )});
 			}
 		}
+
 		Function[] newArg = Functions.simplifyAll(g, new Settings());
 		return new FuncComp(f, newArg);
 	}
