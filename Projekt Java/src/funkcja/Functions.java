@@ -279,13 +279,47 @@ public class Functions {
 		return f;
 	}
 	
-	static protected boolean checkIfNmdFunc(String str) {
-		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str);
+	static private boolean checkIfLog(String str) {
+		if(str.length() >= 4)
+			try {
+				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+				if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
+					return true;
+				}
+			}
+			catch(WrongSyntaxException e) {}
+		return false;
+	}
+
+	static private FuncDefault returnLog(String str){
+		if(!checkIfLog(str))
+			throw new IllegalArgumentException();
+		try {
+			FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+			double d = f.evaluate(new Complex[] {}).x;
+			return new FuncDefault(1, "ln{"+d+"}") {
+				@Override
+				protected Complex evaluate(Complex[] arg) {
+					return Complex.ln(arg[0], d);
+				}
+				
+			};
+		}
+		catch(WrongSyntaxException e){
+			throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
+		}
+
 	}
 	
-	static protected FuncNamed returnNmdFunc(String str) {
+	static protected boolean checkIfNmdFunc(String str) {			
+		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || checkIfLog(str);
+	}
+	
+	static protected FuncNamed returnNmdFunc(String str) throws WrongSyntaxException {
 		if(!checkIfNmdFunc(str))
 			throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej funkcji.");
+		if(checkIfLog(str))
+			return returnLog(str);
 		return defaultFunctions.checkIfContained(str) ? defaultFunctions.functionOf(str) : userFunctions.functionOf(str);
 	}
 

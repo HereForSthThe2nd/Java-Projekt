@@ -97,6 +97,10 @@ public class Complex {
 		//Im(Ln) w (-pi, pi]
 		return new Complex(Math.log(a.mod()), a.arg());
 	}
+	public static Complex ln(Complex a, double d) {
+		Complex dNorm = new Complex(0,d+Math.PI);
+		return Complex.add(Ln(Complex.mult(a, exp(Complex.mult(new Complex(-1) , dNorm)))), dNorm); 
+	}
 	public static Complex pow(Complex a, int n) {
 		if(n==0)
 			return new Complex(1);
@@ -123,13 +127,19 @@ public class Complex {
 	public Complex pow(Complex b) {
 		return pow(this,b);
 	}
+	public static Complex pow(Complex a, Complex b, double d) {
+		if(b.y == 0 && b.x == (int)b.x) {
+			return pow(a, (int)b.x);
+		}
+		return exp(mult(b, ln(a, d)));
+	}
+	public Complex pow(Complex b, double d) {
+		return pow(this,b, d);
+	}
 	public static void main(String[] args) {
-		Complex a = new Complex(1,1);
-		Complex c = new Complex(2,1);
-		Complex b = Ln(new Complex(1,1));
-		Complex.add(a, c).print();
-		a.add(c);
-		a.print();
+		Ln(new Complex(1,-1)).print();
+		ln(new Complex(1,-
+				1), 0).print();
 	}
 }
 

@@ -47,8 +47,12 @@ public class GraphingFunction extends JLabel {
 		for(int xI=0; xI<img.getWidth();xI++) {
 			for(int yI=0;yI<img.getHeight();yI++) {
 				x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
-				y = yI*(prawyGorny.y-lewyDolny.y)/img.getWidth()+lewyDolny.y;
+				y = yI*(lewyDolny.y-prawyGorny.y)/img.getHeight()+prawyGorny.y;
 				Complex[] z = new Complex[] {new Complex(x,y)};
+				if(z[0].equals(Complex.i)) {
+					z[0].print();
+					System.out.println(xI + "   " + yI);
+				}
 				int[] RGBColor = HSLToRGB(pointToHSL(f.evaluate(z),lSpeedChange));
 				img.setRGB(xI, yI, rgbToHex(RGBColor));
 			}
@@ -99,7 +103,7 @@ public class GraphingFunction extends JLabel {
 	public static void main(String[] args) throws WrongSyntaxException, IOException {
 		//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
 		Settings set = new Settings();
-		FunctionPowloka f1 = new FunctionPowloka("z^(5/2 + 10/2i)", set);
+		FunctionPowloka f1 = new FunctionPowloka("z", set);
 		GraphingFunction graf = new GraphingFunction(f1, new Complex(-5,-5), new Complex(5,5), 10);
 		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

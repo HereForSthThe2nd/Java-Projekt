@@ -1,7 +1,7 @@
 package funkcja;
 
 public class FunctionPowloka {
-	Function f;
+	private Function f;
 	//String canonicForm; gólne by było równe f.write, chyba że użytkownik dopiero przed chwilą wpisał funkcję i jeszcze jej w żaden sposób nie zmodyfikował... 
 		//może jeśli zmieni w ustawieniach znaczenie pow to może to mogłoby mieć sens? 
 		//Poza tym jeśli chce się to gdzieś przepisać bez zmian czy coś
@@ -13,7 +13,12 @@ public class FunctionPowloka {
 		}
 		f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings);
 	}
-	public FunctionPowloka(Function f) {
+	
+ 	public int nofArg() {
+ 		return f.nofArg;
+ 	}
+ 	
+ 	public FunctionPowloka(Function f) {
 		this.f = f;
 	}
 	
