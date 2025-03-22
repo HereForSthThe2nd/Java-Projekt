@@ -1,0 +1,7 @@
+do zrobienia:
+1.dodanie możliwości ln{}, pow{}
+ZROBIONE	2.ef(x) + 2f(x) -> (e+2)f(x) przy simplify
+3.a^2*b^2 -> (a*b)^2 przy simplify, przy nieścisłym ustawieniu na potęg działa dla niecałkowitych potęg
+4.częśc rzeczywista i urojona
+5.pochodne cząstkowe
+6.(?)całka

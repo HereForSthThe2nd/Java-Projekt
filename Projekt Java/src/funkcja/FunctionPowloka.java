@@ -6,7 +6,7 @@ public class FunctionPowloka {
 		//może jeśli zmieni w ustawieniach znaczenie pow to może to mogłoby mieć sens? 
 		//Poza tym jeśli chce się to gdzieś przepisać bez zmian czy coś
 	
-	public FunctionPowloka(String str, Settings settings) throws WrongSyntaxException {
+ 	public FunctionPowloka(String str, Settings settings) throws WrongSyntaxException {
 		if(str.equals("")) {
 			f = new FuncNumConst(new Complex(0));
 			return;
@@ -38,8 +38,8 @@ public class FunctionPowloka {
 		f = f.expand().f;
 	}
 	
-	public void simplifyOnce() {
-		 f = f.simplify(new Settings());
+	public void simplifyOnce(Settings settings) {
+		 f = f.simplify(settings);
 	}
 	
 	public void simplify(Settings settings) throws Exception {
@@ -152,21 +152,38 @@ public class FunctionPowloka {
 	
 	public static void main(String[] args) throws Exception {
 		Settings set = new Settings();
-		FunctionPowloka f = new FunctionPowloka("1+(-z^2+1)/2", set);
-		(f.evaluate(new Complex[] {new Complex(1,1)})).print();
-		System.out.println("sys1");
+		FunctionPowloka f = new FunctionPowloka("1/2/i*(exp(z*i)-exp(-z*i)) + z[1]+z[2]", set);
+		FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);
+		c.simplify(set);
 		f.simplify(set);
-		(f.evaluate(new Complex[] {new Complex(1,1)})).print();
 		f.print(set);
-		f.changeToNamed("exp[1]");
-		(f.evaluate(new Complex[] {new Complex(1,1)})).print();
-		f.print(set);
-		System.out.println("sys2");
-		f.simplify(set);
-		(f.evaluate(new Complex[] {new Complex(1,1)})).print();
-		f.print(set);
-		f.expand();
-		(f.evaluate(new Complex[] {new Complex(1,1)})).print();
-		f.print(set);
+		f.changeToNamed("sin");
+		c.changeToVar("const");
+		FunctionPowloka g = new FunctionPowloka("4pi*x*e - 2*2/2*8*2pi*e*x", set);
+		g.print(set);
+		g.simplify(set);
+		g.print(set);
+		set.evaluateConstants = true;
+		g.simplifyOnce(set);
+		g.print(set);
+		g.simplify(set);
+		g.print(set);
+		/*
+		FunctionPowloka r = new FunctionPowloka("(x^2+y^2)^(1/2)",set);
+		r.changeToVar("r");
+		FunctionPowloka h = new FunctionPowloka("6.63*10^(-34)", set);
+		h.changeToVar("h");
+		FunctionPowloka rh = new FunctionPowloka("r+h+w",set);
+		rh.changeToNamed("rh");
+		FunctionPowloka rf = new FunctionPowloka("rh(z/z, 0)",set);
+		System.out.println("rf:");
+		rf.print(set);
+		rf.simplify(set);
+		rf.print(set);
+		rf.expand();
+		rf.print(set);
+		rf.expand();
+		rf.simplify(set);
+		rf.print(set);*/
 	}
 }

@@ -35,7 +35,7 @@ class Blok{
 }
 
 class BlokWthDefFunction extends Blok{
-	FuncNamed funkcja;
+	protected FuncNamed funkcja;
 	BlokWthDefFunction(String wejsc, int[] konce, int type, FuncNamed funkcja) {
 		super(wejsc, konce, type);
 		//System.out.println(type);
@@ -68,6 +68,8 @@ class BlokList{
 	BlokList(){};
 	
 	BlokList(String str) throws WrongSyntaxException{
+		if(str.equals(""))
+			throw new WrongSyntaxException("Otwarte nawiasy muszą coś zawierać.");
 		int index = 0;
 		while(index<str.length()) {
 			Blok blok = znajdzBlok(str, index);
@@ -85,7 +87,7 @@ class BlokList{
 		}
 	}
 	
-	public int find(String str, int side) {
+	protected int find(String str, int side) {
 		if(side == 1) {
 			for(int i=0;i<arr.size();i++) {
 				if(arr.get(i).str.equals(str))
@@ -107,7 +109,7 @@ class BlokList{
 		}
 	}
 	
-	public BlokList subList(int begin, int end) {
+	protected BlokList subList(int begin, int end) {
 		//kreuje podlistę od indeksu begin do end-1 włącznie
 		if(begin >= arr.size() || end <= 0 || end <= begin) {
 			return new BlokList();
@@ -149,6 +151,8 @@ class BlokList{
 		int[] konce = wNawiasach(str, 0);
 		while(konce[0]==0 && konce[1] == str.length()-1) {
 			str = str.substring(1, str.length()-1);
+			if(str.equals(""))
+				return "";
 			konce = wNawiasach(str, 0);
 		}
 		return str;
@@ -364,9 +368,9 @@ class BlokList{
 		//zwraca położenia końców bloku wokół index. Zwraca indeks lewej strony oraz indeks+1 prawej.
 		//nie włącza funkcji i ich argumentów w jeden blok
 		if(index < 0)
-			throw new IllegalArgumentException("Niepoprawne argumenty");
+			throw new IllegalArgumentException("Niepoprawne argumenty. Indeks musi być >= 0. Indeks: "+index + " str: " + str);
 		if(index >= str.length())
-			throw new IllegalArgumentException("Niepoprawne argumenty");
+			throw new IllegalArgumentException("Niepoprawne argumenty.  Indeks musi być <str.length. Indeks: "+index+" str.length: " + str.length() + " str: " + str);
 		int[] konce = {index, index};
 		int type;
 		boolean isParenthases = (""+str.charAt(index)).matches("[\\(\\)]");
@@ -458,9 +462,12 @@ class BlokList{
 			konce[1] = temp[1]+1;
 			return new Blok(str, konce, type);
 		}
-		else //TODO: może nie będzie trzeba robić, ale tutaj chyba powinien być WrongSyntaksException
+		else { //TODO: może nie będzie trzeba robić, ale tutaj chyba powinien być WrongSyntaksException
+			if(str.charAt(index) == ',')
+				throw new WrongSyntaxException("Przecinek może wystąpić tylko wewnątrz nawiasów poprzedzonych nazwą funkcji.", "str: " + str);
 			throw new IllegalArgumentException("Niepoprawne argumenty. Podanemu indeksowi nie można przypisać ani cyfry ani litery (ani [])\nindex:"+
 						index+".  cos na indeksie:"+str.charAt(index) + ".  cały str: " + str+".");
+		}
 	}
 
 	private static Blok znajdzBlok(String str, int index) throws WrongSyntaxException {

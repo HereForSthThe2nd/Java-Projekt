@@ -12,30 +12,28 @@ class Bool<T>{
 }
 
 abstract public class Function
- {
-	static int calledReadCounter = 0;
-	
+ {	
 	final int type;
 	final int nofArg;
 	
-	public Function(int type, int nofArg) {
+	protected Function(int type, int nofArg) {
 		this.type=type;
 		this.nofArg = nofArg;
 	}
-	abstract public Complex evaluate(Complex[] arg);
+	protected abstract Complex evaluate(Complex[] arg);
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	
-	abstract public String write(Settings settings);
+	protected abstract String write(Settings settings);
 	
-	abstract public boolean equals(Function f);
+	protected abstract boolean equals(Function f);
 	
-	abstract public Function putArguments(Function[] args);
+	protected abstract Function putArguments(Function[] args);
 	
 	//TODO: w przyszłości dodać ustawienia do expand, aby istaniała decyzja czy rozszerzać zmienne oraz stałe, czy nie
-	abstract public Bool<Function> expand();
+	protected abstract Bool<Function> expand();
 	//bardzo podstawowe
-	abstract public Function simplify(Settings setting);
+	protected abstract Function simplify(Settings setting);
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.equals("")) 
@@ -62,8 +60,7 @@ abstract public class Function
 		return bloki;
 	}
 	
-	public static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
-		calledReadCounter++;
+	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0)//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
 			return new FuncNumConst(new Complex(0));

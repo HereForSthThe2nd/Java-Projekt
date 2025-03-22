@@ -8,11 +8,11 @@ abstract class FuncNamed extends Function{
 		this.name = name;
 	}
 	@Override
-	public String write(Settings settings) {
+	protected String write(Settings settings) {
 			return name;
 	}
 	@Override
-	public boolean equals(Function f) {
+	final protected boolean equals(Function f) {
 		if(f.type == Functions.NAMED) {
 			if(((FuncNamed)f).name.equals(this.name))
 				return true;
@@ -20,7 +20,7 @@ abstract class FuncNamed extends Function{
 		return false;
 	}
 	@Override
-	public Function simplify(Settings setting) {
+	protected Function simplify(Settings setting) {
 		return this;
 	}
 
@@ -28,88 +28,96 @@ abstract class FuncNamed extends Function{
 
 abstract class FuncDefault extends FuncNamed{
 
-	public FuncDefault(int nofArg, String name) {
+	protected FuncDefault(int nofArg, String name) {
 
 		super(nofArg, name);
 	}
 
 	@Override
-	public Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) {
 		return new FuncComp(this, args);
 	}
 
 	@Override
-	public Bool<Function> expand() {
+	protected Bool<Function> expand() {
 		return new Bool<Function>(this, false);
 	}
 }
 
 abstract class FuncConstDefault extends FuncNamed{
-	public FuncConstDefault(String name) {
+	protected FuncConstDefault(String name) {
 		super(0, name);
 	}
 
 	@Override
-	public Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) {
 		return this;
 	}
 	@Override
-	public Bool<Function> expand() {
+	protected Bool<Function> expand() {
 		return new Bool<Function>(this, false);
+	}
+	@Override
+	final protected Function simplify(Settings set) {
+		if(set.evaluateConstants)
+			return new FuncNumConst(evaluate(new Complex[] {}));
+		return this;
 	}
 }
 
 class FuncGivenName extends FuncNamed{
 	final Function f;
-	public FuncGivenName(Function f, String name) {
+	protected FuncGivenName(Function f, String name) {
 		super(f.nofArg, name);
 		this.f=f;
 	}
 
 	@Override
-	public Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(arg);
 	}
 
 	@Override
-	public Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) {
 		return new FuncComp(this, args);
 	}
 	
 	@Override
-	public Bool<Function> expand() {
+	protected Bool<Function> expand() {
 
 		return new Bool<Function>(f,true);
 	}
 }
 
-class FuncVar extends FuncNamed{
+class VarGivenName extends FuncNamed{
 	final Function f;
-	public FuncVar(String name, Function f) {
+	protected VarGivenName(String name, Function f) {
 		super(f.nofArg, name);
 		this.f=f;
 	}
 
 	@Override
-	public Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(arg);
 	}
 
 	@Override
-	public Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) {
+		if(Functions.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
+			return this;
 		return f.putArguments(args);
 	}
 	
 	@Override
-	public Bool<Function> expand() {
+	protected Bool<Function> expand() {
 		return new Bool<Function>(f,true);
 	}
 
 }
 
-class FuncConstGivenName extends FuncNamed{
+final class FuncConstGivenName extends FuncNamed{
 	final Function f;
-	public FuncConstGivenName(String name, Function f) {
+	protected FuncConstGivenName(String name, Function f) {
 		super(0, name);
 		if(f.nofArg != 0) {
 			throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Podana funkxja: " + f.write(new Settings()));
@@ -118,17 +126,24 @@ class FuncConstGivenName extends FuncNamed{
 	}
 
 	@Override
-	public Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(new Complex[] {});
 	}
 
 	@Override
-	public Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) {
 		return this;
 	}
 
 	@Override
-	public Bool<Function> expand() {
+	final protected Function simplify(Settings set) {
+		if(set.evaluateConstants)
+			return new FuncNumConst(evaluate(new Complex[] {}));
+		return this;
+	}
+	
+	@Override
+	final protected Bool<Function> expand() {
 		return new Bool<Function>(f,true);
 	}
 }

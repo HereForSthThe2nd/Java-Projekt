@@ -3,7 +3,7 @@ package funkcja;
 class FuncComp extends Function {
 	FuncNamed f;
 	Function[] g;
-	public FuncComp(FuncNamed f, Function[] g) {
+	protected FuncComp(FuncNamed f, Function[] g) {
 		super(Functions.COMPOSITE, Functions.countArguments(g));
 		this.f = f;
 		if(g.length<f.nofArg)
@@ -15,7 +15,7 @@ class FuncComp extends Function {
 		this.g = args;
 	}
 	@Override
-	public Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(Functions.evaluate(g, arg));
 	}
 	private String wypiszPotege(Settings settings) {
@@ -30,7 +30,7 @@ class FuncComp extends Function {
 			}
 		}
 		str += " ^ ";
-		if(g[1].type == Functions.ADD || g[1].type == Functions.MULT) {
+		if(g[1].type == Functions.ADD || g[1].type == Functions.MULT || (g[1].type == Functions.COMPOSITE && ((FuncComp)g[1]).f.equals(Functions.pow))) {
 			str += "(" + g[1].write(settings) + ")";
 		}else {
 			if(g[1].type == Functions.NUMCONST && !(((FuncNumConst)g[1]).form == FuncNumConst.DODR)) {
@@ -42,7 +42,7 @@ class FuncComp extends Function {
 		return str;
 	}
 	@Override
-	public String write(Settings settings) {
+	protected String write(Settings settings) {
 		if(settings.writePow && f.name.equals("pow"))
 			return wypiszPotege(settings);
 		String str = f.write(settings) + "(" + g[0].write(settings);
@@ -53,11 +53,11 @@ class FuncComp extends Function {
 		return str;
 	}
 	@Override
-	public Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) {
 		return new FuncComp(f, Functions.putArguments(g, args));
 	}
 	@Override
-	public Bool<Function> expand() {
+	protected Bool<Function> expand() {
 		Bool<Function> inner = f.expand();
 		if(inner.bool)
 			return new Bool<Function> (inner.f.putArguments(g), inner.bool);
@@ -65,7 +65,7 @@ class FuncComp extends Function {
 		return new Bool<Function> (inner.f.putArguments(a.f), a.bool);
 	}
 	@Override
-	public boolean equals(Function f) {
+	protected boolean equals(Function f) {
 		if(f.type == this.type)
 			return Functions.equals(this.g, ((FuncComp)f).g);
 		return false;
@@ -100,19 +100,17 @@ class FuncComp extends Function {
 	}
 	
 	@Override
-	public Function simplify(Settings setting) {
+	protected Function simplify(Settings setting) {
 		if(checkComponents("exp", "Ln") || checkComponents("ln", "exp") || checkComponents("exp", "ln"))
 			return ((FuncComp)g[0]).g[0];
-		if(checkComponents2("pow", new FuncNumConst(new Complex(0)))) 
+		if(checkComponents2("pow", new FuncNumConst(new Complex(0))) || checkComponents1("pow", new FuncNumConst(new Complex(1)))) 
 			return new FuncNumConst(new Complex(1));
 		if(checkComponents2("pow", new FuncNumConst(new Complex(1))))
 			return g[0];
 		if(checkComponents1("pow", new FuncNumConst(new Complex(0))))
 			return new FuncNumConst(new Complex(0));
-		if(checkComponents("pow", "pow") && !setting.strictPow) {
-			System.out.println("w funcconmp.simplify: !strictpow");
+		if(checkComponents("pow", "pow") && !setting.strictPow)
 			return new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )});
-		}
 		if(checkComponents("pow", "pow") && setting.strictPow) {
 			System.out.println("w funcconmp.simplify: strictpow");
 			if(((FuncComp)g[0]).g[1].equals(new FuncNumConst(new Complex(-1)))) {

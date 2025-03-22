@@ -64,11 +64,12 @@ public class Complex {
 		this.y = cmplx.y;
 	}
 	static public Complex div(Complex a, Complex b) {
-		if(b.x == 0 && b.y == 0) return null;
+		//if(b.x == 0 && b.y == 0) return null;
 		double d = b.x*b.x + b.y*b.y;
 		Complex l = Complex.mult(a, b.conj());
 		return new Complex(l.x/d, l.y/d);
 	}
+
 	public void div(Complex b) {
 		Complex cmplx = div(this, b);
 		this.x = cmplx.x;

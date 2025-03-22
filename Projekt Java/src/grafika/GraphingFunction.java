@@ -99,8 +99,8 @@ public class GraphingFunction extends JLabel {
 	public static void main(String[] args) throws WrongSyntaxException, IOException {
 		//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
 		Settings set = new Settings();
-		FunctionPowloka f1 = new FunctionPowloka("z^pi", set);
-		GraphingFunction graf = new GraphingFunction(f1, new Complex(-10,-10), new Complex(2,5), 2);
+		FunctionPowloka f1 = new FunctionPowloka("z^(5/2 + 10/2i)", set);
+		GraphingFunction graf = new GraphingFunction(f1, new Complex(-5,-5), new Complex(5,5), 10);
 		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.add(graf);
