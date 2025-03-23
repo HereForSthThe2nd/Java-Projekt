@@ -14,7 +14,8 @@ public class FunctionPowloka {
 		f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings);
 	}
 	
- 	public int nofArg() {
+ 	public int 
+ 	nofArg() {
  		return f.nofArg;
  	}
  	
@@ -157,14 +158,14 @@ public class FunctionPowloka {
 	
 	public static void main(String[] args) throws Exception {
 		Settings set = new Settings();
-		FunctionPowloka f = new FunctionPowloka("1/2/i*(exp(z*i)-exp(-z*i)) + z[1]+z[2]", set);
+		/*FunctionPowloka f = new FunctionPowloka("1/2/i*(exp(z*i)-exp(-z*i)) + z[1]+z[2]", set);
 		FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);
 		c.simplify(set);
 		f.simplify(set);
 		f.print(set);
 		f.changeToNamed("sin");
-		c.changeToVar("const");
-		FunctionPowloka g = new FunctionPowloka("4pi*x*e - 2*2/2*8*2pi*e*x", set);
+		c.changeToVar("const");*/
+		FunctionPowloka g = new FunctionPowloka("e^(Re(z)*2)*exp(x)", set);
 		g.print(set);
 		g.simplify(set);
 		g.print(set);

@@ -45,6 +45,10 @@ class FuncComp extends Function {
 	protected String write(Settings settings) {
 		if(settings.writePow && f.name.equals("pow"))
 			return wypiszPotege(settings);
+		if(settings.writeRealVar && checkComponents("Re", Functions.idChecker))
+			return Functions.varChecker.returnStr("x", Functions.idChecker.returnNumber(((FuncNamed)g[0]).name));
+		if(settings.writeRealVar && checkComponents("Im", Functions.idChecker))
+			return Functions.varChecker.returnStr("y", Functions.idChecker.returnNumber(((FuncNamed)g[0]).name));
 		String str = f.write(settings) + "(" + g[0].write(settings);
 		for(int i=1; i<g.length;i++) {
 			str += ", " + g[i].write(settings);
@@ -72,68 +76,96 @@ class FuncComp extends Function {
 	}
 
 	protected boolean checkComponents(NonStandardFuncStr outer, Function inner) {
-		if(outer.equals(f.name)) {
+		if(f.nofArg == 0)
+			return false;
+		if(outer.check(f)) {
 			if( g[0].equals(inner) )
 				return true;
+			if(g[0].type == Functions.COMPOSITE)
+				if(((FuncComp)g[0]).f.equals(inner))
+					return true;
 		}
 		return false;
 	}
-
 	
 	protected boolean checkComponents(String nameOuter, Function inner) {
+		if(f.nofArg == 0)
+			return false;
 		if(f.name == nameOuter) {
 			if( g[0].equals(inner) )
 				return true;
+			if(g[0].type == Functions.COMPOSITE)
+				if(((FuncComp)g[0]).f.equals(inner))
+					return true;
 		}
 		return false;
 	}
-		
+	
 	protected boolean checkComponents(String nameOuter, String nameInner) {
 		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
+		if(f.nofArg == 0)
+			return false;
 		if(f.name.equals(nameOuter)) {
 			if(g[0].type == Functions.COMPOSITE)
-				if(((FuncComp)g[0]).f.type == Functions.NAMED)
-					if( ((FuncNamed)((FuncComp)g[0]).f).name == nameInner)
-						return true;
+				if( ((FuncNamed)((FuncComp)g[0]).f).name == nameInner)
+					return true;
+			if(g[0].type == Functions.NAMED)
+				if( ((FuncNamed)g[0]).name == nameInner)
+					return true;
 		}
 		return false;
 	}
 	
 	protected boolean checkComponents(String nameOuter, NonStandardFuncStr inner) {
 		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
+		if(f.nofArg == 0)
+			return false;
 		if(f.name.equals(nameOuter)) {
 			if(g[0].type == Functions.COMPOSITE)
-				if(((FuncComp)g[0]).f.type == Functions.NAMED)
-					if( inner.check(((FuncNamed)((FuncComp)g[0]).f).name) )
-						return true;
+				if( inner.check(((FuncComp)g[0]).f))
+					return true;
+			if(inner.check(g[0]))
+				return true;
 		}
 		return false;
 	}
 	
-	protected boolean checkComponents(NonStandardFuncStr outer, String nameInner) {
+	protected boolean checkComponents(NonStandardFuncStr outer, String nameInner) { 
 		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
+		if(f.nofArg == 0)
+			return false;
 		if(outer.check(f.name)) {
 			if(g[0].type == Functions.COMPOSITE)
 				if(((FuncComp)g[0]).f.type == Functions.NAMED)
 					if( nameInner.equals(((FuncNamed)((FuncComp)g[0]).f).name) )
 						return true;
+			if(g[0].type == Functions.NAMED)
+				if(((FuncNamed)g[0]).name.equals(nameInner))
+					return true;
 		}
 		return false;
 	}
 
 	protected boolean checkComponents(NonStandardFuncStr outer, NonStandardFuncStr inner) {
 		//sprawdza czy zewnętrzna funkcja jest odpowiednia oraz czy pierwszy argument funkcji wewnętrznej jest odpowiedni
+		if(f.nofArg == 0)
+			return false;
 		if(outer.check(f.name)) {
 			if(g[0].type == Functions.COMPOSITE)
 				if(((FuncComp)g[0]).f.type == Functions.NAMED)
-					if( inner.check(((FuncNamed)((FuncComp)g[0]).f).name) )
+					if( inner.check(((FuncComp)g[0]).f) )
 						return true;
 		}
 		return false;
 	}
 
 	protected boolean checkComponents2(String nameOuter, Function inner) {
-		if(f.name == nameOuter && f.nofArg >= 2) {
+		if(f.nofArg < 2)
+			return false;
+		if(f.name == nameOuter) {
+			if(g[1].type==Functions.COMPOSITE)
+				if(((FuncComp)g[1]).f.equals(inner))
+					return true;
 			if( g[1].equals(inner) )
 				return true;
 		}
@@ -141,9 +173,14 @@ class FuncComp extends Function {
 	}
 	
 	protected boolean checkComponents2(NonStandardFuncStr outer, Function inner) {
-		if(outer.check(f.name) && f.nofArg >= 2) {
+		if(f.nofArg < 2)
+			return false;
+		if(outer.check(f)) {
 			if( g[1].equals(inner) )
 				return true;
+			if(g[1].type == Functions.COMPOSITE)
+				if(((FuncComp)g[1]).f.equals(inner))
+					return true;
 		}
 		return false;
 	}
@@ -163,7 +200,7 @@ class FuncComp extends Function {
 			return new FuncNumConst(new Complex(0));
 		if(checkComponents("pow", "pow") && !setting.strictPow)
 			return new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )});
-		if(checkComponents(Functions.powChecker, Functions.powChecker) && setting.strictPow) {
+		if(checkComponents("pow", "pow") && setting.strictPow) {
 			if(((FuncComp)g[0]).g[1].equals(new FuncNumConst(new Complex(-1)))) {
 				return new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )});
 			}

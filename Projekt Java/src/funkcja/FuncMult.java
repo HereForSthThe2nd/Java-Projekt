@@ -29,6 +29,22 @@ class FuncMult extends Function {
 		return false;
 	}
 	
+	private boolean expBasePom(Function f, Function g) {
+		if(f.type == Functions.COMPOSITE)
+			if(((FuncComp)f).f.equals(Functions.exp) && g.equals(Functions.e))
+				return true;
+		return false;
+				
+	}
+	
+	private boolean expBasePom2(Function f, Function g) {
+		if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE)
+			if(((FuncComp)f).f.equals(Functions.exp) && ((FuncComp)g).f.equals(Functions.exp))
+				return true;
+		return false;
+				
+	}
+	
 	private boolean sameBasesPom2(Function f, Function g) {
 		if(checkIfPow(f) && checkIfPow(g)) {
 				if(((FuncComp)g).g[0].equals(((FuncComp)f).g[0]));
@@ -38,12 +54,12 @@ class FuncMult extends Function {
 	}
 	
 	private boolean sameBases(Function f, Function g) {
-		if(( f.equals(g) && g.type != Functions.NUMCONST) || sameBasesPom(f, g) || sameBasesPom(g, f) || sameBasesPom2(f,g))
+		if(( f.equals(g) && g.type != Functions.NUMCONST) || sameBasesPom(f, g) || sameBasesPom(g, f) || sameBasesPom2(f,g) || expBasePom(f, g) || expBasePom2(f, g))
 			return true;
 		return false;
 	}
 	
-	private Function putExponentsTogether(Function f, Function g) {
+	private Function putSameBasesTogether(Function f, Function g) {
 		if(!sameBases(f, g))
 			try {
 				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
@@ -66,6 +82,20 @@ class FuncMult extends Function {
 			Function gExponent = ((FuncComp)g).g[1];
 			return new FuncComp(Functions.pow, new Function[] {((FuncComp)g).g[0], new FuncSum(new Function[] {gExponent,fExponent})});
 		}
+		if(expBasePom(f, g)) {
+			Function fExponent = ((FuncComp)f).g[0];
+			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
+		}
+		if(expBasePom(g,f)) {
+			Function gExponent = ((FuncComp)g).g[0];
+			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
+		}
+		if(expBasePom2(f,g)) {
+			Function fExponent = ((FuncComp)f).g[0];
+			Function gExponent = ((FuncComp)g).g[0];
+			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,fExponent})});
+		}
+
 		//System.out.println("FuncSum w PutTogether - coś poszło nie tak, program nie powinien tutaj dojść.");
 		throw new IllegalArgumentException("coś poszło nie tak, program nie powinien tutaj dojść.");
 	}
@@ -84,7 +114,7 @@ class FuncMult extends Function {
 				if(uzyteIndeksy.contains(j))
 					continue;
 				if(sameBases(arr.get(j), arr.get(i))) {
-						ret.set(countIndex, putExponentsTogether(arr.get(j), ret.get(countIndex)));
+						ret.set(countIndex, putSameBasesTogether(arr.get(j), ret.get(countIndex)));
 						uzyteIndeksy.add(j);
 				}
 			}

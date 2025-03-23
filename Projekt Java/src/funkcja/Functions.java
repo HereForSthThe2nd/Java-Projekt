@@ -71,8 +71,14 @@ class FuncNumConst extends Function {
 }
 
 interface NonStandardFuncStr{
-	FuncDefault returnFunc(String str);
+	Function returnFunc(String str);
 	boolean check(String str);
+	default boolean check(Function f) {
+		if(f.type==Functions.NAMED)
+			if(check(((FuncNamed)f).name))
+				return true;
+		return false;
+	};
 }
 
 public class Functions {
@@ -283,86 +289,13 @@ public class Functions {
 		userFunctions.add(f, f.name);
 		return f;
 	}
-	static class Log implements NonStandardFuncStr{
-			boolean check(String str) {
-				if(str.equals("ln")||str.equals("Ln"))
-					return true;
-				if(str.length() >= 4) {
-					if(!str.matches("ln\\{.*\\}"))
-						return false;
-					try {
-						FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
-						if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
-							return true;
-						}
-					}
-					catch(WrongSyntaxException e) {}
-				}
-				return false;
-			}
-	
-		FuncDefault returnFunc(String str){
-			if(str.equals("ln")||str.equals("Ln"))
-				return (FuncDefault)defaultFunctions.functionOf(str);
-			if(!check(str))
-				throw new IllegalArgumentException();
-			try {
-				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
-				double d = f.evaluate(new Complex[] {}).x;
-				return new FuncDefault(1, "ln{"+d+"}") {
-					@Override
-					protected Complex evaluate(Complex[] arg) {
-						return Complex.ln(arg[0], d);
-					}
-				};
-			}
-			catch(WrongSyntaxException e){
-				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
-			}
-		}
-	}
+
 	static Log logChecker = new Log();
-	static class Pow implements NonStandardFuncStr{
-		boolean check(String str) {
-			if(str.equals("pow")||str.equals("Pow"))
-				return true;
-			if(str.length() >= 5) {
-				if(!str.matches("pow\\{.*\\}"))
-					return false;
-				try {
-					FunctionPowloka f = new FunctionPowloka(str.substring(4, str.length()-1), new Settings());
-					if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
-						return true;
-					}
-				}
-				catch(WrongSyntaxException e) {}
-			}
-			return false;
-		}
-	
-		FuncDefault returnFunc(String str){
-			if(!check(str))
-				throw new IllegalArgumentException();
-			if(str.equals("pow")||str.equals("Pow"))
-				return (FuncDefault)defaultFunctions.functionOf(str);
-			try {
-				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
-				double d = f.evaluate(new Complex[] {}).x;
-				return new FuncDefault(2, "pow{"+d+"}") {
-					@Override
-					protected Complex evaluate(Complex[] arg) {
-						return Complex.pow(arg[0], arg[1], d);
-					}
-					
-				};
-			}
-			catch(WrongSyntaxException e){
-				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
-			}
-		}
-	}
 	static Pow powChecker = new Pow();
+	static  BscVariables varChecker = new BscVariables();
+	static Identities idChecker = new Identities();
 	
+
 	static protected boolean checkIfNmdFunc(String str) {
 		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || logChecker.check(str) || logChecker.check(str);
 	}
@@ -372,7 +305,7 @@ public class Functions {
 			throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej funkcji.");
 		if(logChecker.check(str))
 			return logChecker.returnFunc(str);
-		if(!powChecker.check(str))
+		if(powChecker.check(str))
 			return powChecker.returnFunc(str);
 		return defaultFunctions.checkIfContained(str) ? defaultFunctions.functionOf(str) : userFunctions.functionOf(str);
 	}
@@ -389,153 +322,19 @@ public class Functions {
 	}
 	
 	static boolean ckeckIfVar(String str) {
-		if(str.matches("([xyzw])||([xyz]\\[[0-9]+\\])"))
-			return true;
-		return userVar.checkIfContained(str) || defaultVar.checkIfContained(str);
+		return userVar.checkIfContained(str) || defaultVar.checkIfContained(str) || varChecker.check(str) || idChecker.check(str);
 	}
 	
 	static Function returnVar(String str) {
-		if(!ckeckIfVar(str))
-			throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej zmiennej");
 		if(defaultVar.checkIfContained(str))
 			return defaultVar.functionOf(str);
 		if(userVar.checkIfContained(str))
 			return userVar.functionOf(str);
-
-		if(str.equals("z") || str.equals("z[0]")) 
-			return new FuncNamed(1, "z") {
-
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return arg[0];
-				}
-				@Override
-				protected Function putArguments(Function[] args) {
-					return args[0];
-				}
-				@Override
-				protected Bool<Function> expand() {
-
-					return new Bool<Function>(this, false);
-				}
-			};
-		if(str.equals("x") || str.equals("x[0]")) 
-			return new FuncNamed(1, "x") {
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return new Complex(arg[0].x,0);
-				}
-
-				@Override
-				protected Function putArguments(Function[] args) {
-					return new FuncComp(Re, new Function[] {args[0]});
-				}
-
-				@Override
-				protected Bool<Function> expand() {
-
-					return new Bool<Function>(this, false);
-				}			
-			};
-		if(str.equals("y") || str.equals("y[0]")) 
-			return new FuncNamed(1, "y") {
-
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return new Complex(0,arg[0].y);
-				}
-
-				@Override
-				protected Function putArguments(Function[] args) {
-					return new FuncComp(Im, new Function[] {args[0]});
-				}
-
-				@Override
-				protected Bool<Function> expand() {
-
-					return new Bool<Function>(this, false);
-				}
-			};
-		if(str.equals("w")) {
-			return new FuncNamed(2, "z[1]") {
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return arg[1];
-				}
-
-				@Override
-				protected Function putArguments(Function[] args) {
-					return args[1];
-				}
-
-				@Override
-				protected Bool<Function> expand() {
-					return new Bool<Function>(this, false);
-				}
-			};
-		}
-		//System.out.println(str);
-		int k = Integer.parseInt(str.substring(2, str.length()-1));
-		switch(str.charAt(0)) {
-		case 'z':
-			return new FuncNamed(k+1, str) {
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return arg[k];
-				}
-
-				@Override
-				protected Function putArguments(Function[] args) {
-					return args[k];
-				}
-
-				@Override
-				protected Bool<Function> expand() {
-					return new Bool<Function>(this, false);
-				}
-			};
-		case 'x':
-			return new FuncNamed(k+1, str) {
-
-
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return new Complex(arg[k].x,0);
-				}
-
-				@Override
-				protected Function putArguments(Function[] args) {
-					return new FuncComp(Re, new Function[] {args[k]});
-				}
-
-				@Override
-				protected Bool<Function> expand() {
-
-					return new Bool<Function>(this, false);
-				}
-			};
-		case 'y':
-			return new FuncNamed(k+1, "y") {
-
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return new Complex(0,arg[k].y);
-				}
-
-				@Override
-				protected Function putArguments(Function[] args) {
-					return new FuncComp(Im, new Function[] {args[k]});
-				}
-
-				@Override
-				protected Bool<Function> expand() {
-
-					return new Bool<Function>(this, false);
-				}
-			};
-		}
-		System.out.println("Kod nigdy nie powinien tutaj dojść. str: " + str);
-		return null;
+		if(varChecker.check(str))
+			return varChecker.returnFunc(str);
+		if(idChecker.check(str))
+			return idChecker.returnFunc(str);
+		throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej zmiennej");
 	}
 
 	static class nameAndValue<rFunc>{
@@ -568,6 +367,199 @@ public class Functions {
 		}
 	}
 
+	static class Log implements NonStandardFuncStr{
+		@Override
+		public boolean check(String str) {
+				if(str.equals("ln")||str.equals("Ln"))
+					return true;
+				if(str.length() >= 4) {
+					if(!str.matches("ln\\{.*\\}"))
+						return false;
+					try {
+						FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+						if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
+							return true;
+						}
+					}
+					catch(WrongSyntaxException e) {}
+				}
+				return false;
+			}
+	
+		@Override
+		public FuncDefault returnFunc(String str){
+			if(str.equals("ln")||str.equals("Ln"))
+				return (FuncDefault)defaultFunctions.functionOf(str);
+			if(!check(str))
+				throw new IllegalArgumentException();
+			try {
+				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+				double d = f.evaluate(new Complex[] {}).x;
+				return new FuncDefault(1, "ln{"+d+"}") {
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return Complex.ln(arg[0], d);
+					}
+				};
+			}
+			catch(WrongSyntaxException e){
+				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
+			}
+		}
+	}
+	
+	static class Pow implements NonStandardFuncStr{
+	
+		@Override
+		public FuncDefault returnFunc(String str){
+			if(!check(str))
+				throw new IllegalArgumentException();
+			if(str.equals("pow"))
+				return (FuncDefault)defaultFunctions.functionOf(str);
+			try {
+				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+				double d = f.evaluate(new Complex[] {}).x;
+				return new FuncDefault(2, "pow{"+d+"}") {
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return Complex.pow(arg[0], arg[1], d);
+					}
+					
+				};
+			}
+			catch(WrongSyntaxException e){
+				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
+			}
+		}
+		
+		@Override
+		public boolean check(String str) {
+			if(str.equals("pow"))
+				return true;
+			if(str.length() >= 5) {
+				if(!str.matches("pow\\{.*\\}"))
+					return false;
+				try {
+					FunctionPowloka f = new FunctionPowloka(str.substring(4, str.length()-1), new Settings());
+					if(f.nofArg() == 0 && f.evaluate(new Complex[] {}).y == 0) {
+						return true;
+					}
+				}
+				catch(WrongSyntaxException e) {}
+			}
+			return false;
+		}
+
+	}
+
+	static class Identities implements NonStandardFuncStr{
+
+		@Override
+		public Function returnFunc(String str) {
+			if(str.equals("z") || str.equals("z[0]")) 
+				return new FuncNamed(1, "z") {
+
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return arg[0];
+					}
+					@Override
+					protected Function putArguments(Function[] args) {
+						return args[0];
+					}
+					@Override
+					protected Bool<Function> expand() {
+
+						return new Bool<Function>(this, false);
+					}
+				};
+			if(str.equals("w")) {
+				return new FuncNamed(2, "z[1]") {
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return arg[1];
+					}
+
+					@Override
+					protected Function putArguments(Function[] args) {
+						return args[1];
+					}
+
+					@Override
+					protected Bool<Function> expand() {
+						return new Bool<Function>(this, false);
+					}
+				};
+			}
+			int k = Integer.parseInt(str.substring(2, str.length()-1));
+			return new FuncNamed(k+1, k == 0 ? "z" : str) {
+				@Override
+				protected Complex evaluate(Complex[] arg) {
+					return arg[k];
+				}
+
+				@Override
+				protected Function putArguments(Function[] args) {
+					return args[k];
+				}
+
+				@Override
+				protected Bool<Function> expand() {
+					return new Bool<Function>(this, false);
+				}
+			};
+
+		}
+
+		@Override
+		public boolean check(String str) {
+			return str.matches("[zw]||(z\\[[0-9]+\\])");
+		}
+		
+		public int returnNumber(String str) {
+			//zakłada że wiadomo już, że str jest odpowiedniego rodzaju
+			if(str.equals("z"))
+				return 0;
+			return Integer.parseInt(str.substring(2, str.length()-1));
+		}
+	}
+	
+	static class BscVariables implements NonStandardFuncStr{
+
+		@Override
+		public Function returnFunc(String str) {
+
+			if(str.equals("x") || str.equals("x[0]")) 
+				return new FuncComp(Re, new Function[] {idChecker.returnFunc("z")});
+			if(str.equals("y") || str.equals("y[0]")) 
+				return new FuncComp(Re, new Function[] {idChecker.returnFunc("z")});
+			//System.out.println(str);
+			int k = Integer.parseInt(str.substring(2, str.length()-1));
+			switch(str.charAt(0)) {
+			case 'x':
+				return new FuncComp(Re, new Function[] {idChecker.returnFunc("z["+k+"]")});
+			case 'y':
+				return new FuncComp(Im, new Function[] {idChecker.returnFunc("z["+k+"]")});
+			}
+			throw new IllegalArgumentException("Kod nie powinien tutaj dojść. Podano zły argument do funkcji. Argumenty najpierw trzeba sprawdzać checkiem.");
+		}
+
+		@Override
+		public boolean check(String str) {
+			if(str.matches("([xy])||([xy]\\[[0-9]+\\])"))
+				return true;
+			return false;
+		}
+		
+		public String returnStr(String xOry, int k) {
+			if(k<0)
+				throw new IllegalArgumentException("k musi byc nieujemne a jest równe "+k+".");
+			if(k==0)
+				return xOry;
+			return xOry+"["+k+"]";
+		}
+	}
+	
 	static public void main(String[] args) {
 		System.out.println("0 błędów");
 		System.out.println(ckeckIfVar("pi"));

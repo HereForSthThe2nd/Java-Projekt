@@ -4,11 +4,13 @@ public class Settings {
 	int doubleAcc;	//do wypisywania
 	boolean writePow; //czy wypisuje ^
 	boolean strictPow; //czy podczas upraszczania potęga zachowuje się ściśle
+	boolean writeRealVar; // czy pisze Re(z) czy x 
 	boolean evaluateConstants;
 	public Settings() {
 		this.doubleAcc = 3;
 		this.strictPow = true;
 		this.writePow = true;
+		this.writeRealVar = true;
 		this.evaluateConstants = false;
 	}
 	public Settings(int doubleAcc) {
