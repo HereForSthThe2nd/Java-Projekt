@@ -20,7 +20,9 @@ abstract class FuncNamed extends Function{
 		return false;
 	}
 	@Override
-	protected Function simplify(Settings setting) {
+	final protected Function simplify(Settings setting) {
+		if(setting.evaluateConstants && nofArg == 0)
+			return new FuncNumConst( evaluate(new Complex[] {}) );
 		return this;
 	}
 
@@ -39,8 +41,8 @@ abstract class FuncDefault extends FuncNamed{
 	}
 
 	@Override
-	protected Bool<Function> expand() {
-		return new Bool<Function>(this, false);
+	protected Function expand() {
+		return this;
 	}
 }
 
@@ -54,13 +56,7 @@ abstract class FuncConstDefault extends FuncNamed{
 		return this;
 	}
 	@Override
-	protected Bool<Function> expand() {
-		return new Bool<Function>(this, false);
-	}
-	@Override
-	final protected Function simplify(Settings set) {
-		if(set.evaluateConstants)
-			return new FuncNumConst(evaluate(new Complex[] {}));
+	protected Function expand() {
 		return this;
 	}
 }
@@ -83,9 +79,18 @@ class FuncGivenName extends FuncNamed{
 	}
 	
 	@Override
-	protected Bool<Function> expand() {
+	protected Function expand() {
+		return f;
+	}
 
-		return new Bool<Function>(f,true);
+	@Override
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+		return f.re();
+	}
+
+	@Override
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+		return f.im();
 	}
 }
 
@@ -109,8 +114,18 @@ class VarGivenName extends FuncNamed{
 	}
 	
 	@Override
-	protected Bool<Function> expand() {
-		return new Bool<Function>(f,true);
+	protected Function expand() {
+		return f;
+	}
+
+	@Override
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+		return f.re();
+	}
+
+	@Override
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+		return f.im();
 	}
 
 }
@@ -134,16 +149,23 @@ final class FuncConstGivenName extends FuncNamed{
 	protected Function putArguments(Function[] args) {
 		return this;
 	}
-
-	@Override
-	final protected Function simplify(Settings set) {
-		if(set.evaluateConstants)
-			return new FuncNumConst(evaluate(new Complex[] {}));
-		return this;
-	}
 	
 	@Override
-	final protected Bool<Function> expand() {
-		return new Bool<Function>(f,true);
+	final protected Function expand() {
+		return f;
+	}
+
+	@Override
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+		if(evaluate(new Complex[] {}).y == 0)
+			return this;
+		return f.re();
+	}
+
+	@Override
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+		if(evaluate(new Complex[] {}).x == 0)
+			return this;
+		return f.im();
 	}
 }

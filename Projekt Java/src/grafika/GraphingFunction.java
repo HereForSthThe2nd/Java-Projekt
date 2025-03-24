@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -24,7 +25,6 @@ import funkcja.Complex;
 import funkcja.Function;
 import funkcja.FunctionPowloka;
 import funkcja.Settings;
-import funkcja.WrongSyntaxException;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -36,9 +36,10 @@ public class GraphingFunction extends JLabel {
 	BufferedImage img;
 	JLabel label;
 	public GraphingFunction(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double lSpeedChange) {
+		int bok = 200;
 		double A = Math.sqrt((prawyGorny.x-lewyDolny.x)/(prawyGorny.y-lewyDolny.y));
 		//setSize((int)(500*A), (int)(500/A));
-		img = new BufferedImage((int)(500*A),(int)(500/A),BufferedImage.TYPE_INT_RGB);
+		img = new BufferedImage((int)(bok*A),(int)(bok/A),BufferedImage.TYPE_INT_RGB);
 		setIcon(new ImageIcon(img));
 		double x;
 		double y;
@@ -100,15 +101,30 @@ public class GraphingFunction extends JLabel {
 	}
 
 	
-	public static void main(String[] args) throws WrongSyntaxException, IOException {
+	public static void main(String[] args) throws Exception {
 		//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
 		Settings set = new Settings();
-		FunctionPowloka f1 = new FunctionPowloka("z", set);
-		GraphingFunction graf = new GraphingFunction(f1, new Complex(-5,-5), new Complex(5,5), 10);
+		//FunctionPowloka f = new FunctionPowloka("exp(exp(x*z)+sin(z^2)^2+(1+i)cos(z)+5ln(z+x)^2) + sin(z)", set);
+		FunctionPowloka f = new FunctionPowloka(new FuncNumConst(new Complex(Double.MAX_VALUE)), set);
+		f.print(set);
+		GraphingFunction graf = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 10);
 		JFrame frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.add(graf);
-		frame.setSize(graf.img.getWidth(), graf.img.getHeight());
+		frame.setLayout(new GridLayout(2,2));
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(graf, 0);
+		frame.setSize(graf.img.getWidth()*2, graf.img.getHeight()*2);
+		
+		f.simplify(set);
+		f.print(set);
+		
+		GraphingFunction graf2 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 10);
+		frame.add(graf2, 1);
+
+		f.splitByRealAndImaginery(set);
+		f.print(set);
+		
+		GraphingFunction graf3 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 10);
+		frame.add(graf3, 2);
 		frame.setVisible(true);
 
 	}

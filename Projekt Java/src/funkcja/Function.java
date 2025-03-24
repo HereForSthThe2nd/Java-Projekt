@@ -22,18 +22,19 @@ abstract public class Function
 	}
 	protected abstract Complex evaluate(Complex[] arg);
 	
-	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
+	protected abstract Function re() throws WewnetzrnaFunkcjaZleZapisana;
+	protected abstract Function im() throws WewnetzrnaFunkcjaZleZapisana;
 	
+	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	protected abstract String write(Settings settings);
 	
 	protected abstract boolean equals(Function f);
 	
 	protected abstract Function putArguments(Function[] args);
 	
-	//TODO: w przyszłości dodać ustawienia do expand, aby istaniała decyzja czy rozszerzać zmienne oraz stałe, czy nie
-	protected abstract Bool<Function> expand();
+	protected abstract Function expand();
 	//bardzo podstawowe
-	protected abstract Function simplify(Settings setting);
+	protected abstract Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana;
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.equals("")) 

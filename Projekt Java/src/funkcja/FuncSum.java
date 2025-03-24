@@ -8,8 +8,9 @@ class FuncSum extends Function {
 	protected FuncSum(Function[] f) {
 		super(Functions.ADD, Functions.countArguments(f));
 		if(f.length == 0) 
-			throw new IllegalArgumentException("Podany ciąg musi mieć co najmniej jeden element");
-		this.summands=f;
+			this.summands = new Function[] {new FuncNumConst(new Complex(0))};
+		else
+			this.summands=f;
 	}
 	
 	private static boolean canPutTogetherPom(Function f, Function g) {
@@ -86,6 +87,7 @@ class FuncSum extends Function {
 			return new FuncMult(new FuncNumConst(Complex.add(gConst,new Complex(1))), f);
 		}
 		if(canPutTogetherPom2(f,g)) {
+			System.out.println("w funcsum.puttogether, pod cnaputtogether2pom");
 			return putTogetherTwoMult((FuncMult)f, (FuncMult)g);
 		}
 		throw new IllegalArgumentException("Coś poszło nie tak, program nie powinien tutaj dojść.");
@@ -122,7 +124,16 @@ class FuncSum extends Function {
 		}
 		return sum;
 	}
-
+	
+	@Override
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		return new FuncSum(Functions.re(summands));
+	}
+	@Override
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		return new FuncSum(Functions.im(summands));
+	}
+	
 	@Override
 	protected String write(Settings settings) {
 		String str = summands[0].write(settings);
@@ -144,9 +155,8 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Bool<Function> expand() {
-		Bool<Function[]>ret = Functions.expand(summands);
-		return new Bool<Function> (new FuncSum(ret.f), ret.bool);
+	protected Function expand() {
+		return new FuncSum(Functions.expand(summands));
 	}
 	
 	@Override
@@ -157,7 +167,7 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function simplify(Settings settings) {
+	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(summands.length == 1)

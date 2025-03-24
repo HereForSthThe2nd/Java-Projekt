@@ -1,7 +1,7 @@
 package funkcja;
 
 public class FunctionPowloka {
-	private Function f;
+	Function f;
 	//String canonicForm; gólne by było równe f.write, chyba że użytkownik dopiero przed chwilą wpisał funkcję i jeszcze jej w żaden sposób nie zmodyfikował... 
 		//może jeśli zmieni w ustawieniach znaczenie pow to może to mogłoby mieć sens? 
 		//Poza tym jeśli chce się to gdzieś przepisać bez zmian czy coś
@@ -40,15 +40,31 @@ public class FunctionPowloka {
 	}
 	
 	public void expand() {
-
-		f = f.expand().f;
+		f = f.expand();
 	}
 	
-	public void simplifyOnce(Settings settings) {
+	public FunctionPowloka re(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+		FunctionPowloka ret = new FunctionPowloka(f.re());
+		ret.simplify(set);
+		return ret;
+	}
+
+	public FunctionPowloka im(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+		FunctionPowloka ret = new FunctionPowloka(f.im());
+		ret.simplify(set);
+		return ret;
+	}
+	
+	
+	public void splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+		this.f = new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)});
+	}
+	
+	public void simplifyOnce(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
 		 f = f.simplify(settings);
 	}
 	
-	public void simplify(Settings settings) throws Exception {
+	public void simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
 		int i = 0;
 		Function fNew = f.simplify(settings);
 		while(!fNew.equals(f)) {
@@ -157,15 +173,26 @@ public class FunctionPowloka {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Settings set = new Settings();
-		/*FunctionPowloka f = new FunctionPowloka("1/2/i*(exp(z*i)-exp(-z*i)) + z[1]+z[2]", set);
-		FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);
+		Settings set = new Settings(7);
+		FunctionPowloka f = new FunctionPowloka("Re(exp(z)*exp(z))", set);
+		FunctionPowloka f2 = new FunctionPowloka("pow(cos(y),2)", set);
+		System.out.println(f.equals(f2));
+		f.print(set);
+		f.simplifyOnce(set);
+		f.print(set);
+		f.simplifyOnce(set);
+		f.print(set);
+		f.simplifyOnce(set);
+		f.print(set);
+		f.simplifyOnce(set);
+		f.print(set);
+		/*FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);
 		c.simplify(set);
 		f.simplify(set);
 		f.print(set);
-		f.changeToNamed("sin");
-		c.changeToVar("const");*/
-		FunctionPowloka g = new FunctionPowloka("e^(Re(z)*2)*exp(x)", set);
+		f.changeToNamed("sin[2]");
+		c.changeToVar("const");
+		FunctionPowloka g = new FunctionPowloka("y", set);
 		g.print(set);
 		g.simplify(set);
 		g.print(set);
@@ -174,14 +201,14 @@ public class FunctionPowloka {
 		g.print(set);
 		g.simplify(set);
 		g.print(set);
-		/*
+		
 		FunctionPowloka r = new FunctionPowloka("(x^2+y^2)^(1/2)",set);
 		r.changeToVar("r");
 		FunctionPowloka h = new FunctionPowloka("6.63*10^(-34)", set);
 		h.changeToVar("h");
 		FunctionPowloka rh = new FunctionPowloka("r+h+w",set);
 		rh.changeToNamed("rh");
-		FunctionPowloka rf = new FunctionPowloka("rh(z/z, 0)",set);
+		FunctionPowloka rf = new FunctionPowloka("rh(z/z+i, 0)",set);
 		System.out.println("rf:");
 		rf.print(set);
 		rf.simplify(set);

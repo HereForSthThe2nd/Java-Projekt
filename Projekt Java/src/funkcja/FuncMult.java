@@ -7,7 +7,7 @@ class FuncMult extends Function {
 	public FuncMult(Function[] f) {
 		super(Functions.MULT, Functions.countArguments(f));
 		if(f.length == 0) 
-			throw new IllegalArgumentException("Podany ciąg musi mieć co najmniej jeden element");
+			f = new Function[] {new FuncNumConst(new Complex(1))};
 		this.f=f;
 	}
 	public FuncMult(Function f, Function g) {
@@ -47,7 +47,7 @@ class FuncMult extends Function {
 	
 	private boolean sameBasesPom2(Function f, Function g) {
 		if(checkIfPow(f) && checkIfPow(g)) {
-				if(((FuncComp)g).g[0].equals(((FuncComp)f).g[0]));
+				if(((FuncComp)g).g[0].equals(((FuncComp)f).g[0]))
 						return true;
 		}
 		return false;
@@ -146,6 +146,23 @@ class FuncMult extends Function {
 		return mult;
 	}
 	
+	@Override
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		if(f.length == 1)
+			return f[0].re();
+		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(Functions.subList(f, 1, f.length)).re()),
+				new FuncMult(new Function[] {new FuncNumConst(new Complex(-1)), f[0].im(), new FuncMult(Functions.subList(f, 1, f.length)).im()})
+		});
+	}
+	@Override
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		if(f.length == 1)
+			return f[0].im();
+		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(Functions.subList(f, 1, f.length)).im()),
+				new FuncMult(f[0].im(), new FuncMult(Functions.subList(f, 1, f.length)).re())
+		});
+	}
+
 	private boolean putParenthases(Function f, boolean division) {
 		if(f.type == Functions.ADD)
 			return true;
@@ -216,9 +233,8 @@ class FuncMult extends Function {
 		return new FuncMult(Functions.putArguments(f, args));
 	}
 	@Override
-	protected Bool<Function> expand() {
-		Bool<Function[]>ret = Functions.expand(f);
-		return new Bool<Function> (new FuncMult(ret.f), ret.bool);
+	protected Function expand() {
+		return new FuncMult(Functions.expand(f));
 	}
 	@Override
 	protected boolean equals(Function f) {
@@ -227,7 +243,7 @@ class FuncMult extends Function {
 		return false;
 	}
 	@Override
-	protected Function simplify(Settings settings) {
+	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana { 
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(f.length == 1)

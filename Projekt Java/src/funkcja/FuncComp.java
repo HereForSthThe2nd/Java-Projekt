@@ -18,6 +18,14 @@ class FuncComp extends Function {
 	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(Functions.evaluate(g, arg));
 	}
+	@Override
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		return f.re().putArguments(g);
+	}
+	@Override
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		return f.im().putArguments(g);
+	}
 	private String wypiszPotege(Settings settings) {
 		String str = "";
 		if(g[0].type == Functions.ADD || g[0].type == Functions.MULT) {
@@ -61,17 +69,16 @@ class FuncComp extends Function {
 		return new FuncComp(f, Functions.putArguments(g, args));
 	}
 	@Override
-	protected Bool<Function> expand() {
-		Bool<Function> inner = f.expand();
-		if(inner.bool)
-			return new Bool<Function> (inner.f.putArguments(g), inner.bool);
-		Bool<Function[]> a = Functions.expand(g);
-		return new Bool<Function> (inner.f.putArguments(a.f), a.bool);
+	protected Function expand() {
+		Function outer = f.expand();
+		if(!outer.equals(f))
+			return outer.putArguments(g);
+		return outer.putArguments(Functions.expand(g));
 	}
 	@Override
 	protected boolean equals(Function f) {
 		if(f.type == this.type)
-			return Functions.equals(this.g, ((FuncComp)f).g);
+			return Functions.equals(this.g, ((FuncComp)f).g) && this.f.equals(((FuncComp)f).f);
 		return false;
 	}
 
@@ -187,7 +194,13 @@ class FuncComp extends Function {
 
 	
 	@Override
-	protected Function simplify(Settings setting) {
+	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
+		if(f.equals(Functions.Re))
+			return g[0].re();
+		if(f.equals(Functions.Im))
+			return g[0].im();
+		if(nofArg == 0 && setting.evaluateConstants)
+			return new FuncNumConst( evaluate(new Complex[] {}));
 		if(checkComponents("ln", "exp") || checkComponents("exp", Functions.logChecker))
 			return ((FuncComp)g[0]).g[0];
 		if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(0))) || checkComponents("pow", new FuncNumConst(new Complex(1)))) 

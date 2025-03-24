@@ -97,6 +97,19 @@ public class Complex {
 		//Im(Ln) w (-pi, pi]
 		return new Complex(Math.log(a.mod()), a.arg());
 	}
+	public static Complex sin(Complex z) {
+		return Complex.mult(new Complex(0,-0.5), Complex.subt(Complex.exp(Complex.mult(new Complex(0,1), z)), Complex.exp(Complex.mult(new Complex(0,-1), z))));
+	}
+	public static Complex cos(Complex z) {
+		return Complex.mult(new Complex(0.5,0), Complex.add(Complex.exp(Complex.mult(new Complex(0,1), z)), Complex.exp(Complex.mult(new Complex(0,-1), z))));
+	}
+	public static Complex sinh(Complex z) {
+		return Complex.mult(new Complex(0.5), Complex.subt(Complex.exp(z), Complex.exp(Complex.mult(z,new Complex(-1)))));
+	}
+	public static Complex cosh(Complex z) {
+		return Complex.mult(new Complex(0.5), Complex.add(Complex.exp(z), Complex.exp(Complex.mult(z,new Complex(-1)))));
+	}
+
 	public static Complex ln(Complex a, double d) {
 		Complex dNorm = new Complex(0,d+Math.PI);
 		return Complex.add(Ln(Complex.mult(a, exp(Complex.mult(new Complex(-1) , dNorm)))), dNorm); 

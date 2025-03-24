@@ -1,10 +1,10 @@
 do zrobienia:
-ZROBIONE 1.dodanie możliwości ln{}, pow{}
-ZROBIONE	2.ef(x) + 2f(x) -> (e+2)f(x) przy simplify
+	ZROBIONE 1.dodanie możliwości ln{}, pow{}
+	ZROBIONE	2.ef(x) + 2f(x) -> (e+2)f(x) przy simplify
 3.a^2*b^2 -> (a*b)^2 przy simplify, przy nieścisłym ustawieniu na potęg działa dla niecałkowitych potęg
 4.częśc rzeczywista i urojona
-7.ładny zapis części zeyczywistej i urojonej
+	ZROBIONE 7.ładny zapis części zeyczywistej i urojonej
 5.pochodne cząstkowe
 6.(?)całka
-8.usunąć Bool<Function> z expand
-9.zamienić zmienne z[k] itp na interfejs
+	ZROBIONE 8.usunąć Bool<Function> z expand
+	ZROBIONE 9.zamienić zmienne z[k] itp na interfejs
