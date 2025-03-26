@@ -12,7 +12,8 @@ abstract class FuncNamed extends Function{
 			return name;
 	}
 	@Override
-	final protected boolean equals(Function f) {
+	public
+	final boolean check(Function f) {
 		if(f.type == Functions.NAMED) {
 			if(((FuncNamed)f).name.equals(this.name))
 				return true;
@@ -108,7 +109,7 @@ class VarGivenName extends FuncNamed{
 
 	@Override
 	protected Function putArguments(Function[] args) {
-		if(Functions.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
+		if(FuncMethods.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
 			return this;
 		return f.putArguments(args);
 	}

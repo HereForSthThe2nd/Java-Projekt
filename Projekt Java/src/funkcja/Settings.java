@@ -1,11 +1,11 @@
 package funkcja;
 
 public class Settings {
-	int doubleAcc = 3;	//do wypisywania
-	boolean writePow = true; //czy wypisuje ^
-	boolean strictPow = true; //czy podczas upraszczania potęga zachowuje się ściśle
-	boolean writeRealVar = true; // czy pisze Re(z) czy x 
-	boolean evaluateConstants = false;
+	public int doubleAcc = 3;	//do wypisywania
+	public boolean writePow = true; //czy wypisuje ^
+	public boolean strictPow = true; //czy podczas upraszczania potęga zachowuje się ściśle
+	public boolean writeRealVar = true; // czy pisze Re(z) czy x 
+	public boolean evaluateConstants = false;
 	public Settings() {
 		this.doubleAcc = 3;
 		this.strictPow = true;
@@ -29,5 +29,7 @@ public class Settings {
 		this.evaluateConstants = evaluateConstatns;
 		this.writeRealVar = writeRealVar;
 	}
-
+	public Settings copy() {
+		return new Settings(doubleAcc, writePow, strictPow, evaluateConstants, writeRealVar);
+	}
 }

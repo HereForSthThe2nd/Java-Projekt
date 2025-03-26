@@ -3,27 +3,27 @@ package funkcja;
 import java.util.ArrayList;
 
 class FuncMult extends Function {
-	Function[] f;
+	final Function[] f;
 	public FuncMult(Function[] f) {
-		super(Functions.MULT, Functions.countArguments(f));
+		super(Functions.MULT, FuncMethods.countArguments(f));
 		if(f.length == 0) 
 			f = new Function[] {new FuncNumConst(new Complex(1))};
 		this.f=f;
 	}
 	public FuncMult(Function f, Function g) {
-		super(Functions.MULT, Functions.countArguments(new Function[] {f,g}));
+		super(Functions.MULT, FuncMethods.countArguments(new Function[] {f,g}));
 		this.f=new Function[] {f,g};
 	}
 	
 	private boolean checkIfPow(Function f){
-		if(f.type == Functions.COMPOSITE && ((FuncComp)f).f.equals(Functions.pow))
+		if(f.type == Functions.COMPOSITE && ((FuncComp)f).getOuter().check(Functions.pow))
 			return true;
 		return false;
 	}
 	
 	private boolean sameBasesPom(Function f, Function g) {
 		if(f.type == Functions.COMPOSITE) {
-			if(((FuncComp)f).checkComponents("pow", g))
+			if(((FuncComp)f).checkComponents(Functions.pow, g))
 				return true;
 		}
 		return false;
@@ -31,7 +31,7 @@ class FuncMult extends Function {
 	
 	private boolean expBasePom(Function f, Function g) {
 		if(f.type == Functions.COMPOSITE)
-			if(((FuncComp)f).f.equals(Functions.exp) && g.equals(Functions.e))
+			if(((FuncComp)f).getOuter().check(Functions.exp) && g.check(Functions.e))
 				return true;
 		return false;
 				
@@ -39,7 +39,7 @@ class FuncMult extends Function {
 	
 	private boolean expBasePom2(Function f, Function g) {
 		if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE)
-			if(((FuncComp)f).f.equals(Functions.exp) && ((FuncComp)g).f.equals(Functions.exp))
+			if(((FuncComp)f).getOuter().check(Functions.exp) && ((FuncComp)g).getOuter().check(Functions.exp))
 				return true;
 		return false;
 				
@@ -47,14 +47,14 @@ class FuncMult extends Function {
 	
 	private boolean sameBasesPom2(Function f, Function g) {
 		if(checkIfPow(f) && checkIfPow(g)) {
-				if(((FuncComp)g).g[0].equals(((FuncComp)f).g[0]))
+				if(((FuncComp)g).getInner(0).check(((FuncComp)f).getInner(0)))
 						return true;
 		}
 		return false;
 	}
 	
 	private boolean sameBases(Function f, Function g) {
-		if(( f.equals(g) && g.type != Functions.NUMCONST) || sameBasesPom(f, g) || sameBasesPom(g, f) || sameBasesPom2(f,g) || expBasePom(f, g) || expBasePom2(f, g))
+		if(( f.check(g) && g.type != Functions.NUMCONST) || sameBasesPom(f, g) || sameBasesPom(g, f) || sameBasesPom2(f,g) || expBasePom(f, g) || expBasePom2(f, g))
 			return true;
 		return false;
 	}
@@ -67,32 +67,32 @@ class FuncMult extends Function {
 			}catch(Exception e) {
 				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
 			}
-		if(f.equals(g))
+		if(f.check(g))
 			return new FuncComp(Functions.pow, new Function[] {f, new FuncNumConst(new Complex(2))});
 		if(sameBasesPom(f, g)) {
-			Function fExponent = ((FuncComp)f).g[1];
+			Function fExponent = ((FuncComp)f).getInner(1);
 			return new FuncComp(Functions.pow, new Function[] {g, new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
 		}
 		if(sameBasesPom(g,f)) {
-			Function gExponent = ((FuncComp)g).g[1];
+			Function gExponent = ((FuncComp)g).getInner(1);
 			return new FuncComp(Functions.pow, new Function[] {f, new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
 		}
 		if(sameBasesPom2(f,g)) {
-			Function fExponent = ((FuncComp)f).g[1];
-			Function gExponent = ((FuncComp)g).g[1];
-			return new FuncComp(Functions.pow, new Function[] {((FuncComp)g).g[0], new FuncSum(new Function[] {gExponent,fExponent})});
+			Function fExponent = ((FuncComp)f).getInner(1);
+			Function gExponent = ((FuncComp)g).getInner(1);
+			return new FuncComp(Functions.pow, new Function[] {((FuncComp)g).getInner(0), new FuncSum(new Function[] {gExponent,fExponent})});
 		}
 		if(expBasePom(f, g)) {
-			Function fExponent = ((FuncComp)f).g[0];
+			Function fExponent = ((FuncComp)f).getInner(0);
 			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
 		}
 		if(expBasePom(g,f)) {
-			Function gExponent = ((FuncComp)g).g[0];
+			Function gExponent = ((FuncComp)g).getInner(0);
 			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
 		}
 		if(expBasePom2(f,g)) {
-			Function fExponent = ((FuncComp)f).g[0];
-			Function gExponent = ((FuncComp)g).g[0];
+			Function fExponent = ((FuncComp)f).getInner(0);
+			Function gExponent = ((FuncComp)g).getInner(0);
 			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,fExponent})});
 		}
 
@@ -127,10 +127,10 @@ class FuncMult extends Function {
 	
 	private boolean checkIfSameExponentsPom2(Function f, Function g, Settings set) {
 		if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE) {
-			if(!set.strictPow && ((FuncComp)f).f.equals(Functions.pow) && ((FuncComp)g).f.equals(Functions.pow) && ((FuncComp)f).g[1].equals(((FuncComp)g).g[1]))
+			if(!set.strictPow && ((FuncComp)f).getOuter().check(Functions.pow) && ((FuncComp)g).getOuter().check(Functions.pow) && ((FuncComp)f).getInner(1).check(((FuncComp)g).getInner(1)))
 				return true;
-			if(((FuncComp)f).f.equals(Functions.pow) && ((FuncComp)g).f.equals(Functions.pow) && ((FuncComp)f).g[1].equals(((FuncComp)g).g[1]))
-				if(((FuncComp)f).g[1].type == Functions.NUMCONST && ((FuncComp)f).g[1].evaluate(new Complex[] {}).y == 0 && ((FuncComp)f).g[1].evaluate(new Complex[] {}).x%1 == 0)
+			if(((FuncComp)f).getOuter().check(Functions.pow) && ((FuncComp)g).getOuter().check(Functions.pow) && ((FuncComp)f).getInner(1).check(((FuncComp)g).getInner(1)))
+				if(((FuncComp)f).getInner(1).type == Functions.NUMCONST && ((FuncComp)f).getInner(1).evaluate(new Complex[] {}).y == 0 && ((FuncComp)f).getInner(1).evaluate(new Complex[] {}).x%1 == 0)
 					return true;
 				
 		}
@@ -150,16 +150,16 @@ class FuncMult extends Function {
 	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
 		if(f.length == 1)
 			return f[0].re();
-		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(Functions.subList(f, 1, f.length)).re()),
-				new FuncMult(new Function[] {new FuncNumConst(new Complex(-1)), f[0].im(), new FuncMult(Functions.subList(f, 1, f.length)).im()})
+		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).re()),
+				new FuncMult(new Function[] {new FuncNumConst(new Complex(-1)), f[0].im(), new FuncMult(FuncMethods.subList(f, 1, f.length)).im()})
 		});
 	}
 	@Override
 	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
 		if(f.length == 1)
 			return f[0].im();
-		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(Functions.subList(f, 1, f.length)).im()),
-				new FuncMult(f[0].im(), new FuncMult(Functions.subList(f, 1, f.length)).re())
+		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).im()),
+				new FuncMult(f[0].im(), new FuncMult(FuncMethods.subList(f, 1, f.length)).re())
 		});
 	}
 
@@ -185,16 +185,16 @@ class FuncMult extends Function {
 	protected String write(Settings settings) {
 		int i = 0;
 		String str = "";
-		if(f[0].equals(new FuncNumConst(new Complex(-1)))) {
+		if(f[0].check(new FuncNumConst(new Complex(-1)))) {
 			if(f.length == 1)
 				return "-1";
 			i++;
-			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).f.name.equals("pow")) {
-				if(((FuncComp)f[i]).g[1].equals(new FuncNumConst(new Complex(-1)))) {
-					if(putParenthases(((FuncComp)f[i]).g[0], true))
-						str += "1 / ("+((FuncComp)f[i]).g[0].write(settings) + ")";
+			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).getOuter().check(Functions.pow)) {
+				if(((FuncComp)f[i]).getInner(1).check(new FuncNumConst(new Complex(-1)))) {
+					if(putParenthases(((FuncComp)f[i]).getInner(0), true))
+						str += "1 / ("+((FuncComp)f[i]).getInner(0).write(settings) + ")";
 					else
-						str += "1 / "+((FuncComp)f[i]).g[0].write(settings);
+						str += "1 / "+((FuncComp)f[i]).getInner(0).write(settings);
 				}else
 					str += "- "+f[i].write(settings);
 			}else {
@@ -211,12 +211,12 @@ class FuncMult extends Function {
 				str += f[i].write(settings);
 		
 		for(i++;i<f.length;i++) {
-			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).f.name.equals("pow")) {
-					if(((FuncComp)f[i]).g[1].equals(new FuncNumConst(new Complex(-1)))) {
-						if(putParenthases(((FuncComp)f[i]).g[0], true))
-							str += " / ("+((FuncComp)f[i]).g[0].write(settings) + ")";
+			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).getOuter().check(Functions.pow)) {
+					if(((FuncComp)f[i]).getInner(1).check(new FuncNumConst(new Complex(-1)))) {
+						if(putParenthases(((FuncComp)f[i]).getInner(0), true))
+							str += " / ("+((FuncComp)f[i]).getInner(0).write(settings) + ")";
 						else
-							str += " / "+((FuncComp)f[i]).g[0].write(settings);
+							str += " / "+((FuncComp)f[i]).getInner(0).write(settings);
 					}else
 						str += " * "+f[i].write(settings);
 			}else {
@@ -230,16 +230,16 @@ class FuncMult extends Function {
 	}
 	@Override
 	protected Function putArguments(Function[] args) {
-		return new FuncMult(Functions.putArguments(f, args));
+		return new FuncMult(FuncMethods.putArguments(f, args));
 	}
 	@Override
 	protected Function expand() {
-		return new FuncMult(Functions.expand(f));
+		return new FuncMult(FuncMethods.expand(f));
 	}
 	@Override
-	protected boolean equals(Function f) {
+	public boolean check(Function f) {
 		if(f.type == this.type)
-			return Functions.equals(this.f, ((FuncMult)f).f);
+			return FuncMethods.equals(this.f, ((FuncMult)f).f);
 		return false;
 	}
 	@Override
@@ -249,7 +249,7 @@ class FuncMult extends Function {
 		if(f.length == 1)
 			return f[0].simplify(settings);
 		ArrayList<Function> organisedMult = new ArrayList<Function>();
-		Function[] simplMult = Functions.simplifyAll(f, settings);
+		Function[] simplMult = FuncMethods.simplifyAll(f, settings);
 		ArrayList<Function> extendedMult = new ArrayList<Function>();
 		for(int i=0;i<simplMult.length;i++) {
 			if(simplMult[i].type == Functions.MULT) {

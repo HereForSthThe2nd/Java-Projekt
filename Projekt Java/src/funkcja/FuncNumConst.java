@@ -8,7 +8,7 @@ public class FuncNumConst extends Function {
 			ZES = 4;//1+i, 1-i
 	final Complex a;
 	final int form;
-	FuncNumConst(Complex a){ 
+	public FuncNumConst(Complex a){ 
 		super(Functions.NUMCONST, 0);
 		this.a = a;
 		if(a.x==0 && a.y==1) {
@@ -52,7 +52,7 @@ public class FuncNumConst extends Function {
 	}
 
 	@Override
-	protected boolean equals(Function f) {
+	public boolean check(Function f) {
 		if(f.type != this.type)
 			return false;
 		return this.a.equals( ((FuncNumConst)f).a );

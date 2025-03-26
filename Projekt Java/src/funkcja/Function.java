@@ -11,7 +11,7 @@ class Bool<T>{
 	}
 }
 
-abstract public class Function
+abstract public class Function implements FuncChecker
  {	
 	final int type;
 	final int nofArg;
@@ -28,7 +28,7 @@ abstract public class Function
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	protected abstract String write(Settings settings);
 	
-	protected abstract boolean equals(Function f);
+	//public abstract boolean check(Function f);
 	
 	protected abstract Function putArguments(Function[] args);
 	
@@ -107,12 +107,7 @@ abstract public class Function
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
 			return new FuncMult(lFunc, rFunc);
 		}
-		splitIndex = bloki.find("/",-1);
-		if(splitIndex != -1) {
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
-			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
-		}
+
 		splitIndex = bloki.find("^",-1);
 		if(splitIndex != -1) {
 			int leftPowIndex = splitIndex;
@@ -126,6 +121,16 @@ abstract public class Function
 			return new FuncMult(new Function[] {lFunc, rFunc,
 					new FuncComp(Functions.pow,
 							new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)})});
+		}
+		splitIndex = bloki.find("/",-1);
+		if(splitIndex != -1) {
+			Function lFunc = read(bloki.subList(0, splitIndex), settings);
+			Function divBy = read(bloki.subList(splitIndex+1, splitIndex+2), settings);
+			Function rFunc = read(bloki.subList(splitIndex+2, bloki.arr.size()), settings);
+			if(splitIndex + 2 == bloki.arr.size()) {
+				rFunc = new FuncNumConst(new Complex(1));
+			}
+			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {divBy, new FuncNumConst(new Complex(-1.0))}), rFunc});
 		}
 		return new FuncMult(new Function[] {read(bloki.subList(0, 1), settings), read(bloki.subList(1, bloki.arr.size()), settings)});
 	}

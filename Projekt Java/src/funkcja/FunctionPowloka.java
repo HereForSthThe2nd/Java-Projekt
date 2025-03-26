@@ -14,8 +14,11 @@ public class FunctionPowloka {
 		f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings);
 	}
 	
- 	public int 
- 	nofArg() {
+ 	public FunctionPowloka copy() {
+ 		return new FunctionPowloka(this.f);
+ 	}
+ 	
+ 	public int nofArg() {
  		return f.nofArg;
  	}
  	
@@ -36,7 +39,7 @@ public class FunctionPowloka {
 	}
 		
 	public boolean equals(FunctionPowloka fP) {
-		return f.equals(fP.f);
+		return f.check(fP.f);
 	}
 	
 	public void expand() {
@@ -64,10 +67,10 @@ public class FunctionPowloka {
 		 f = f.simplify(settings);
 	}
 	
-	public void simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	public void simplifyPom(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
 		int i = 0;
 		Function fNew = f.simplify(settings);
-		while(!fNew.equals(f)) {
+		while(!fNew.check(f)) {
 			f = fNew;
 			fNew = f.simplify(settings);
 			i++;
@@ -76,6 +79,18 @@ public class FunctionPowloka {
 				break;
 			}
 		}
+	}
+	
+	public void simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+		/*if(settings.evaluateConstants) {
+			Settings temp = settings.copy();
+			temp.evaluateConstants = false;
+			FunctionPowloka fp = copy();
+			fp.simplifyPom(temp);
+			fp.simplifyPom(settings);
+			this.f = fp.f;
+		}*/
+		simplifyPom(settings);
 	}
 	
 	public void print(Settings set) {
@@ -173,10 +188,11 @@ public class FunctionPowloka {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Settings set = new Settings(7);
-		FunctionPowloka f = new FunctionPowloka("Re(exp(z)*exp(z))", set);
-		FunctionPowloka f2 = new FunctionPowloka("pow(cos(y),2)", set);
-		System.out.println(f.equals(f2));
+		Settings set = new Settings(100);
+		set.evaluateConstants = true;
+		//set.evaluateConstants = true;
+		FunctionPowloka f = new FunctionPowloka("2^(-1)", set);
+		FunctionPowloka f2 = new FunctionPowloka(new FuncNumConst(new Complex(0)));
 		f.print(set);
 		f.simplifyOnce(set);
 		f.print(set);

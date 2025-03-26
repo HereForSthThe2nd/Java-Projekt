@@ -1,12 +1,11 @@
 package funkcja;
 
 import java.util.ArrayList;
-import java.util.List;
 
 class FuncSum extends Function {
 	final Function[] summands;
 	protected FuncSum(Function[] f) {
-		super(Functions.ADD, Functions.countArguments(f));
+		super(Functions.ADD, FuncMethods.countArguments(f));
 		if(f.length == 0) 
 			this.summands = new Function[] {new FuncNumConst(new Complex(0))};
 		else
@@ -15,7 +14,7 @@ class FuncSum extends Function {
 	
 	private static boolean canPutTogetherPom(Function f, Function g) {
 		if(f.type == Functions.MULT)
-			if(((FuncMult)f).f.length == 2 && ( ((FuncMult)f).f[0].type == Functions.NUMCONST || (g.nofArg > 0 && ((FuncMult)f).f[0].nofArg == 0)) && ((FuncMult)f).f[1].equals(g))
+			if(((FuncMult)f).f.length == 2 && ( ((FuncMult)f).f[0].type == Functions.NUMCONST || (g.nofArg > 0 && ((FuncMult)f).f[0].nofArg == 0)) && ((FuncMult)f).f[1].check(g))
 				return true;
 		return false;
 	}
@@ -47,7 +46,7 @@ class FuncSum extends Function {
 	
 	private static boolean canPutTogetherPom2(Function f, Function g) {
 		if(f.type == Functions.MULT && g.type == Functions.MULT)
-			if(Functions.equals( splitByConstants((FuncMult)f).second, splitByConstants((FuncMult)g).second))
+			if(FuncMethods.equals( splitByConstants((FuncMult)f).second, splitByConstants((FuncMult)g).second))
 				return true;
 		return false;
 	}
@@ -63,7 +62,7 @@ class FuncSum extends Function {
 	}
 	
 	private static boolean canPutTogether(Function f, Function g) {
-		if(f.equals(g) || canPutTogetherPom(f, g) || canPutTogetherPom(g, f) || canPutTogetherPom2(f,g))
+		if(f.check(g) || canPutTogetherPom(f, g) || canPutTogetherPom(g, f) || canPutTogetherPom2(f,g))
 			return true;
 		return false;
 	}
@@ -76,7 +75,7 @@ class FuncSum extends Function {
 			}catch(Exception e) {
 				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
 			}
-		if(f.equals(g))
+		if(f.check(g))
 			return new FuncMult(new FuncNumConst(new Complex(2)), f);
 		if(canPutTogetherPom(f, g)) {
 			Complex fConst = ((FuncNumConst)((FuncMult)f).f[0]).a;
@@ -127,11 +126,11 @@ class FuncSum extends Function {
 	
 	@Override
 	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
-		return new FuncSum(Functions.re(summands));
+		return new FuncSum(FuncMethods.re(summands));
 	}
 	@Override
 	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
-		return new FuncSum(Functions.im(summands));
+		return new FuncSum(FuncMethods.im(summands));
 	}
 	
 	@Override
@@ -139,7 +138,7 @@ class FuncSum extends Function {
 		String str = summands[0].write(settings);
 		for(int i=1;i<summands.length;i++) {
 			if(summands[i].type == Functions.MULT) {
-				if(((FuncMult)summands[i]).f[0].equals(new FuncNumConst(new Complex(-1))))
+				if(((FuncMult)summands[i]).f[0].check(new FuncNumConst(new Complex(-1))))
 					str += " " + summands[i].write(settings);
 				else
 					str += " + "+summands[i].write(settings);
@@ -151,18 +150,18 @@ class FuncSum extends Function {
 
 	@Override
 	protected Function putArguments(Function[] args) {
-		return new FuncSum(Functions.putArguments(summands, args));
+		return new FuncSum(FuncMethods.putArguments(summands, args));
 	}
 
 	@Override
 	protected Function expand() {
-		return new FuncSum(Functions.expand(summands));
+		return new FuncSum(FuncMethods.expand(summands));
 	}
 	
 	@Override
-	protected boolean equals(Function f) {
+	public boolean check(Function f) {
 		if(f.type == this.type)
-			return Functions.equals(this.summands, ((FuncSum)f).summands);
+			return FuncMethods.equals(this.summands, ((FuncSum)f).summands);
 		return false;
 	}
 
@@ -172,7 +171,7 @@ class FuncSum extends Function {
 		//trochę niezręczny kod, ale działa
 		if(summands.length == 1)
 			return summands[0].simplify(settings);
-		Function[] simplSummands = Functions.simplifyAll(summands, settings);
+		Function[] simplSummands = FuncMethods.simplifyAll(summands, settings);
 		ArrayList<Function> extendedSummands = new ArrayList<Function>();
 		for(int i=0;i<simplSummands.length;i++) {
 			if(simplSummands[i].type == Functions.ADD) {

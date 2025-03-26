@@ -21,10 +21,7 @@ import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 
-import funkcja.Complex;
-import funkcja.Function;
-import funkcja.FunctionPowloka;
-import funkcja.Settings;
+import funkcja.*;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -43,17 +40,11 @@ public class GraphingFunction extends JLabel {
 		setIcon(new ImageIcon(img));
 		double x;
 		double y;
-		System.out.println(img.getWidth());
-		System.out.println(img.getHeight());
 		for(int xI=0; xI<img.getWidth();xI++) {
 			for(int yI=0;yI<img.getHeight();yI++) {
 				x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
 				y = yI*(lewyDolny.y-prawyGorny.y)/img.getHeight()+prawyGorny.y;
 				Complex[] z = new Complex[] {new Complex(x,y)};
-				if(z[0].equals(Complex.i)) {
-					z[0].print();
-					System.out.println(xI + "   " + yI);
-				}
 				int[] RGBColor = HSLToRGB(pointToHSL(f.evaluate(z),lSpeedChange));
 				img.setRGB(xI, yI, rgbToHex(RGBColor));
 			}
@@ -104,27 +95,38 @@ public class GraphingFunction extends JLabel {
 	public static void main(String[] args) throws Exception {
 		//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
 		Settings set = new Settings();
-		//FunctionPowloka f = new FunctionPowloka("exp(exp(x*z)+sin(z^2)^2+(1+i)cos(z)+5ln(z+x)^2) + sin(z)", set);
-		FunctionPowloka f = new FunctionPowloka(new FuncNumConst(new Complex(Double.MAX_VALUE)), set);
+		FunctionPowloka f = new FunctionPowloka("exp(exp(x*z)+sin(z^2)^2+(1+i)cos(z)+5ln(z+x)^2) + sin(z)", set);
+		//FunctionPowloka f = new FunctionPowloka("sin(e^z)", set);
 		f.print(set);
-		GraphingFunction graf = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 10);
+		GraphingFunction graf = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
 		JFrame frame = new JFrame();
 		frame.setLayout(new GridLayout(2,2));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.add(graf, 0);
 		frame.setSize(graf.img.getWidth()*2, graf.img.getHeight()*2);
 		
+		set.evaluateConstants = true;
 		f.simplify(set);
 		f.print(set);
 		
-		GraphingFunction graf2 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 10);
+		GraphingFunction graf2 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
 		frame.add(graf2, 1);
 
 		f.splitByRealAndImaginery(set);
 		f.print(set);
 		
-		GraphingFunction graf3 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 10);
+		GraphingFunction graf3 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
 		frame.add(graf3, 2);
+		
+		//nie działa
+		
+		set.evaluateConstants = true;
+		f.simplify(set);
+		f.print(set);
+		
+		GraphingFunction graf4 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
+		frame.add(graf4, 3);
+
 		frame.setVisible(true);
 
 	}
