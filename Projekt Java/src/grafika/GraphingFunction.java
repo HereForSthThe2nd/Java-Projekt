@@ -2,6 +2,7 @@ package grafika;
 
 
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -18,9 +19,11 @@ import java.io.IOException;
 import java.text.AttributedCharacterIterator;
 import java.util.Random;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
+import javax.swing.JSlider;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import funkcja.*;
 
@@ -33,24 +36,48 @@ import java.awt.image.BufferedImage;
 public class GraphingFunction extends JLabel {
 	BufferedImage img;
 	JLabel label;
-	public GraphingFunction(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double lSpeedChange) {
+	Complex[][] values; //może trochę overkill, zajmuje z 5 razy więcej miejsca niż obraz, może np. zrobić by co 3 - 10 ^ 2 pikseli obliczało wartości po funkcji (i je tylko wtedy zapisywało) a reszę jakoś interpolowało
+	Complex prawyGorny;
+	Complex lewyDolny;
+	double colorSpeedChange;
+	public GraphingFunction(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange) {
+		this.colorSpeedChange = colorSpeedChange;
 		int bok = 500;
+		this.lewyDolny = lewyDolny;
+		this.prawyGorny = prawyGorny;
 		double A = Math.sqrt((prawyGorny.x-lewyDolny.x)/(prawyGorny.y-lewyDolny.y));
 		//setSize((int)(500*A), (int)(500/A));
 		img = new BufferedImage((int)(bok*A),(int)(bok/A),BufferedImage.TYPE_INT_RGB);
 		setIcon(new ImageIcon(img));
-		SwingWorker<Void, Void> draw = new SwingWorker<Void, Void>(){
+		setSize(img.getWidth(), img.getHeight());
+		values = new Complex[getWidth()][getHeight()];
+		double x;
+		double y;
+		for(int xI=0; xI<img.getWidth();xI++) {
+			for(int yI=0;yI<img.getHeight();yI++) {
+				x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
+				y = yI*(lewyDolny.y-prawyGorny.y)/img.getHeight()+prawyGorny.y;
+				Complex[] z = new Complex[] {new Complex(x,y)};
+				values[xI][yI] = f.evaluate(z);
+			}
+		}
+		change(colorSpeedChange);
+	}
+	
+	public void save(String str) throws IOException {
 
+		File imgfile = new File(str+".png");
+		ImageIO.write(img, "png", imgfile);
+	}
+	
+	public void change(double cSC) {
+		colorSpeedChange = cSC;
+		SwingWorker<Void, Void> draw = new SwingWorker<Void, Void>(){
 			@Override
 			protected Void doInBackground() throws Exception {
-				double x;
-				double y;
 				for(int xI=0; xI<img.getWidth();xI++) {
 					for(int yI=0;yI<img.getHeight();yI++) {
-						x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
-						y = yI*(lewyDolny.y-prawyGorny.y)/img.getHeight()+prawyGorny.y;
-						Complex[] z = new Complex[] {new Complex(x,y)};
-						int[] RGBColor = HSLToRGB(pointToHSL(f.evaluate(z),lSpeedChange));
+						int[] RGBColor = HSLToRGB(pointToHSL(values[xI][yI],colorSpeedChange));
 						img.setRGB(xI, yI, rgbToHex(RGBColor));
 					}
 				}
@@ -63,12 +90,16 @@ public class GraphingFunction extends JLabel {
 			}
 		};
 		draw.execute();
+
 	}
 	
-	public void save(String str) throws IOException {
-
-		File imgfile = new File(str+".png");
-		ImageIO.write(img, "png", imgfile);
+	static double przedNorm(double r) {
+		if(r<-0.00001) {
+			throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
+		}
+		r = r>0 ? r : 0;
+		return 2/Math.PI * (Math.atan(r));
+		//return 1 - 1 / (1 + r);
 	}
 	
 	static double[] pointToHSL(Complex z, double lSpeedChange) {
@@ -77,7 +108,7 @@ public class GraphingFunction extends JLabel {
 		HSL[0] = z.arg() + 2.0/3*Math.PI;
 		HSL[1] = 1;
 		//HSL[2] = 2/Math.PI*Math.atan( Math.log(Math.pow(z.mod(), 1/lSpeedChange)+1) );
-		HSL[2] = 2/Math.PI*Math.atan( Math.pow(Math.log((z.mod()+1)), 1/lSpeedChange ));
+		HSL[2] = przedNorm( Math.pow(z.mod(), lSpeedChange ));
 		if(HSL[2]>1 || HSL[2]<0) {
 		}
 		return HSL;
@@ -107,7 +138,6 @@ public class GraphingFunction extends JLabel {
 
 	
 	public static void main(String[] args) throws Exception {
-		//rama nie ma odpowiedniej wielkości nie mieści obrazu idealnie
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
@@ -116,25 +146,30 @@ public class GraphingFunction extends JLabel {
 				Settings set = new Settings();
 				FunctionPowloka f;
 				try {
-					f = new FunctionPowloka("exp(ln(z)^2)", set);
+					f = new FunctionPowloka("1 / z", set);
 					//FunctionPowloka f = new FunctionPowloka("sin(e^z)", set);
 					f.print(set);
-					Complex lDolny = new Complex(-0.01,-0.01);
-					Complex pGorny = new Complex(0.01,0.01);
-					double colorSpeedChange = 10;
-					GraphingFunction graf = new GraphingFunction(f, lDolny, pGorny, colorSpeedChange);
+					Complex lDolny = new Complex(-1,-1);
+					Complex pGorny = new Complex(1,1);
+					GraphingFunction graf = new GraphingFunction(f, lDolny, pGorny, 1);
 					JFrame frame = new JFrame();
-					frame.setLayout(new GridLayout(1,1));
+					frame.setLayout(new FlowLayout());
 					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					frame.setVisible(true);
 					frame.add(graf, 0);
-					frame.setSize(graf.img.getWidth(), graf.img.getHeight());
+					frame.setSize(graf.img.getWidth() + 100, graf.img.getHeight() + 50);
+					JSlider slider = new JSlider(JSlider.VERTICAL, 0, 100, 10);
+					slider.addChangeListener(new ChangeListener() {
+						
+						@Override
+						public void stateChanged(ChangeEvent e) {
+							graf.change(slider.getValue() / 10.0);
+						}
+					});
+					frame.add(slider);
 					frame.setVisible(true);
-					set.evaluateConstants = true;
-					f.simplify(set);
-					f.print(set);
 				}
-				catch (WrongSyntaxException | WewnetzrnaFunkcjaZleZapisana e) {
+				catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
