@@ -1,7 +1,7 @@
 do zrobienia:
 	ZROBIONE 1.dodanie możliwości ln{}, pow{}
 	ZROBIONE	2.ef(x) + 2f(x) -> (e+2)f(x) przy simplify
-3.a^2*b^2 -> (a*b)^2 przy simplify, przy nieścisłym ustawieniu na potęg działa dla niecałkowitych potęg --> nawet ważne by to zrobić mogłoby całkiem dużo uprościć niektóre rzeczy
+	ZROBIONE 3.a^2*b^2 -> (a*b)^2 przy simplify, przy nieścisłym ustawieniu na potęg działa dla niecałkowitych potęg --> nawet ważne by to zrobić mogłoby całkiem dużo uprościć niektóre rzeczy
 	ZROBIONE 4.częśc rzeczywista i urojona
 	ZROBIONE 7.ładny zapis części zeyczywistej i urojonej
 5.pochodne cząstkowe
@@ -11,4 +11,5 @@ do zrobienia:
 	ZROBIONE 9.zamienić zmienne z[k] itp na interfejs
 	ZROBIONE 10.aby upraszczało znane wartości typu sin(k pi/2) (cięższe niż by można się spodziewać)
 	ZROBIONE 11.aby exp(z)^a upraszczało się tak samo jak b^z ^ a
-12.aby było w stanie się skapnąć kiedy występuje skracalny ułamek (z całkowitym licznikiem oraz mianownikiem) i to uprościć
+	ZROBIONE 12.aby było w stanie się skapnąć kiedy występuje skracalny ułamek (z całkowitym licznikiem oraz mianownikiem) i to uprościć
+13(???)aby mogło upraszczać sumy logarytmów / logarytmy iloczynów 

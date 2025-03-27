@@ -4,11 +4,22 @@ import java.util.ArrayList;
 
 class FuncMethods {
 
-	FuncChecker isNumConst = new FuncChecker() {
-		
+	static FuncChecker isNumConst = new FuncChecker() {
 		@Override
 		public boolean check(Function func) {
 			return func.type == Functions.NUMCONST;
+		}
+	};
+	
+	static FuncChecker isInt = new  FuncChecker() {
+		@Override
+		public boolean check(Function func) {
+			if(func.type == Functions.NUMCONST) {
+				Complex a = ((FuncNumConst)func).a;
+				if(a.y == 0 && a.x % 1 == 0)
+					return true;
+			}
+			return false;
 		}
 	};
 	

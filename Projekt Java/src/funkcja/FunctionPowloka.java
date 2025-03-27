@@ -192,9 +192,9 @@ public class FunctionPowloka {
 		Settings set = new Settings(4);
 		set.strictPow = false;
 		//set.evaluateConstants = true;
-		FunctionPowloka f = new FunctionPowloka("e+3e+2.1-2i*i+e*sin(x) - pi*e*phi*sin(x)", set);
+		FunctionPowloka f = new FunctionPowloka("1122 / 18 * 3^1.4*pi^1.4", set);
 		f.print(set);
-		f.simplify(set);
+		f = f.simplify(set);
 		f.print(set);
 		
 		/*FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);

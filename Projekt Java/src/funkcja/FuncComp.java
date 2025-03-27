@@ -133,9 +133,8 @@ class FuncComp extends Function {
 			if(((FuncComp)g[0]).g[1].check(new FuncNumConst(new Complex(-1)))) {
 				return new Bool<Function> (new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )}), true);
 			}
-			if(g[1].type == Functions.NUMCONST) {
-				if(((FuncNumConst)g[1]).a.y == 0 && ((FuncNumConst)g[1]).a.x%1 == 0)
-					return new Bool<Function> (new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )}), true);
+			if(FuncMethods.isInt.check(g[1])) {
+				return new Bool<Function> (new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )}), true);
 			}
 		}
 		return new Bool<Function> (this, false);
@@ -152,9 +151,8 @@ class FuncComp extends Function {
 			if(((FuncComp)g[0]).g[0].check(new FuncNumConst(new Complex(-1)))) {
 				return new Bool<Function> (new FuncComp(Functions.exp, new Function[] { new FuncMult( ((FuncComp)g[0]).g[0], g[1] )}), true);
 			}
-			if(g[1].type == Functions.NUMCONST) {
-				if(((FuncNumConst)g[1]).a.y == 0 && ((FuncNumConst)g[1]).a.x%1 == 0)
-					return new Bool<Function> (new FuncComp(Functions.exp, new Function[] { new FuncMult( ((FuncComp)g[0]).g[0], g[1] )}), true);
+			if(FuncMethods.isInt.check(g[1])) {
+				return new Bool<Function> (new FuncComp(Functions.exp, new Function[] { new FuncMult( ((FuncComp)g[0]).g[0], g[1] )}), true);
 			}
 		}
 		if(checkComponents(Functions.ln, Functions.exp) || checkComponents(Functions.exp, Functions.logChecker))
@@ -194,7 +192,7 @@ class FuncComp extends Function {
 				boolean licz = FuncMethods.findElement(elements, new FuncChecker() {
 					@Override
 					public boolean check(Function func) {
-						if(func.type == Functions.NUMCONST && ((FuncNumConst)func).a.y == 0 && ((FuncNumConst)func).a.x % 1 == 0)
+						if(FuncMethods.isInt.check(func))
 							return true;
 						return false;
 					}}).bool;
@@ -217,7 +215,7 @@ class FuncComp extends Function {
 					int licz = FuncMethods.findElement(elements, new FuncChecker() {
 						@Override
 						public boolean check(Function func) {
-							if(func.type == Functions.NUMCONST && ((FuncNumConst)func).a.y == 0 && ((FuncNumConst)func).a.x % 1 == 0)
+							if(FuncMethods.isInt.check(func))
 								return true;
 							return false;
 						}}).f;

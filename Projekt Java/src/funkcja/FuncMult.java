@@ -15,7 +15,7 @@ class FuncMult extends Function {
 		this.f=new Function[] {f,g};
 	}
 	
-	SimplTwo putBasesTogether = new SimplTwo() {
+	static SimplTwo putSameBasesTogether = new SimplTwo() {
 		
 		private boolean sameBasesPom(Function f, Function g) {
 			if(f.type == Functions.COMPOSITE) {
@@ -48,58 +48,140 @@ class FuncMult extends Function {
 			}
 			return false;
 		}
+		
+		
+		private boolean skracalneWymierne(Function f, Function g) {
+			if(FuncMethods.isInt.check(f) && checkIfPow(g)) {
+				if(FuncMethods.isInt.check(((FuncComp)g).getInner(0)) && (((FuncComp)g).getInner(1)).check(new FuncNumConst(new Complex(-1)))) {
+					int licz = (int) ((FuncNumConst)f).a.x;
+					int mian = (int) ((FuncNumConst)((FuncComp)g).getInner(0)).a.x;
+					if(NWD(licz, mian) != 1)
+						return true;
+				}
+			}
+			return false;
+		}
 
+		private Function skrocWymierne(Function f, Function g) {
+			if(!skracalneWymierne(f, g))
+				try{
+					throw new IllegalArgumentException("Podany iloraz nie jest skracalny. Podane funkcje: f: " + f.write(new Settings()) + " ,g: " + g.write(new Settings()));
+				}catch(NullPointerException e) {
+					throw new IllegalArgumentException("Podany iloraz nie jest skracalny. Funckcji w nim zawartych nie udało się wypisać.");
+				}
+			int licz = (int) ((FuncNumConst)f).a.x;
+			int mian = (int) ((FuncNumConst)((FuncComp)g).getInner(0)).a.x;
+			int nwd = NWD(licz,mian);
+			return new FuncMult(new Function[] {new FuncNumConst(new Complex(licz/nwd)), new FuncComp(Functions.pow, new Function[] {new FuncNumConst(new Complex(mian/nwd)), new FuncNumConst(new Complex(-1))})});
+		}
+		
+ 		private int NWD(int a, int b) {
+			if(a == 0 || b == 0)
+				return 1;
+			int sign = 1;
+			if(b < 0)
+				sign = -1;
+			a = a>0 ? a : -a;
+			b = b>0 ? b : -b;
+			while(a!=b) {
+				if(a > b)
+					a -= b;
+				else
+					b -= a;
+			}
+			return a * sign;
+		}
+		
 		@Override
-		public Function putTogether(Function base, Function exponent) {
-			if(!canPutTogether(base, exponent))
+		public Function putTogether(Function func1, Function func2) {
+			if(!canPutTogether(func1, func2))
 				try {
 					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
-							+ " Podane funkcja f: " + base.write(new Settings()) + " podana funkcja g: " + exponent.write(new Settings()));
+							+ " Podane funkcja f: " + func1.write(new Settings()) + " podana funkcja g: " + func2.write(new Settings()));
 				}catch(Exception e) {
 					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
 				}
-			if(base.check(exponent))
-				return new FuncComp(Functions.pow, new Function[] {base, new FuncNumConst(new Complex(2))});
-			if(sameBasesPom(base, exponent)) {
-				Function fExponent = ((FuncComp)base).getInner(1);
-				return new FuncComp(Functions.pow, new Function[] {exponent, new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
+			if(func1.check(func2)) {
+				return new FuncComp(Functions.pow, new Function[] {func1, new FuncNumConst(new Complex(2))});
 			}
-			if(sameBasesPom(exponent,base)) {
-				Function gExponent = ((FuncComp)exponent).getInner(1);
-				return new FuncComp(Functions.pow, new Function[] {base, new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
+			if(sameBasesPom(func1, func2)) {
+				Function fExponent = ((FuncComp)func1).getInner(1);
+				return new FuncComp(Functions.pow, new Function[] {func2, new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
 			}
-			if(sameBasesPom2(base,exponent)) {
-				Function fExponent = ((FuncComp)base).getInner(1);
-				Function gExponent = ((FuncComp)exponent).getInner(1);
-				return new FuncComp(Functions.pow, new Function[] {((FuncComp)exponent).getInner(0), new FuncSum(new Function[] {gExponent,fExponent})});
+			if(sameBasesPom(func2,func1)) {
+				Function gExponent = ((FuncComp)func2).getInner(1);
+				return new FuncComp(Functions.pow, new Function[] {func1, new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
 			}
-			if(expBasePom(base, exponent)) {
-				Function fExponent = ((FuncComp)base).getInner(0);
+			if(sameBasesPom2(func1,func2)) {
+				Function fExponent = ((FuncComp)func1).getInner(1);
+				Function gExponent = ((FuncComp)func2).getInner(1);
+				return new FuncComp(Functions.pow, new Function[] {((FuncComp)func2).getInner(0), new FuncSum(new Function[] {gExponent,fExponent})});
+			}
+			if(expBasePom(func1, func2)) {
+				Function fExponent = ((FuncComp)func1).getInner(0);
 				return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
 			}
-			if(expBasePom(exponent,base)) {
-				Function gExponent = ((FuncComp)exponent).getInner(0);
+			if(expBasePom(func2,func1)) {
+				Function gExponent = ((FuncComp)func2).getInner(0);
 				return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
 			}
-			if(expBasePom2(base,exponent)) {
-				Function fExponent = ((FuncComp)base).getInner(0);
-				Function gExponent = ((FuncComp)exponent).getInner(0);
+			if(expBasePom2(func1,func2)) {
+				Function fExponent = ((FuncComp)func1).getInner(0);
+				Function gExponent = ((FuncComp)func2).getInner(0);
 				return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,fExponent})});
 			}
-
+			if(skracalneWymierne(func1, func2)) {
+				return skrocWymierne(func1, func2);
+			}
+			if(skracalneWymierne(func2, func1)) {
+				return skrocWymierne(func2, func1);
+			}
 			//System.out.println("FuncSum w PutTogether - coś poszło nie tak, program nie powinien tutaj dojść.");
 			throw new IllegalArgumentException("coś poszło nie tak, program nie powinien tutaj dojść.");
 		}
 		
 		@Override
-		public boolean canPutTogether(Function base, Function exponent) {
-			if(( base.check(exponent) && exponent.type != Functions.NUMCONST) || sameBasesPom(base, exponent) || sameBasesPom(exponent, base) || sameBasesPom2(base,exponent) || expBasePom(base, exponent) || expBasePom2(base, exponent))
+		public boolean canPutTogether(Function func1, Function func2) {
+			if(( func1.check(func2) && func2.type != Functions.NUMCONST) || sameBasesPom(func1, func2) || sameBasesPom(func2, func1) || sameBasesPom2(func1,func2)
+					|| expBasePom(func1, func2) || expBasePom2(func1, func2) || skracalneWymierne(func1, func2) || skracalneWymierne(func2, func1))
 				return true;
 			return false;
 		}
 	};
+
+	static class PutSameExponentsTogether implements SimplTwo {
+		Settings set;
+		public PutSameExponentsTogether(Settings settings) {
+			set = settings;
+		}
+		
+		@Override
+		public Function putTogether(Function func1, Function func2) {
+			if(!canPutTogether(func1, func2))
+				try {
+					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
+							+ " Podane funkcja f: " + func1.write(new Settings()) + " podana funkcja g: " + func2.write(new Settings()));
+				}catch(Exception e) {
+					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
+				}
+			return new FuncComp(Functions.pow, new Function[] {new FuncMult(new Function[] {((FuncComp)func1).getInner(0), ((FuncComp)func2).getInner(0)}), ((FuncComp)func1).getInner(1)});
+		}
+		
+		@Override
+		public boolean canPutTogether(Function func1, Function func2) {
+			if(checkIfPow(func1) && checkIfPow(func2)) {
+				if(((FuncComp)func1).getInner(1).check(((FuncComp)func2).getInner(1))){
+					if(set.strictPow && FuncMethods.isInt.check(((FuncComp)func1).getInner(1)))
+						return true;
+					if(!set.strictPow)
+						return true;
+				}
+			}
+			return false;
+		}
+	};
 	
-	private boolean checkIfPow(Function f){
+	private static boolean checkIfPow(Function f){
 		if(f.type == Functions.COMPOSITE && ((FuncComp)f).getOuter().check(Functions.pow))
 			return true;
 		return false;
@@ -158,9 +240,6 @@ class FuncMult extends Function {
 			return true;
 		return false;
 	}
-	//TODO: niekiedy będzie zapewne lepiej zapisać mnożenie przez konkatenację a nie *
-	//TODO: zrobić z możliwymi dzieleniami (znakami /)
-	//TODO: usuwać nawiasy kiedy to możliwe
 	@Override
 	protected String write(Settings settings) {
 		int i = 0;
@@ -228,9 +307,13 @@ class FuncMult extends Function {
 		//trochę niezręczny kod, ale działa
 		if(f.length == 1)
 			return f[0].simplify(settings);
-		ArrayList<Function> organisedMult = new ArrayList<Function>();
+		
 		Function[] simplMult = FuncMethods.simplifyAll(f, settings);
 		ArrayList<Function> extendedMult = new ArrayList<Function>();
+		ArrayList<Function> multPutTogether1;
+		ArrayList<Function> multPutTogether2;
+		ArrayList<Function> organisedMult;
+		
 		for(int i=0;i<simplMult.length;i++) {
 			if(simplMult[i].type == Functions.MULT) {
 				for(int j=0;j<((FuncMult)simplMult[i]).f.length;j++) {
@@ -241,28 +324,34 @@ class FuncMult extends Function {
 				extendedMult.add(simplMult[i]);
 			}
 		}
+
+		multPutTogether1 = putSameBasesTogether.putAlltogether(extendedMult);
+		PutSameExponentsTogether putSameExponentsTOgether = new PutSameExponentsTogether(settings);
+		multPutTogether2 = putSameExponentsTOgether.putAlltogether(multPutTogether1);
+		
 		Complex numConst = new Complex(1);
 
-		ArrayList<Function> multPutTogether = putBasesTogether.putAlltogether(extendedMult);
-		for(int i=0;i<multPutTogether.size();i++) {
-			if(multPutTogether.get(i).type == Functions.NUMCONST) {
-				numConst.mult(((FuncNumConst)multPutTogether.get(i)).a);
+		for(int i=0;i<multPutTogether2.size();i++) {
+			if(multPutTogether2.get(i).type == Functions.NUMCONST) {
+				numConst.mult(((FuncNumConst)multPutTogether2.get(i)).a);
 			}
 		}
 		if(numConst.equals(new Complex(0)))
 			return new FuncNumConst(new Complex(0));
+		
+		organisedMult = new ArrayList<Function>();
 		if(!numConst.equals(new Complex(1)))
 			organisedMult.add(new FuncNumConst(numConst));
 		
-		for(int i=0;i<multPutTogether.size();i++) {
-			if(multPutTogether.get(i).nofArg == 0) {
-				if(multPutTogether.get(i).type != Functions.NUMCONST)
-					organisedMult.add(multPutTogether.get(i));
-				multPutTogether.remove(i);
+		for(int i=0;i<multPutTogether2.size();i++) {
+			if(multPutTogether2.get(i).nofArg == 0) {
+				if(multPutTogether2.get(i).type != Functions.NUMCONST)
+					organisedMult.add(multPutTogether2.get(i));
+				multPutTogether2.remove(i);
 				i--;
 			}
 		}
-		organisedMult.addAll(multPutTogether);
+		organisedMult.addAll(multPutTogether2);
 
 		return new FuncMult((Function[])(organisedMult.toArray(new Function[organisedMult.size()])));
 	}
