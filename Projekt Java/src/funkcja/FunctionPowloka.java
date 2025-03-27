@@ -30,20 +30,20 @@ public class FunctionPowloka {
 		return f.evaluate(z);
 	}
 		
-	public void changeToNamed(String str) throws IncorrectNameException {
-		f = Functions.addNmdFunc(f, str);
+	public FunctionPowloka changeToNamed(String str) throws IncorrectNameException {
+		return new FunctionPowloka(Functions.addNmdFunc(f, str));
 	}
 	
-	public void changeToVar(String str) throws IncorrectNameException {
-		f = Functions.addVar(f, str);
+	public FunctionPowloka changeToVar(String str) throws IncorrectNameException {
+		return new FunctionPowloka(Functions.addVar(f, str));
 	}
 		
 	public boolean equals(FunctionPowloka fP) {
 		return f.check(fP.f);
 	}
 	
-	public void expand() {
-		f = f.expand();
+	public FunctionPowloka expand() {
+		return new FunctionPowloka(f.expand());
 	}
 	
 	public FunctionPowloka re(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
@@ -59,38 +59,39 @@ public class FunctionPowloka {
 	}
 	
 	
-	public void splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
-		this.f = new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)});
+	public FunctionPowloka splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+		return new FunctionPowloka(new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)}));
 	}
 	
-	public void simplifyOnce(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
-		 f = f.simplify(settings);
+	public FunctionPowloka simplifyOnce(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+		 return new FunctionPowloka(f.simplify(settings));
 	}
 	
-	public void simplifyPom(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka simplifyPom(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
 		int i = 0;
-		Function fNew = f.simplify(settings);
-		while(!fNew.check(f)) {
-			f = fNew;
-			fNew = f.simplify(settings);
+		Function fLast = f;
+		Function fNew = fLast.simplify(settings);
+		while(!fNew.check(fLast)) {
+			fLast = fNew;
+			fNew = fNew.simplify(settings);
 			i++;
 			if(i >= 100) {
 				System.out.println("Podczas FuncPowloka simplify po 100 iteracjach program nadal mówi, że jaszcze się nie skończyło.");
 				break;
 			}
 		}
+		return new FunctionPowloka(fNew);
 	}
 	
-	public void simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
-		/*if(settings.evaluateConstants) {
+	public FunctionPowloka simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+		if(settings.evaluateConstants) {
 			Settings temp = settings.copy();
 			temp.evaluateConstants = false;
-			FunctionPowloka fp = copy();
-			fp.simplifyPom(temp);
-			fp.simplifyPom(settings);
-			this.f = fp.f;
-		}*/
-		simplifyPom(settings);
+			FunctionPowloka fp = simplifyPom(temp);
+			fp = fp.simplifyPom(settings);
+			return fp;
+		}
+		return simplifyPom(settings);
 	}
 	
 	public void print(Settings set) {

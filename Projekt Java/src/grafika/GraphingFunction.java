@@ -20,6 +20,7 @@ import java.util.Random;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 
 import funkcja.*;
 
@@ -33,22 +34,35 @@ public class GraphingFunction extends JLabel {
 	BufferedImage img;
 	JLabel label;
 	public GraphingFunction(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double lSpeedChange) {
-		int bok = 200;
+		int bok = 500;
 		double A = Math.sqrt((prawyGorny.x-lewyDolny.x)/(prawyGorny.y-lewyDolny.y));
 		//setSize((int)(500*A), (int)(500/A));
 		img = new BufferedImage((int)(bok*A),(int)(bok/A),BufferedImage.TYPE_INT_RGB);
 		setIcon(new ImageIcon(img));
-		double x;
-		double y;
-		for(int xI=0; xI<img.getWidth();xI++) {
-			for(int yI=0;yI<img.getHeight();yI++) {
-				x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
-				y = yI*(lewyDolny.y-prawyGorny.y)/img.getHeight()+prawyGorny.y;
-				Complex[] z = new Complex[] {new Complex(x,y)};
-				int[] RGBColor = HSLToRGB(pointToHSL(f.evaluate(z),lSpeedChange));
-				img.setRGB(xI, yI, rgbToHex(RGBColor));
+		SwingWorker<Void, Void> draw = new SwingWorker<Void, Void>(){
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				double x;
+				double y;
+				for(int xI=0; xI<img.getWidth();xI++) {
+					for(int yI=0;yI<img.getHeight();yI++) {
+						x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
+						y = yI*(lewyDolny.y-prawyGorny.y)/img.getHeight()+prawyGorny.y;
+						Complex[] z = new Complex[] {new Complex(x,y)};
+						int[] RGBColor = HSLToRGB(pointToHSL(f.evaluate(z),lSpeedChange));
+						img.setRGB(xI, yI, rgbToHex(RGBColor));
+					}
+				}
+				return null;
 			}
-		}
+			
+			@Override
+			protected void done() {
+				repaint();
+			}
+		};
+		draw.execute();
 	}
 	
 	public void save(String str) throws IOException {
@@ -93,41 +107,39 @@ public class GraphingFunction extends JLabel {
 
 	
 	public static void main(String[] args) throws Exception {
-		//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
-		Settings set = new Settings();
-		FunctionPowloka f = new FunctionPowloka("exp(exp(x*z)+sin(z^2)^2+(1+i)cos(z)+5ln(z+x)^2) + sin(z)", set);
-		//FunctionPowloka f = new FunctionPowloka("sin(e^z)", set);
-		f.print(set);
-		GraphingFunction graf = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
-		JFrame frame = new JFrame();
-		frame.setLayout(new GridLayout(2,2));
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.add(graf, 0);
-		frame.setSize(graf.img.getWidth()*2, graf.img.getHeight()*2);
-		
-		set.evaluateConstants = true;
-		f.simplify(set);
-		f.print(set);
-		
-		GraphingFunction graf2 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
-		frame.add(graf2, 1);
-
-		f.splitByRealAndImaginery(set);
-		f.print(set);
-		
-		GraphingFunction graf3 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
-		frame.add(graf3, 2);
-		
-		//nie działa
-		
-		set.evaluateConstants = true;
-		f.simplify(set);
-		f.print(set);
-		
-		GraphingFunction graf4 = new GraphingFunction(f, new Complex(-5,-5), new Complex(5,5), 2);
-		frame.add(graf4, 3);
-
-		frame.setVisible(true);
+		//rama nie ma odpowiedniej wielkości nie mieści obrazu idealnie
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
+				Settings set = new Settings();
+				FunctionPowloka f;
+				try {
+					f = new FunctionPowloka("exp(ln(z)^2)", set);
+					//FunctionPowloka f = new FunctionPowloka("sin(e^z)", set);
+					f.print(set);
+					Complex lDolny = new Complex(-0.01,-0.01);
+					Complex pGorny = new Complex(0.01,0.01);
+					double colorSpeedChange = 10;
+					GraphingFunction graf = new GraphingFunction(f, lDolny, pGorny, colorSpeedChange);
+					JFrame frame = new JFrame();
+					frame.setLayout(new GridLayout(1,1));
+					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+					frame.setVisible(true);
+					frame.add(graf, 0);
+					frame.setSize(graf.img.getWidth(), graf.img.getHeight());
+					frame.setVisible(true);
+					set.evaluateConstants = true;
+					f.simplify(set);
+					f.print(set);
+				}
+				catch (WrongSyntaxException | WewnetzrnaFunkcjaZleZapisana e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
 
 	}
 }
