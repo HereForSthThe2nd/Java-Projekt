@@ -61,10 +61,14 @@ abstract public class Function implements FuncChecker
 		return bloki;
 	}
 	
+	static boolean readEmptyStringAsZero; //prawda: "" --> func(z->0), fałsz: "" --> func(z->1)
 	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
 		bloki = removeParenthases(bloki);
-		if(bloki.arr.size() == 0)//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
-			return new FuncNumConst(new Complex(0));
+		if(bloki.arr.size() == 0){//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
+			if(readEmptyStringAsZero)
+				return new FuncNumConst(new Complex(0));
+			return new FuncNumConst(new Complex(1));
+		}
 		if(bloki.arr.size() == 1) {
 			Blok blok = bloki.arr.get(0);
 			switch(blok.type) {
@@ -91,12 +95,14 @@ abstract public class Function implements FuncChecker
 		int splitIndex;
 		splitIndex = bloki.find("+", 1);
 		if(splitIndex != -1) {
+			readEmptyStringAsZero = true;
 			Function lFunc = read(bloki.subList(0, splitIndex), settings);
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
 			return new FuncSum(new Function[] {lFunc, rFunc});
 		}
 		splitIndex = bloki.find("-",-1);
 		if(splitIndex != -1) {
+			readEmptyStringAsZero = true;
 			Function lFunc = read(bloki.subList(0, splitIndex), settings);
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
 			return new FuncSum(new Function[] {lFunc, new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc)});
@@ -107,32 +113,35 @@ abstract public class Function implements FuncChecker
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
 			return new FuncMult(lFunc, rFunc);
 		}
-
+		splitIndex = bloki.findConcatenation(1);
+		if(splitIndex != -1) {
+			Function lFunc = read(bloki.subList(0, splitIndex+1), settings);
+			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			return new FuncMult(lFunc, rFunc);
+		}
+		splitIndex = bloki.find("/",-1);
+		if(splitIndex != -1) {
+			Function lFunc = read(bloki.subList(0, splitIndex), settings);
+			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
+		}
+		
 		splitIndex = bloki.find("^",-1);
 		if(splitIndex != -1) {
+			readEmptyStringAsZero = false;
 			int leftPowIndex = splitIndex;
 			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str.equals("^")) {
 				leftPowIndex -= 2;
 			}
 			BlokList lBlok = bloki.subList(0, leftPowIndex-1);
 			BlokList rBlok = bloki.subList(splitIndex+2, bloki.arr.size());
-			Function lFunc = lBlok.arr.size()==0 ? new FuncNumConst(new Complex(1)) : read(lBlok, settings);
-			Function rFunc = rBlok.arr.size()==0 ? new FuncNumConst(new Complex(1)) : read(rBlok, settings);
+			Function lFunc = read(lBlok, settings);
+			Function rFunc = read(rBlok, settings);
 			return new FuncMult(new Function[] {lFunc, rFunc,
 					new FuncComp(Functions.pow,
 							new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)})});
 		}
-		splitIndex = bloki.find("/",-1);
-		if(splitIndex != -1) {
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function divBy = read(bloki.subList(splitIndex+1, splitIndex+2), settings);
-			Function rFunc = read(bloki.subList(splitIndex+2, bloki.arr.size()), settings);
-			if(splitIndex + 2 == bloki.arr.size()) {
-				rFunc = new FuncNumConst(new Complex(1));
-			}
-			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {divBy, new FuncNumConst(new Complex(-1.0))}), rFunc});
-		}
-		return new FuncMult(new Function[] {read(bloki.subList(0, 1), settings), read(bloki.subList(1, bloki.arr.size()), settings)});
+		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Ppodany argument: " + bloki.write());
 	}
 	
 	public static void main(String[] args) throws WrongSyntaxException {

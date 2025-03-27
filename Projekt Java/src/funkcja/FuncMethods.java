@@ -179,3 +179,59 @@ class FuncMethods {
 	}
 	
 }
+
+interface FuncChecker{
+	boolean check(Function func);
+}
+
+
+interface SimplTwo{
+	boolean canPutTogether(Function func1, Function f2);
+	Function putTogether(Function func1, Function func2);
+	
+	default ArrayList<Function> puAllTogether(ArrayList<Function> arr, ArrayList<Integer> zabronioneIndeksy){
+		ArrayList<Integer> uzyteIndeksy = zabronioneIndeksy; 
+		if(arr.size() == 0)
+			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
+		ArrayList<Function> ret = new ArrayList<Function>();
+		int countIndex = 0;
+		for(int i=0;i<arr.size();i++) {
+			if(uzyteIndeksy.contains(i))
+				continue;
+			ret.add(arr.get(i));
+			for(int j=i+1;j<arr.size();j++) {
+				if(uzyteIndeksy.contains(j))
+					continue;
+				if(canPutTogether(arr.get(j), arr.get(i))) {
+						ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
+						uzyteIndeksy.add(j);
+				}
+			}
+			countIndex++;
+		}
+		return ret;
+	}
+
+	default ArrayList<Function> putAlltogether(ArrayList<Function> arr){
+		ArrayList<Integer> uzyteIndeksy = new ArrayList<Integer>(); 
+		if(arr.size() == 0)
+			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
+		ArrayList<Function> ret = new ArrayList<Function>();
+		int countIndex = 0;
+		for(int i=0;i<arr.size();i++) {
+			if(uzyteIndeksy.contains(i))
+				continue;
+			ret.add(arr.get(i));
+			for(int j=i+1;j<arr.size();j++) {
+				if(uzyteIndeksy.contains(j))
+					continue;
+				if(canPutTogether(arr.get(j), arr.get(i))) {
+						ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
+						uzyteIndeksy.add(j);
+				}
+			}
+			countIndex++;
+		}
+		return ret;
+	}
+}

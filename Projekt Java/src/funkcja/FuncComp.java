@@ -141,6 +141,28 @@ class FuncComp extends Function {
 		return new Bool<Function> (this, false);
 	}
 	
+	private Bool<Function> simplifyExp(Settings settings) {
+		if(checkComponents(Functions.exp, new FuncNumConst(new Complex(0))))
+			return new Bool<Function> (new FuncNumConst(new Complex(1)), true);
+		if(checkComponents(Functions.exp, new FuncNumConst(new Complex(1))))
+			return new Bool<Function> (Functions.e, true);
+		if(checkComponents(Functions.pow, Functions.exp) && !settings.strictPow)
+			return new Bool<Function> (new FuncComp(Functions.exp, new Function[] { new FuncMult( ((FuncComp)g[0]).g[0], g[1] )}), true);
+		if(checkComponents(Functions.pow, Functions.exp) && settings.strictPow) {
+			if(((FuncComp)g[0]).g[0].check(new FuncNumConst(new Complex(-1)))) {
+				return new Bool<Function> (new FuncComp(Functions.exp, new Function[] { new FuncMult( ((FuncComp)g[0]).g[0], g[1] )}), true);
+			}
+			if(g[1].type == Functions.NUMCONST) {
+				if(((FuncNumConst)g[1]).a.y == 0 && ((FuncNumConst)g[1]).a.x%1 == 0)
+					return new Bool<Function> (new FuncComp(Functions.exp, new Function[] { new FuncMult( ((FuncComp)g[0]).g[0], g[1] )}), true);
+			}
+		}
+		if(checkComponents(Functions.ln, Functions.exp) || checkComponents(Functions.exp, Functions.logChecker))
+			return new Bool<Function> ( ((FuncComp)g[0]).g[0], true);
+		
+		return new Bool<Function> (this, false);
+	}
+	
 	private Bool<Function> simplifyTrig(Settings settings){
 		
 		class MultOfPi implements FuncChecker{
@@ -234,6 +256,9 @@ class FuncComp extends Function {
 		fb = simplifyPow(setting);
 		if(fb.bool)
 			return fb.f;
+		fb = simplifyExp(setting);
+		if(fb.bool)
+			return fb.f;
 		fb = simplifyTrig(setting);
 		if(fb.bool)
 			return fb.f;
@@ -243,8 +268,6 @@ class FuncComp extends Function {
 			return g[0].im();
 		if(nofArg == 0 && setting.evaluateConstants)
 			return new FuncNumConst( evaluate(new Complex[] {}));
-		if(checkComponents(Functions.ln, Functions.exp) || checkComponents(Functions.exp, Functions.logChecker))
-			return ((FuncComp)g[0]).g[0];
 		//if(checkComponents(null, f))
 		Function[] newArg = FuncMethods.simplifyAll(g, setting);
 		return new FuncComp(f, newArg);

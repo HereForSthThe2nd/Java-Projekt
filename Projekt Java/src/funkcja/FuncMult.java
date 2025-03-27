@@ -15,117 +15,97 @@ class FuncMult extends Function {
 		this.f=new Function[] {f,g};
 	}
 	
+	SimplTwo putBasesTogether = new SimplTwo() {
+		
+		private boolean sameBasesPom(Function f, Function g) {
+			if(f.type == Functions.COMPOSITE) {
+				if(((FuncComp)f).checkComponents(Functions.pow, g))
+					return true;
+			}
+			return false;
+		}
+		
+		private boolean expBasePom(Function f, Function g) {
+			if(f.type == Functions.COMPOSITE)
+				if(((FuncComp)f).getOuter().check(Functions.exp) && g.check(Functions.e))
+					return true;
+			return false;
+					
+		}
+		
+		private boolean expBasePom2(Function f, Function g) {
+			if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE)
+				if(((FuncComp)f).getOuter().check(Functions.exp) && ((FuncComp)g).getOuter().check(Functions.exp))
+					return true;
+			return false;
+					
+		}
+		
+		private boolean sameBasesPom2(Function f, Function g) {
+			if(checkIfPow(f) && checkIfPow(g)) {
+					if(((FuncComp)g).getInner(0).check(((FuncComp)f).getInner(0)))
+							return true;
+			}
+			return false;
+		}
+
+		@Override
+		public Function putTogether(Function base, Function exponent) {
+			if(!canPutTogether(base, exponent))
+				try {
+					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
+							+ " Podane funkcja f: " + base.write(new Settings()) + " podana funkcja g: " + exponent.write(new Settings()));
+				}catch(Exception e) {
+					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
+				}
+			if(base.check(exponent))
+				return new FuncComp(Functions.pow, new Function[] {base, new FuncNumConst(new Complex(2))});
+			if(sameBasesPom(base, exponent)) {
+				Function fExponent = ((FuncComp)base).getInner(1);
+				return new FuncComp(Functions.pow, new Function[] {exponent, new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
+			}
+			if(sameBasesPom(exponent,base)) {
+				Function gExponent = ((FuncComp)exponent).getInner(1);
+				return new FuncComp(Functions.pow, new Function[] {base, new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
+			}
+			if(sameBasesPom2(base,exponent)) {
+				Function fExponent = ((FuncComp)base).getInner(1);
+				Function gExponent = ((FuncComp)exponent).getInner(1);
+				return new FuncComp(Functions.pow, new Function[] {((FuncComp)exponent).getInner(0), new FuncSum(new Function[] {gExponent,fExponent})});
+			}
+			if(expBasePom(base, exponent)) {
+				Function fExponent = ((FuncComp)base).getInner(0);
+				return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
+			}
+			if(expBasePom(exponent,base)) {
+				Function gExponent = ((FuncComp)exponent).getInner(0);
+				return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
+			}
+			if(expBasePom2(base,exponent)) {
+				Function fExponent = ((FuncComp)base).getInner(0);
+				Function gExponent = ((FuncComp)exponent).getInner(0);
+				return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,fExponent})});
+			}
+
+			//System.out.println("FuncSum w PutTogether - coś poszło nie tak, program nie powinien tutaj dojść.");
+			throw new IllegalArgumentException("coś poszło nie tak, program nie powinien tutaj dojść.");
+		}
+		
+		@Override
+		public boolean canPutTogether(Function base, Function exponent) {
+			if(( base.check(exponent) && exponent.type != Functions.NUMCONST) || sameBasesPom(base, exponent) || sameBasesPom(exponent, base) || sameBasesPom2(base,exponent) || expBasePom(base, exponent) || expBasePom2(base, exponent))
+				return true;
+			return false;
+		}
+	};
+	
 	private boolean checkIfPow(Function f){
 		if(f.type == Functions.COMPOSITE && ((FuncComp)f).getOuter().check(Functions.pow))
 			return true;
 		return false;
 	}
-	
-	private boolean sameBasesPom(Function f, Function g) {
-		if(f.type == Functions.COMPOSITE) {
-			if(((FuncComp)f).checkComponents(Functions.pow, g))
-				return true;
-		}
-		return false;
-	}
-	
-	private boolean expBasePom(Function f, Function g) {
-		if(f.type == Functions.COMPOSITE)
-			if(((FuncComp)f).getOuter().check(Functions.exp) && g.check(Functions.e))
-				return true;
-		return false;
-				
-	}
-	
-	private boolean expBasePom2(Function f, Function g) {
-		if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE)
-			if(((FuncComp)f).getOuter().check(Functions.exp) && ((FuncComp)g).getOuter().check(Functions.exp))
-				return true;
-		return false;
-				
-	}
-	
-	private boolean sameBasesPom2(Function f, Function g) {
-		if(checkIfPow(f) && checkIfPow(g)) {
-				if(((FuncComp)g).getInner(0).check(((FuncComp)f).getInner(0)))
-						return true;
-		}
-		return false;
-	}
-	
-	private boolean sameBases(Function f, Function g) {
-		if(( f.check(g) && g.type != Functions.NUMCONST) || sameBasesPom(f, g) || sameBasesPom(g, f) || sameBasesPom2(f,g) || expBasePom(f, g) || expBasePom2(f, g))
-			return true;
-		return false;
-	}
-	
-	private Function putSameBasesTogether(Function f, Function g) {
-		if(!sameBases(f, g))
-			try {
-				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
-						+ " Podane funkcja f: " + f.write(new Settings()) + " podana funkcja g: " + g.write(new Settings()));
-			}catch(Exception e) {
-				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
-			}
-		if(f.check(g))
-			return new FuncComp(Functions.pow, new Function[] {f, new FuncNumConst(new Complex(2))});
-		if(sameBasesPom(f, g)) {
-			Function fExponent = ((FuncComp)f).getInner(1);
-			return new FuncComp(Functions.pow, new Function[] {g, new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
-		}
-		if(sameBasesPom(g,f)) {
-			Function gExponent = ((FuncComp)g).getInner(1);
-			return new FuncComp(Functions.pow, new Function[] {f, new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
-		}
-		if(sameBasesPom2(f,g)) {
-			Function fExponent = ((FuncComp)f).getInner(1);
-			Function gExponent = ((FuncComp)g).getInner(1);
-			return new FuncComp(Functions.pow, new Function[] {((FuncComp)g).getInner(0), new FuncSum(new Function[] {gExponent,fExponent})});
-		}
-		if(expBasePom(f, g)) {
-			Function fExponent = ((FuncComp)f).getInner(0);
-			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {fExponent,new FuncNumConst(new Complex(1))})});
-		}
-		if(expBasePom(g,f)) {
-			Function gExponent = ((FuncComp)g).getInner(0);
-			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,new FuncNumConst(new Complex(1))})});
-		}
-		if(expBasePom2(f,g)) {
-			Function fExponent = ((FuncComp)f).getInner(0);
-			Function gExponent = ((FuncComp)g).getInner(0);
-			return new FuncComp(Functions.exp, new Function[] {new FuncSum(new Function[] {gExponent,fExponent})});
-		}
-
-		//System.out.println("FuncSum w PutTogether - coś poszło nie tak, program nie powinien tutaj dojść.");
-		throw new IllegalArgumentException("coś poszło nie tak, program nie powinien tutaj dojść.");
-	}
-	
-	private ArrayList<Function> putAllSameBasesTogether(ArrayList<Function> arr){
-		ArrayList<Integer> uzyteIndeksy = new ArrayList<Integer>(); 
-		if(arr.size() == 0)
-			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
-		ArrayList<Function> ret = new ArrayList<Function>();
-		int countIndex = 0;
-		for(int i=0;i<arr.size();i++) {
-			if(uzyteIndeksy.contains(i))
-				continue;
-			ret.add(arr.get(i));
-			for(int j=i+1;j<arr.size();j++) {
-				if(uzyteIndeksy.contains(j))
-					continue;
-				if(sameBases(arr.get(j), arr.get(i))) {
-						ret.set(countIndex, putSameBasesTogether(arr.get(j), ret.get(countIndex)));
-						uzyteIndeksy.add(j);
-				}
-			}
-			countIndex++;
-		}
-		return ret;
-	}
-	
-	//private boolean checkIfSameExponentsPom(Function f, Function g)
-	
-	private boolean checkIfSameExponentsPom2(Function f, Function g, Settings set) {
+						
+	/*private boolean checkIfSameExponentsPom2(Function f, Function g, Settings set) {
 		if(f.type == Functions.COMPOSITE && g.type == Functions.COMPOSITE) {
 			if(!set.strictPow && ((FuncComp)f).getOuter().check(Functions.pow) && ((FuncComp)g).getOuter().check(Functions.pow) && ((FuncComp)f).getInner(1).check(((FuncComp)g).getInner(1)))
 				return true;
@@ -135,7 +115,7 @@ class FuncMult extends Function {
 				
 		}
 		return false;
-	}
+	}*/
 	
 	@Override
 	protected Complex evaluate(Complex[] arg) {
@@ -263,7 +243,7 @@ class FuncMult extends Function {
 		}
 		Complex numConst = new Complex(1);
 
-		ArrayList<Function> multPutTogether = putAllSameBasesTogether(extendedMult);
+		ArrayList<Function> multPutTogether = putBasesTogether.putAlltogether(extendedMult);
 		for(int i=0;i<multPutTogether.size();i++) {
 			if(multPutTogether.get(i).type == Functions.NUMCONST) {
 				numConst.mult(((FuncNumConst)multPutTogether.get(i)).a);

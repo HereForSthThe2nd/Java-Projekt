@@ -188,20 +188,14 @@ public class FunctionPowloka {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Settings set = new Settings(100);
-		set.evaluateConstants = true;
+		Settings set = new Settings(4);
+		set.strictPow = false;
 		//set.evaluateConstants = true;
-		FunctionPowloka f = new FunctionPowloka("2^(-1)", set);
-		FunctionPowloka f2 = new FunctionPowloka(new FuncNumConst(new Complex(0)));
+		FunctionPowloka f = new FunctionPowloka("e+3e+2.1-2i*i+e*sin(x) - pi*e*phi*sin(x)", set);
 		f.print(set);
-		f.simplifyOnce(set);
+		f.simplify(set);
 		f.print(set);
-		f.simplifyOnce(set);
-		f.print(set);
-		f.simplifyOnce(set);
-		f.print(set);
-		f.simplifyOnce(set);
-		f.print(set);
+		
 		/*FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);
 		c.simplify(set);
 		f.simplify(set);

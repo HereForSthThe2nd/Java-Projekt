@@ -12,109 +12,92 @@ class FuncSum extends Function {
 			this.summands=f;
 	}
 	
-	private static boolean canPutTogetherPom(Function f, Function g) {
-		if(f.type == Functions.MULT)
-			if(((FuncMult)f).f.length == 2 && ( ((FuncMult)f).f[0].type == Functions.NUMCONST || (g.nofArg > 0 && ((FuncMult)f).f[0].nofArg == 0)) && ((FuncMult)f).f[1].check(g))
-				return true;
-		return false;
-	}
-	
-	private static Pair<ArrayList<Function>, ArrayList<Function>> splitByConstants(FuncMult f){
-		//dzieli podany iloczyn na elementy stałe i elemnty niestałe
-		//jeśli funkcja jest stała dzieli ją na możliwą początkowa stałą numeryczną oraz resztę
-		ArrayList<Function> front = new ArrayList<Function>();
-		ArrayList<Function> back = new ArrayList<Function>();
-		if(f.nofArg == 0) {
-			int i=0;
-			if(f.f[0].type == Functions.NUMCONST) {
-				front.add(f.f[0]);
-				i++;
+	SimplTwo sameStuff = new SimplTwo() {
+		
+		private static Function putTogetherTwoMult(FuncMult f, FuncMult g) {
+			if(!canPutTogetherPom2(f, g)) 
+				throw new IllegalArgumentException();
+			Pair<ArrayList<Function>, ArrayList<Function>> fSplit= splitByConstants(f);
+			Pair<ArrayList<Function>, ArrayList<Function>> gSplit= splitByConstants(g);
+			Function summed = new FuncSum(new Function[] {new FuncMult( fSplit.first.toArray(new Function[fSplit.first.size()])), new FuncMult(gSplit.first.toArray(new Function[gSplit.first.size()]))});
+			Function stayed = new FuncMult( fSplit.second.toArray(new Function[fSplit.second.size()]));
+			return new FuncMult(new Function[] {summed, stayed});
+		}
+		
+		@Override
+		public Function putTogether(Function func1, Function func2) {
+			if(!canPutTogether(func1, func2))
+				try {
+					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
+							+ " Podane funkcja f: " + func1.write(new Settings()) + " podana funkcja g: " + func2.write(new Settings()));
+				}catch(Exception e) {
+					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
+				}
+			if(func1.check(func2))
+				return new FuncMult(new FuncNumConst(new Complex(2)), func1);
+			if(canPutTogetherPom(func1, func2)) {
+				Complex fConst = ((FuncNumConst)((FuncMult)func1).f[0]).a;
+				return new FuncMult(new FuncNumConst(Complex.add(fConst,new Complex(1))), func2);
 			}
-			for(i=i; i<f.f.length;i++) {
-				back.add(f.f[i]);
+			if(canPutTogetherPom(func2,func1)) {
+				Complex gConst = ((FuncNumConst)((FuncMult)func2).f[0]).a;
+				return new FuncMult(new FuncNumConst(Complex.add(gConst,new Complex(1))), func1);
+			}
+			if(canPutTogetherPom2(func1,func2)) {
+
+				return putTogetherTwoMult((FuncMult)func1, (FuncMult)func2);
+			}
+			throw new IllegalArgumentException("Coś poszło nie tak, program nie powinien tutaj dojść.");
+		}
+		
+		private static boolean canPutTogetherPom(Function f, Function g) {
+			if(f.type == Functions.MULT)
+				if(((FuncMult)f).f.length == 2 && ( ((FuncMult)f).f[0].type == Functions.NUMCONST || (g.nofArg > 0 && ((FuncMult)f).f[0].nofArg == 0)) && ((FuncMult)f).f[1].check(g))
+					return true;
+			return false;
+		}
+		
+		private static Pair<ArrayList<Function>, ArrayList<Function>> splitByConstants(FuncMult f){
+			//dzieli podany iloczyn na elementy stałe i elemnty niestałe
+			//jeśli funkcja jest stała dzieli ją na możliwą początkowa stałą numeryczną oraz resztę
+			ArrayList<Function> front = new ArrayList<Function>();
+			ArrayList<Function> back = new ArrayList<Function>();
+			if(f.nofArg == 0) {
+				int i=0;
+				if(f.f[0].type == Functions.NUMCONST) {
+					front.add(f.f[0]);
+					i++;
+				}
+				for(i=i; i<f.f.length;i++) {
+					back.add(f.f[i]);
+				}
+				return new Pair<ArrayList<Function>, ArrayList<Function>>(front,back);
+			}
+			for(int i=0; i<f.f.length;i++) {
+				if(f.f[i].nofArg == 0)
+					front.add(f.f[i]);
+				else
+					back.add(f.f[i]);
 			}
 			return new Pair<ArrayList<Function>, ArrayList<Function>>(front,back);
 		}
-		for(int i=0; i<f.f.length;i++) {
-			if(f.f[i].nofArg == 0)
-				front.add(f.f[i]);
-			else
-				back.add(f.f[i]);
+		
+		private static boolean canPutTogetherPom2(Function f, Function g) {
+			if(f.type == Functions.MULT && g.type == Functions.MULT)
+				if(FuncMethods.equals( splitByConstants((FuncMult)f).second, splitByConstants((FuncMult)g).second))
+					return true;
+			return false;
 		}
-		return new Pair<ArrayList<Function>, ArrayList<Function>>(front,back);
-	}
-	
-	private static boolean canPutTogetherPom2(Function f, Function g) {
-		if(f.type == Functions.MULT && g.type == Functions.MULT)
-			if(FuncMethods.equals( splitByConstants((FuncMult)f).second, splitByConstants((FuncMult)g).second))
+
+		
+		@Override
+		public boolean canPutTogether(Function func1, Function func2) {
+			if(func1.check(func2) || canPutTogetherPom(func1, func2) || canPutTogetherPom(func2, func1) || canPutTogetherPom2(func1,func2))
 				return true;
-		return false;
-	}
-	
-	private static Function putTogetherTwoMult(FuncMult f, FuncMult g) {
-		if(!canPutTogetherPom2(f, g)) 
-			throw new IllegalArgumentException();
-		Pair<ArrayList<Function>, ArrayList<Function>> fSplit= splitByConstants(f);
-		Pair<ArrayList<Function>, ArrayList<Function>> gSplit= splitByConstants(g);
-		Function summed = new FuncSum(new Function[] {new FuncMult( fSplit.first.toArray(new Function[fSplit.first.size()])), new FuncMult(gSplit.first.toArray(new Function[gSplit.first.size()]))});
-		Function stayed = new FuncMult( fSplit.second.toArray(new Function[fSplit.second.size()]));
-		return new FuncMult(new Function[] {summed, stayed});
-	}
-	
-	private static boolean canPutTogether(Function f, Function g) {
-		if(f.check(g) || canPutTogetherPom(f, g) || canPutTogetherPom(g, f) || canPutTogetherPom2(f,g))
-			return true;
-		return false;
-	}
-	
-	private Function putTogether(Function f, Function g) {
-		if(!canPutTogether(f, g))
-			try {
-				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
-						+ " Podane funkcja f: " + f.write(new Settings()) + " podana funkcja g: " + g.write(new Settings()));
-			}catch(Exception e) {
-				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
-			}
-		if(f.check(g))
-			return new FuncMult(new FuncNumConst(new Complex(2)), f);
-		if(canPutTogetherPom(f, g)) {
-			Complex fConst = ((FuncNumConst)((FuncMult)f).f[0]).a;
-			return new FuncMult(new FuncNumConst(Complex.add(fConst,new Complex(1))), g);
+			return false;
 		}
-		if(canPutTogetherPom(g,f)) {
-			Complex gConst = ((FuncNumConst)((FuncMult)g).f[0]).a;
-			return new FuncMult(new FuncNumConst(Complex.add(gConst,new Complex(1))), f);
-		}
-		if(canPutTogetherPom2(f,g)) {
-			System.out.println("w funcsum.puttogether, pod cnaputtogether2pom");
-			return putTogetherTwoMult((FuncMult)f, (FuncMult)g);
-		}
-		throw new IllegalArgumentException("Coś poszło nie tak, program nie powinien tutaj dojść.");
-	}
-	
-	private ArrayList<Function> putEveryThingTogether(ArrayList<Function> arr, ArrayList<Integer> zabronioneIndeksy){
-		ArrayList<Integer> uzyteIndeksy = zabronioneIndeksy; 
-		if(arr.size() == 0)
-			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
-		ArrayList<Function> ret = new ArrayList<Function>();
-		int countIndex = 0;
-		for(int i=0;i<arr.size();i++) {
-			if(uzyteIndeksy.contains(i))
-				continue;
-			ret.add(arr.get(i));
-			for(int j=i+1;j<arr.size();j++) {
-				if(uzyteIndeksy.contains(j))
-					continue;
-				if(canPutTogether(arr.get(j), arr.get(i))) {
-						ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
-						uzyteIndeksy.add(j);
-				}
-			}
-			countIndex++;
-		}
-		return ret;
-	}
-	
+	};
+		
 	@Override
 	protected Complex evaluate(Complex[] arg) {
 		Complex sum = new Complex(0);
@@ -191,7 +174,7 @@ class FuncSum extends Function {
 				zabronioneIndeksy.add(i);
 			}
 		}
-		ArrayList<Function> summandsPutTogether = putEveryThingTogether(extendedSummands, zabronioneIndeksy);
+		ArrayList<Function> summandsPutTogether = sameStuff.puAllTogether(extendedSummands, zabronioneIndeksy);
 		ArrayList<Function> organisedSummands = new ArrayList<Function>();
 		if(!numConst.equals(new Complex(0))) {
 			organisedSummands.add(new FuncNumConst(numConst));

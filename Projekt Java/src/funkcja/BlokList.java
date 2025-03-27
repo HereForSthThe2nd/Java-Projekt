@@ -30,6 +30,9 @@ class Blok{
 	public void print() {
 		System.out.println(str + " type: " + type);
 	}
+	public String write() {
+		return str + " type: " + type;
+	}
 }
 
 class BlokWthDefFunction extends Blok{
@@ -101,11 +104,48 @@ class BlokList{
 		return -1;
 	}
 	
-	public void print() {
+	protected int findConcatenation(int side) {
+		//jak są dwa nie-operatory napisane z rzędu, daje indeks pierwszego z nich, side = +-1
+		boolean ostatniNieOperator = false;
+		if(side == 1) {
+			for(int i=0;i<arr.size();i++) {
+				if(arr.get(i).type == Blok.OPERATION) {
+					ostatniNieOperator = false;
+					continue;
+				}
+				if(ostatniNieOperator)
+					return i-1;
+				ostatniNieOperator = true;
+			}
+		}
+		if(side == -1) {
+			for(int i=arr.size()-1;i>-1;i--) {
+				if(arr.get(i).type == Blok.OPERATION) {
+					ostatniNieOperator = false;
+					continue;
+				}
+				if(ostatniNieOperator)
+					return i;
+				ostatniNieOperator = true;
+			}
+		}
+		return -1;
+
+	}
+	
+ 	public void print() {
 		for(int i=0; i<arr.size(); i++) {
 			arr.get(i).print();
 		}
 	}
+ 	
+ 	public String write() {
+ 		String ret = "";
+		for(int i=0; i<arr.size(); i++) {
+			ret += arr.get(i).write() + ",   ";
+		}
+		return ret;
+ 	}
 	
 	protected BlokList subList(int begin, int end) {
 		//kreuje podlistę od indeksu begin do end-1 włącznie

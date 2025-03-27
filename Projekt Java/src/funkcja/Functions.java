@@ -6,10 +6,6 @@ import java.util.List;
 
 import funkcja.Function;
 
-interface FuncChecker{
-	boolean check(Function func);
-}
-
 interface NonStandardFuncStr extends FuncChecker{
 	Function returnFunc(String str);
 	boolean check(String str);
@@ -258,12 +254,12 @@ public class Functions {
 
 		@Override
 		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
-			return new FuncNumConst(new Complex(0));
+			return this;
 		}
 
 		@Override
 		protected Function im() {
-			return this;
+			return new FuncNumConst(new Complex(0));
 		}
 	};
 	final protected static FuncNamed pow = new FuncDefault(2,"pow") {
