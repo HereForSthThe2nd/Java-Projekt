@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -16,13 +17,19 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingWorker;
+import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
@@ -37,6 +44,7 @@ public class Main extends JFrame {
 	Graph wykres;
 	JPanel containsWykres;
 	Graph legenda;
+	JLabel nadFunkcja;
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -54,53 +62,63 @@ public class Main extends JFrame {
 			throw new WewnetzrnaFunkcjaZleZapisana(e);
 		}
 		legenda.setPadx(100);
-		JPanel left = new JPanel();
-		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-	    Border border = BorderFactory.createLineBorder(Color.ORANGE);
-		JComponent comp = (JComponent) Box.createRigidArea(new Dimension(100,100));
-		comp.setBorder(border);
 		JPanel zawieraTextFunckcji = new JPanel();
 		JTextField funkcja = new JTextField(10);
 		funkcja.setFont(new Font(funkcja.getFont().getName(), Font.ITALIC, 20));
-		//funkcja.setMaximumSize(new Dimension(legenda.getWidth(), /*funkcja.getFontMetrics(funkcja.getFont()).getHeight() + */100000000));
-		//funkcja.setBorder(new EmptyBorder(10, 5, 10, 0));
-		//funkcja.setMinimumSize(new Dimension(10, funkcja.getFontMetrics(funkcja.getFont()).getHeight() + 10000));
-		funkcja.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					wykres.change(new FunctionPowloka(e.getActionCommand(), new Settings()), new Complex(-10,-10), new Complex(10,10), 0.5);
-				} catch (WrongSyntaxException e1) {
-					e1.printStackTrace();
-				}
-			}
-		});
-		//zawieraTextFunckcji.add(Box.createRigidArea(new Dimension(0,0)));
-		//zawieraTextFunckcji.setBackground(Color.red);
 		zawieraTextFunckcji.setLayout(new BoxLayout(zawieraTextFunckcji, BoxLayout.X_AXIS));
 		JPanel panelMaly = new JPanel();
-		JLabel nadFunkcja = new JLabel();
+		nadFunkcja = new JLabel("Wpisz funkcję poniżej:");
 		panelMaly.setLayout(new GridLayout(2,1));
 		panelMaly.add(nadFunkcja,0);
 		panelMaly.add(funkcja);
 		zawieraTextFunckcji.add(Box.createRigidArea(new Dimension(5,0)));
 		zawieraTextFunckcji.add(panelMaly);
+
+		JPanel left = new JPanel();
+		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+	    Border border = BorderFactory.createLineBorder(Color.ORANGE);
+		//funkcja.setMaximumSize(new Dimension(legenda.getWidth(), /*funkcja.getFontMetrics(funkcja.getFont()).getHeight() + */100000000));
+		//funkcja.setBorder(new EmptyBorder(10, 5, 10, 0));
+		//funkcja.setMinimumSize(new Dimension(10, funkcja.getFontMetrics(funkcja.getFont()).getHeight() + 10000));
+		funkcja.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FunctionPowloka f;
+				try {
+					f = new FunctionPowloka(e.getActionCommand(), new Settings());
+					changeFunc(f);
+				} catch (WrongSyntaxException e1) {
+					nadFunkcja.setForeground(Color.red);
+					nadFunkcja.setText(e1.messageForUser);
+				}
+			}
+		});
+		//zawieraTextFunckcji.add(Box.createRigidArea(new Dimension(0,0)));
+		//zawieraTextFunckcji.setBackground(Color.red);
 		JPanel przyciski = new JPanel();
 		JButton uprosc = new JButton("Uprość");
 		uprosc.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				FunctionPowloka f;
 				try {
-					FunctionPowloka fSimpl = (new FunctionPowloka(funkcja.getText(), new Settings())).simplify(new Settings());
-					nadFunkcja.setText(""+Function.calledSimp);
-					Function.calledSimp = 0;
-					String simplTxt = fSimpl.write(new Settings());
-					funkcja.setText(simplTxt);// = new JTextField();
-					wykres.change(fSimpl, new Complex(-10,-10), new Complex(10,10), 0.5);
-				} catch (WrongSyntaxException | WewnetzrnaFunkcjaZleZapisana e1) {
-					e1.printStackTrace();
+					f = new FunctionPowloka(funkcja.getText(), new Settings());
+					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
+
+						@Override
+						protected Void doInBackground() throws Exception {
+							FunctionPowloka fch = f.simplify(new Settings());
+							funkcja.setText(fch.write(new Settings()));
+							changeFunc(f.simplify(new Settings()));
+							return null;
+						}
+						
+					};
+					uprosc.execute();
+				} catch (WrongSyntaxException e1) {
+					nadFunkcja.setForeground(Color.red);
+					nadFunkcja.setText(e1.messageForUser);
 				}
 			}
 		});
@@ -109,21 +127,70 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				FunctionPowloka f;
 				try {
-					FunctionPowloka fRoz = (new FunctionPowloka(funkcja.getText(), new Settings())).splitByRealAndImaginery(new Settings());
-					nadFunkcja.setText(""+Function.calledSimp);
-					Function.calledSimp = 0;
-					String rozTxt = fRoz.write(new Settings());
-					funkcja.setText(rozTxt);// = new JTextField();
-					wykres.change(fRoz, new Complex(-10,-10), new Complex(10,10), 0.5);
-				} catch (WrongSyntaxException | WewnetzrnaFunkcjaZleZapisana e1) {
-					e1.printStackTrace();
+					f = new FunctionPowloka(funkcja.getText(), new Settings());
+					SwingWorker<Void,Void> rozbijFunc = new SwingWorker<Void,Void>(){
+
+						@Override
+						protected Void doInBackground() throws Exception {
+							FunctionPowloka fch = f.splitByRealAndImaginery(new Settings());
+							funkcja.setText(fch.write(new Settings()));
+							changeFunc(fch);
+							return null;
+						}
+					};
+					rozbijFunc.execute();
+				} catch (WrongSyntaxException e1) {
+					nadFunkcja.setForeground(Color.red);
+					nadFunkcja.setText(e1.messageForUser);
 				}
 			}
 		});
 		przyciski.add(uprosc);
 		przyciski.add(rzeczIUroj);
-		left.add(comp);
+		legenda.gbc.gridy = 1;
+		legenda.gbc.gridx = 0;
+		legenda.layout.setConstraints(legenda.obraz, legenda.gbc);
+		JPanel nadLegenda = new JPanel();
+		nadLegenda.setLayout(new GridLayout(4,1));
+		JComponent opcja;
+		JComponent wybor;
+		JPanel calaOpcja;
+		calaOpcja = new JPanel();
+		opcja = new JTextArea("Przedstawić obszar wokół nieskończoności?");
+		wybor = new JCheckBox();
+		calaOpcja.add(opcja);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		nadLegenda.add(calaOpcja);
+		calaOpcja = new JPanel();
+		opcja = new JTextArea("Pokazać oznaczenia legendy?");
+		wybor= new JCheckBox();
+		calaOpcja.add(opcja);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		nadLegenda.add(calaOpcja);
+		calaOpcja = new JPanel();
+		opcja = new JTextArea("Pokazać oznaczenia wykresu?");
+		wybor= new JCheckBox();
+		calaOpcja.add(opcja);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		nadLegenda.add(calaOpcja);
+		calaOpcja = new JPanel();
+		opcja = new JPanel ();
+		opcja.add(new JTextArea("Sposób pokolorowania dziedziny"));
+		wybor= new JComboBox<String>();
+		calaOpcja.setLayout(new GridLayout(2,1));
+		calaOpcja.add(opcja);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		nadLegenda.add(calaOpcja);
+		legenda.gbc.gridy = 0;
+		legenda.gbc.gridx = 0;
+		//legenda.gbc.fill = GridBagConstraints.HORIZONTAL;
+		legenda.add(nadLegenda, legenda.gbc);
 		left.add(Box.createRigidArea(new Dimension(0,30)));
 		left.add(przyciski);
 		left.add(Box.createRigidArea(new Dimension(0,30)));
@@ -132,6 +199,60 @@ public class Main extends JFrame {
 		add(left, BorderLayout.WEST);
 		add(wykres, BorderLayout.CENTER);
 	}
+	
+	private void changeFunc(FunctionPowloka f) {
+		nadFunkcja.setForeground(Color.black);
+		nadFunkcja.setText("W trakcie obliczania funkcji");
+		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
+			static int liczKropki = 0;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					if(stop) {
+						return;
+					}
+					String kropki;
+					switch(liczKropki){
+					case 0:
+						kropki = ".";
+						break;
+					case 1:
+						kropki = "..";
+						break;
+					case 2:
+						kropki = "...";
+						break;
+					default:
+						kropki = "";
+						break;
+					}
+					nadFunkcja.setText("W trakcie obliczania funkcji" + kropki);
+					liczKropki++;
+					liczKropki %= 4;
+			}
+				
+		};
+		Timer timer = new Timer(800, timerListener);
+		SwingWorker<Void,Void> narysuj = new SwingWorker<Void, Void>(){
+
+			@Override
+			protected Void doInBackground() throws Exception {
+				wykres.change(f, new Complex(-10,-10), new Complex(10,10), 0.5);
+				timerListener.stop = true;
+				nadFunkcja.setForeground(Color.black);
+				nadFunkcja.setText("Obliczono i pokazano funkcję.");
+				return null;
+			}
+			
+		};
+		timer.start();
+		narysuj.execute();
+
+	}
+	
+	abstract class ActionListenerWthStop implements ActionListener{
+		boolean stop = false;
+	}
+	
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			

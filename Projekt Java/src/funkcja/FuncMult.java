@@ -1,6 +1,7 @@
 package funkcja;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 class FuncMult extends Function {
 	final Function[] f;
@@ -301,32 +302,39 @@ class FuncMult extends Function {
 			return FuncMethods.equals(this.f, ((FuncMult)f).f);
 		return false;
 	}
+	
+	protected LinkedList<Function> removeInnerMult() {
+		LinkedList<Function> extendedMult = new LinkedList<Function>(); 
+		for(int i=0;i<f.length;i++) {
+			if(f[i].type == Functions.MULT) {
+				LinkedList<Function> innerExtended = ((FuncMult)f[i]).removeInnerMult();
+				extendedMult.addAll(innerExtended);
+			}
+			else {
+				extendedMult.add(f[i]);
+			}
+		}
+		return extendedMult;
+	}
+	
 	@Override
 	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana { 
 		calledSimp++;
+		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(f.length == 1)
 			return f[0].simplify(settings);
 		
-		Function[] simplMult = FuncMethods.simplifyAll(f, settings);
-		ArrayList<Function> extendedMult = new ArrayList<Function>();
-		ArrayList<Function> multPutTogether1;
-		ArrayList<Function> multPutTogether2;
-		ArrayList<Function> organisedMult;
+		LinkedList<Function> extendedMult;
+		LinkedList<Function> simplMult;
+		LinkedList<Function> multPutTogether1;
+		LinkedList<Function> multPutTogether2;
+		LinkedList<Function> organisedMult;
 		
-		for(int i=0;i<simplMult.length;i++) {
-			if(simplMult[i].type == Functions.MULT) {
-				for(int j=0;j<((FuncMult)simplMult[i]).f.length;j++) {
-					extendedMult.add(((FuncMult)simplMult[i]).f[j]);
-				}
-			}
-			else {
-				extendedMult.add(simplMult[i]);
-			}
-		}
-
-		multPutTogether1 = putSameBasesTogether.putAlltogether(extendedMult);
+		extendedMult = removeInnerMult();
+		simplMult = FuncMethods.simplifyAll(extendedMult, settings);
+		multPutTogether1 = putSameBasesTogether.putAlltogether(simplMult);
 		PutSameExponentsTogether putSameExponentsTOgether = new PutSameExponentsTogether(settings);
 		multPutTogether2 = putSameExponentsTOgether.putAlltogether(multPutTogether1);
 		
@@ -340,7 +348,7 @@ class FuncMult extends Function {
 		if(numConst.equals(new Complex(0)))
 			return new FuncNumConst(new Complex(0));
 		
-		organisedMult = new ArrayList<Function>();
+		organisedMult = new LinkedList<Function>();
 		if(!numConst.equals(new Complex(1)))
 			organisedMult.add(new FuncNumConst(numConst));
 		

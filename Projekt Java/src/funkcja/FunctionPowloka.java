@@ -60,7 +60,10 @@ public class FunctionPowloka {
 	
 	
 	public FunctionPowloka splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
-		return new FunctionPowloka(new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)}));
+		Settings set2 = set.copy();
+		set2.strictPow = false;
+		FunctionPowloka simplified = this.simplify(set2);
+		return new FunctionPowloka(new FuncSum (new Function[] {simplified.re(set2).f, new FuncMult(new FuncNumConst(Complex.i), simplified.im(set2).f)}));
 	}
 	
 	public FunctionPowloka simplifyOnce(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {

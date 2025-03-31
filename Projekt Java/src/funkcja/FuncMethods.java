@@ -1,6 +1,8 @@
 package funkcja;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 class FuncMethods {
 
@@ -40,6 +42,14 @@ class FuncMethods {
 		return g2;
 	}
 
+	protected static LinkedList<Function> simplifyAll(List<Function> g, Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+		LinkedList<Function> g2 = new LinkedList<Function>();//[g.size()];
+		for(int i = 0; i<g.size();i++) {
+			g2.add(g.get(i).simplify(settings));
+		}
+		return g2;
+	}
+	
 	protected static boolean equals(Function[] f, Function g[]) {//zwraca prawdę, nawet jeśli drugie jest permutacją pierwszego
 		if(f.length != g.length)
 			return false;
@@ -215,6 +225,39 @@ interface SimplTwo{
 				if(uzyteIndeksy.contains(j))
 					continue;
 				if(canPutTogether(arr.get(j), arr.get(i))) {
+					if(ret.get(countIndex)  != arr.get(i)) {
+						System.out.println(arr.get(i).write(new Settings()) + "\n" + ret.get(0).write(new Settings()));
+						System.out.println(arr.get(i+1).write(new Settings()));
+						System.out.println("w FuncMethods: SimplTwo.putAllTogether jest problem");
+						System.out.println("" + countIndex + "   " + (ret.size()-1) + "   " + i + "   " + j);
+						System.out.println(canPutTogether(arr.get(j), arr.get(i)));
+						System.out.println(canPutTogether(arr.get(j), ret.get(countIndex)));
+						System.out.println(canPutTogether(arr.get(countIndex), arr.get(i)));
+					}
+					ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
+					uzyteIndeksy.add(j);
+				}
+			}
+			countIndex++;
+		}
+		return ret;
+	}
+
+	@Deprecated
+	default ArrayList<Function> putAlltogether(ArrayList<Function> arr){
+		ArrayList<Integer> uzyteIndeksy = new ArrayList<Integer>(); 
+		if(arr.size() == 0)
+			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
+		ArrayList<Function> ret = new ArrayList<Function>();
+		int countIndex = 0;
+		for(int i=0;i<arr.size();i++) {
+			if(uzyteIndeksy.contains(i))
+				continue;
+			ret.add(arr.get(i));
+			for(int j=i+1;j<arr.size();j++) {
+				if(uzyteIndeksy.contains(j))
+					continue;
+				if(canPutTogether(arr.get(j), arr.get(i))) {
 						ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
 						uzyteIndeksy.add(j);
 				}
@@ -223,12 +266,12 @@ interface SimplTwo{
 		}
 		return ret;
 	}
-
-	default ArrayList<Function> putAlltogether(ArrayList<Function> arr){
-		ArrayList<Integer> uzyteIndeksy = new ArrayList<Integer>(); 
+	
+	default LinkedList<Function> putAlltogether(LinkedList<Function> arr){
+		LinkedList<Integer> uzyteIndeksy = new LinkedList<Integer>(); 
 		if(arr.size() == 0)
 			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
-		ArrayList<Function> ret = new ArrayList<Function>();
+		LinkedList<Function> ret = new LinkedList<Function>();
 		int countIndex = 0;
 		for(int i=0;i<arr.size();i++) {
 			if(uzyteIndeksy.contains(i))

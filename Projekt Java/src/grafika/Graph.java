@@ -125,14 +125,13 @@ public class Graph extends JPanel {
 			}
 		}
 		changeColor(colorSpeedChange);
-
 	}
 	public void changeColor(double cSC) {
 		//to jeszcze musi byc dopracowane
 		colorSpeedChange = cSC;
 		long beggining = System.nanoTime();
 		HasFinishBoolean draw = new HasFinishBoolean(){
-			boolean finish;
+			//boolean finish;
 			@Override
 			protected Void doInBackground() throws Exception {
 

@@ -251,10 +251,12 @@ class FuncComp extends Function {
 	@Override
 	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
 		calledSimp++;
+		//System.out.println("w funccomp początek.  " + this.write(setting) + "   " + calledSimp);
 		Bool<Function> fb;
 		fb = simplifyPow(setting);
-		if(fb.bool)
+		if(fb.bool) {
 			return fb.f;
+		}
 		fb = simplifyExp(setting);
 		if(fb.bool)
 			return fb.f;

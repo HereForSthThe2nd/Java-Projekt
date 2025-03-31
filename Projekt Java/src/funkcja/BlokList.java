@@ -461,7 +461,7 @@ class BlokList{
 				}
 			}
 			if(!(""+str.charAt(konce[0])).matches("[a-zA-Z]"))
-				throw new WrongSyntaxException("Przed nawiasem " + str.charAt(konce[0]+1) + " musi stać litera, a stoi znak " + str.charAt(konce[0]+1) + ".");
+				throw new WrongSyntaxException("Przed nawiasem " + str.charAt(konce[0]+1) + " musi stać litera, a stoi znak " + str.charAt(konce[0]) + ".");
 			while(konce[0] > -1 && (""+str.charAt(konce[0])).matches("[a-zA-Z]")) {
 					konce[0] -= 1;
 			}

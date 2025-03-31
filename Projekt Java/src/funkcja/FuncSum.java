@@ -1,6 +1,7 @@
 package funkcja;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 class FuncSum extends Function {
 	final Function[] summands;
@@ -21,18 +22,25 @@ class FuncSum extends Function {
 			Pair<ArrayList<Function>, ArrayList<Function>> gSplit= splitByConstants(g);
 			Function summed = new FuncSum(new Function[] {new FuncMult( fSplit.first.toArray(new Function[fSplit.first.size()])), new FuncMult(gSplit.first.toArray(new Function[gSplit.first.size()]))});
 			Function stayed = new FuncMult( fSplit.second.toArray(new Function[fSplit.second.size()]));
-			return new FuncMult(new Function[] {summed, stayed});
+			FuncMult fRet = new FuncMult(new Function[] {summed, stayed});
+			LinkedList<Function> czynniki = fRet.removeInnerMult();
+			return new FuncMult(czynniki.toArray(new Function[czynniki.size()]));
 		}
 		
 		@Override
 		public Function putTogether(Function func1, Function func2) {
-			if(!canPutTogether(func1, func2))
+			if(!canPutTogether(func1, func2)) {
+				String func1Str;
+				String func2Str;
 				try {
-					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
-							+ " Podane funkcja f: " + func1.write(new Settings()) + " podana funkcja g: " + func2.write(new Settings()));
+					func1Str = func1.write(new Settings());
+					func2Str = func2.write(new Settings());
 				}catch(Exception e) {
 					throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n Nie udało sie ich wyświetlić.");
 				}
+				throw new IllegalArgumentException("Funckcje f oraz g muszą być składalne.\n"
+						+ "\nPodana funkcja f: " + func1Str + "\npodana funkcja g: " + func2Str);
+			}
 			if(func1.check(func2))
 				return new FuncMult(new FuncNumConst(new Complex(2)), func1);
 			if(canPutTogetherPom(func1, func2)) {
@@ -44,7 +52,6 @@ class FuncSum extends Function {
 				return new FuncMult(new FuncNumConst(Complex.add(gConst,new Complex(1))), func1);
 			}
 			if(canPutTogetherPom2(func1,func2)) {
-
 				return putTogetherTwoMult((FuncMult)func1, (FuncMult)func2);
 			}
 			throw new IllegalArgumentException("Coś poszło nie tak, program nie powinien tutaj dojść.");
@@ -151,6 +158,7 @@ class FuncSum extends Function {
 	@Override
 	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
 		calledSimp++;
+		//System.out.println("w funcsum zwróci .  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(summands.length == 1)
