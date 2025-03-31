@@ -250,6 +250,7 @@ class FuncComp extends Function {
 	
 	@Override
 	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
+		calledSimp++;
 		Bool<Function> fb;
 		fb = simplifyPow(setting);
 		if(fb.bool)

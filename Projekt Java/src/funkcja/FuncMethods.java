@@ -65,15 +65,16 @@ class FuncMethods {
 		ArrayList<Integer> usedIndekses = new ArrayList<Integer>();
 		outer:
 		for(int i=0;i<f.size();i++) {
+			inner:
 			for(int j=0;j<g.size();j++) {
 				if(usedIndekses.contains(j))
-					continue;
+					continue inner;
 				if(f.get(i).check(g.get(j))) {
 					usedIndekses.add(j);
 					continue outer;
 				}
-			return false;
 			}
+			return false;
 		}
 		return true;
 	}

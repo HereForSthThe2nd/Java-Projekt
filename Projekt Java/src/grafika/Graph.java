@@ -7,6 +7,8 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -17,6 +19,7 @@ import java.awt.image.ImageObserver;
 import java.io.File;
 import java.io.IOException;
 import java.text.AttributedCharacterIterator;
+import java.util.LinkedList;
 import java.util.Random;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
@@ -33,24 +36,61 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import java.awt.image.BufferedImage;
 
-public class GraphingFunction extends JLabel {
+class threadAndItsBegg{
+	final HasFinishBoolean thr;
+	final long beggTime;
+	public threadAndItsBegg(HasFinishBoolean worker, long time) {
+		thr = worker;
+		beggTime = time;
+	}
+}
+
+abstract class HasFinishBoolean extends SwingWorker<Void,Void>{//bardzo prowizoryczne ale co tam
+	boolean finish = false; 
+}
+
+public class Graph extends JPanel {
 	BufferedImage img;
-	JLabel label;
 	Complex[][] values; //może trochę overkill, zajmuje z 5 razy więcej miejsca niż obraz, może np. zrobić by co 3 - 10 ^ 2 pikseli obliczało wartości po funkcji (i je tylko wtedy zapisywało) a reszę jakoś interpolowało
 	Complex prawyGorny;
 	Complex lewyDolny;
+	long lastChange = System.nanoTime();
+	long begginingOfLastChange = System.nanoTime();
 	double colorSpeedChange;
-	public GraphingFunction(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange) {
+	static int noOfRep = 0;
+	GridBagConstraints gbc;
+	GridBagLayout layout = new GridBagLayout();
+	JLabel obraz;
+	//TODO: usunac zmienna ponizej
+	static int usunac = 0;
+	public void setPadx(int padx) {
+		gbc.ipadx = padx;
+		//if(label == null || gbc == null)
+		//	System.out.println("null" +"  " + gbc + "  " + label);
+		layout.setConstraints(obraz, gbc);
+	}
+
+	public void setPady(int pady) {
+		gbc.ipady = pady;
+		layout.setConstraints(obraz, gbc);
+	}
+
+	static LinkedList<threadAndItsBegg> currentlyChanging = new LinkedList<threadAndItsBegg>();
+	public Graph(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange, int bok) {
 		this.colorSpeedChange = colorSpeedChange;
-		int bok = 500;
 		this.lewyDolny = lewyDolny;
 		this.prawyGorny = prawyGorny;
-		double A = Math.sqrt((prawyGorny.x-lewyDolny.x)/(prawyGorny.y-lewyDolny.y));
-		//setSize((int)(500*A), (int)(500/A));
-		img = new BufferedImage((int)(bok*A),(int)(bok/A),BufferedImage.TYPE_INT_RGB);
-		setIcon(new ImageIcon(img));
-		setSize(img.getWidth(), img.getHeight());
-		values = new Complex[getWidth()][getHeight()];
+		img = new BufferedImage(bok,bok,BufferedImage.TYPE_INT_RGB);
+		obraz = new JLabel(new ImageIcon(img));
+		setLayout(layout);
+		gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.CENTER;
+		add(obraz, gbc);
+		setBackground(new Color(usunac,255-usunac,0));
+		usunac += 55;
+		usunac %= 226;
+		setSize(img.getWidth()+200, img.getHeight()+200);
+		values = new Complex[img.getWidth()][img.getHeight()];
 		double x;
 		double y;
 		for(int xI=0; xI<img.getWidth();xI++) {
@@ -61,7 +101,7 @@ public class GraphingFunction extends JLabel {
 				values[xI][yI] = f.evaluate(z);
 			}
 		}
-		change(colorSpeedChange);
+		changeColor(colorSpeedChange);
 	}
 	
 	public void save(String str) throws IOException {
@@ -69,26 +109,64 @@ public class GraphingFunction extends JLabel {
 		File imgfile = new File(str+".png");
 		ImageIO.write(img, "png", imgfile);
 	}
-	
-	public void change(double cSC) {
+	public void change(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange) {
+		this.colorSpeedChange = colorSpeedChange;
+		this.lewyDolny = lewyDolny;
+		this.prawyGorny = prawyGorny;
+		values = new Complex[img.getWidth()][img.getHeight()];
+		double x;
+		double y;
+		for(int xI=0; xI<img.getWidth();xI++) {
+			for(int yI=0;yI<img.getHeight();yI++) {
+				x = xI*(prawyGorny.x-lewyDolny.x)/img.getWidth()+lewyDolny.x;
+				y = yI*(lewyDolny.y-prawyGorny.y)/img.getHeight()+prawyGorny.y;
+				Complex[] z = new Complex[] {new Complex(x,y)};
+				values[xI][yI] = f.evaluate(z);
+			}
+		}
+		changeColor(colorSpeedChange);
+
+	}
+	public void changeColor(double cSC) {
+		//to jeszcze musi byc dopracowane
 		colorSpeedChange = cSC;
-		SwingWorker<Void, Void> draw = new SwingWorker<Void, Void>(){
+		long beggining = System.nanoTime();
+		HasFinishBoolean draw = new HasFinishBoolean(){
+			boolean finish;
 			@Override
 			protected Void doInBackground() throws Exception {
+
 				for(int xI=0; xI<img.getWidth();xI++) {
-					for(int yI=0;yI<img.getHeight();yI++) {
-						int[] RGBColor = HSLToRGB(pointToHSL(values[xI][yI],colorSpeedChange));
-						img.setRGB(xI, yI, rgbToHex(RGBColor));
-					}
+					if(!finish)
+						for(int yI=0;yI<img.getHeight();yI++) {
+							int[] RGBColor = HSLToRGB(pointToHSL(values[xI][yI],colorSpeedChange));
+							img.setRGB(xI, yI, rgbToHex(RGBColor));
+						}
 				}
 				return null;
 			}
 			
 			@Override
 			protected void done() {
-				repaint();
+				if(beggining > begginingOfLastChange && !finish) {
+					//potencjalnie moze tutaj sie innt thread zrobic i pokazac old news ale nawet jesli do tego dojdzie nie powinno byc to duzym problemem\
+					begginingOfLastChange = beggining;
+					while(currentlyChanging.size() > 0 && currentlyChanging.getFirst().beggTime <= begginingOfLastChange) {
+						currentlyChanging.get(0).thr.finish = true;
+						currentlyChanging.removeFirst();
+					}
+					repaint();
+				}
 			}
 		};
+		currentlyChanging.add(new threadAndItsBegg(draw, beggining));
+		long thisTime = System.nanoTime();
+		for(int i = 1; i<currentlyChanging.size();i++) {
+			if(thisTime - currentlyChanging.get(i).beggTime < 1) {
+				currentlyChanging.get(i).thr.finish = true;
+				currentlyChanging.remove(i);
+			}
+		}
 		draw.execute();
 
 	}
@@ -98,8 +176,8 @@ public class GraphingFunction extends JLabel {
 			throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
 		}
 		r = r>0 ? r : 0;
-		return 2/Math.PI * (Math.atan(r));
-		//return 1 - 1 / (1 + r);
+		//return 2/Math.PI * (Math.atan(r));
+		return 2/Math.PI * (Math.atan(Math.log(r+1)));
 	}
 	
 	static double[] pointToHSL(Complex z, double lSpeedChange) {
@@ -136,10 +214,8 @@ public class GraphingFunction extends JLabel {
 		return rgb[2] + 256*rgb[1]+ 256*256*rgb[0];
 	}
 
-	
 	public static void main(String[] args) throws Exception {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			
 			@Override
 			public void run() {
 				//TODO: wygląda bardzo pixelowanie, zapewne trzeba będzie ten obraz wygładzić
@@ -151,19 +227,19 @@ public class GraphingFunction extends JLabel {
 					f.print(set);
 					Complex lDolny = new Complex(-1,-1);
 					Complex pGorny = new Complex(1,1);
-					GraphingFunction graf = new GraphingFunction(f, lDolny, pGorny, 1);
+					Graph graf = new Graph(f, lDolny, pGorny, 1, 400);
 					JFrame frame = new JFrame();
 					frame.setLayout(new FlowLayout());
 					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 					frame.setVisible(true);
 					frame.add(graf, 0);
 					frame.setSize(graf.img.getWidth() + 100, graf.img.getHeight() + 50);
-					JSlider slider = new JSlider(JSlider.VERTICAL, 0, 100, 10);
+					JSlider slider = new JSlider(JSlider.VERTICAL, 0, 10, 1);
 					slider.addChangeListener(new ChangeListener() {
 						
 						@Override
 						public void stateChanged(ChangeEvent e) {
-							graf.change(slider.getValue() / 10.0);
+							graf.changeColor(slider.getValue());
 						}
 					});
 					frame.add(slider);

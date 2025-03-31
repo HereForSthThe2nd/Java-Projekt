@@ -303,6 +303,7 @@ class FuncMult extends Function {
 	}
 	@Override
 	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana { 
+		calledSimp++;
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(f.length == 1)

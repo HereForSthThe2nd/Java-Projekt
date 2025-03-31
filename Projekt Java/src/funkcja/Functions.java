@@ -389,7 +389,7 @@ public class Functions {
 	
 
 	static protected boolean checkIfNmdFunc(String str) {
-		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || logChecker.check(str) || logChecker.check(str);
+		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || logChecker.check(str) || powChecker.check(str);
 	}
 	
 	static protected FuncNamed returnNmdFunc(String str) throws WrongSyntaxException {
@@ -525,7 +525,7 @@ public class Functions {
 			if(str.equals("pow"))
 				return (FuncDefault)defaultFunctions.functionOf(str);
 			try {
-				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
+				FunctionPowloka f = new FunctionPowloka(str.substring(4, str.length()-1), new Settings());
 				double d = f.evaluate(new Complex[] {}).x;
 				return new FuncDefault(2, "pow{"+d+"}") {
 					@Override

@@ -48,13 +48,13 @@ public class FunctionPowloka {
 	
 	public FunctionPowloka re(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
 		FunctionPowloka ret = new FunctionPowloka(f.re());
-		ret.simplify(set);
+		ret = ret.simplify(set);
 		return ret;
 	}
 
 	public FunctionPowloka im(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
 		FunctionPowloka ret = new FunctionPowloka(f.im());
-		ret.simplify(set);
+		ret = ret.simplify(set);
 		return ret;
 	}
 	
@@ -94,8 +94,12 @@ public class FunctionPowloka {
 		return simplifyPom(settings);
 	}
 	
-	public void print(Settings set) {
+	public void print(Settings set) { 
 		System.out.println(f.write(set));
+	}
+
+	public String write(Settings set) {
+		return f.write(set);
 	}
 	
 	/*static public void test1() throws WrongSyntaxException {
@@ -192,9 +196,13 @@ public class FunctionPowloka {
 		Settings set = new Settings(4);
 		set.strictPow = false;
 		//set.evaluateConstants = true;
-		FunctionPowloka f = new FunctionPowloka("1122 / 18 * 3^1.4*pi^1.4", set);
+		FunctionPowloka f = new FunctionPowloka("1+0", set);
+		FunctionPowloka f2 = new FunctionPowloka("0+1", set);
+		System.out.println(f.equals(f2));
+		//Function f1 = new FuncMult()
+		System.out.println(FuncMethods.equals(new Function[] {new FuncNumConst(new Complex(0)), new FuncNumConst(new Complex(1))}, new Function[] {new FuncNumConst(new Complex(1)), new FuncNumConst(new Complex(0))}));
 		f.print(set);
-		f = f.simplify(set);
+		f = f.splitByRealAndImaginery(set);
 		f.print(set);
 		
 		/*FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);

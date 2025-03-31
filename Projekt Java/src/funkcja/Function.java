@@ -15,7 +15,8 @@ abstract public class Function implements FuncChecker
  {	
 	final int type;
 	final int nofArg;
-	
+	//TODO:usunąć tą zmienną
+	public static int calledSimp = 0; 
 	protected Function(int type, int nofArg) {
 		this.type=type;
 		this.nofArg = nofArg;
@@ -39,8 +40,8 @@ abstract public class Function implements FuncChecker
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.equals("")) 
 			return "";
-		if(str.charAt(0) == '=') str = str.substring(1);
 		str = str.replaceAll("\\s", "");
+		if(str.charAt(0) == '=') str = str.substring(1);
 		str = BlokList.configureStr(str);
 		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE + "].*")) 
 			throw new WrongSyntaxException(
