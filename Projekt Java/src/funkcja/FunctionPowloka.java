@@ -1,3 +1,7 @@
+/*
+ * FunctionPowloka do użytku poza paczką funkcja,
+ */
+
 package funkcja;
 
 public class FunctionPowloka {
@@ -193,44 +197,34 @@ public class FunctionPowloka {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Settings set = new Settings(4);
-		set.strictPow = false;
-		//set.evaluateConstants = true;
-		FunctionPowloka f = new FunctionPowloka("-z", set);
+		Settings set = new Settings(4);//4 oznacza liczbę miejsc po przecinku które będą wypisywane
+		FunctionPowloka stalaUzytkownika = new FunctionPowloka("ln(2)", set);
+		FunctionPowloka zmiennaUzytkownika = new FunctionPowloka("(x^2+y^2)^(1/2)", set);
+		zmiennaUzytkownika = zmiennaUzytkownika.simplify(set);
+		stalaUzytkownika = stalaUzytkownika.simplify(set);
+		stalaUzytkownika.changeToVar("log[2]"); //trochę głupia nazwa ale co tam
+		zmiennaUzytkownika.changeToVar("r");
+		FunctionPowloka fUzytkownika = new FunctionPowloka("r^2 + log[2]", set);
+		fUzytkownika = fUzytkownika.simplify(set);
+		fUzytkownika.changeToNamed("f");
+		FunctionPowloka f = new FunctionPowloka("exp(z*exp(ln(z))) + (z^2)^(1/(sin(pi) + 2)) + sin(2) + f(z^2)+f(z^2)+r + log[2]", set);
+		System.out.println( f.write(set) + " pocz funkcja");
 		f = f.simplify(set);
-		System.out.println(FuncMethods.minusOneTimes.check(f.f));
-		
-		/*FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);
-		c.simplify(set);
-		f.simplify(set);
-		f.print(set);
-		f.changeToNamed("sin[2]");
-		c.changeToVar("const");
-		FunctionPowloka g = new FunctionPowloka("y", set);
-		g.print(set);
-		g.simplify(set);
-		g.print(set);
+		System.out.println(f.write(set) + "  uproszczona");
+		set.strictPow = false;
+		f = f.simplify(set);
+		System.out.println(f.write(set) + " uproszczona strictPow = false");
+		f = f.simplify(set);
 		set.evaluateConstants = true;
-		g.simplifyOnce(set);
-		g.print(set);
-		g.simplify(set);
-		g.print(set);
+		f = f.simplify(set);
+		System.out.println(f.write(set) + " obliczone stałe");
+		set.evaluateConstants = false;
+		f = f.expand();
+		System.out.println(f.write(set) + " expand1");
+		f = f.expand();
+		System.out.println(f.write(set) + " expand2");
+		f = f.simplify(set);
+		System.out.println(f.write(set) + " jeszcze raz uproszczone: wcześniej tych re nie uprościło bo były ukryte");
 		
-		FunctionPowloka r = new FunctionPowloka("(x^2+y^2)^(1/2)",set);
-		r.changeToVar("r");
-		FunctionPowloka h = new FunctionPowloka("6.63*10^(-34)", set);
-		h.changeToVar("h");
-		FunctionPowloka rh = new FunctionPowloka("r+h+w",set);
-		rh.changeToNamed("rh");
-		FunctionPowloka rf = new FunctionPowloka("rh(z/z+i, 0)",set);
-		System.out.println("rf:");
-		rf.print(set);
-		rf.simplify(set);
-		rf.print(set);
-		rf.expand();
-		rf.print(set);
-		rf.expand();
-		rf.simplify(set);
-		rf.print(set);*/
 	}
 }

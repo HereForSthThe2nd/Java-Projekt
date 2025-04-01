@@ -1,7 +1,17 @@
+/*
+ * funkcje są klasy Function
+ * Function implementuje FuncChecker, 
+ * czyli nie abstrakcyjne podklasy implementują metodę public void check, która sprawdza czy dwie funkcje są takie same
+ * ta klasa zawiera też metodę interpretująca String - a
+ */
+
 package funkcja;
 
 import java.util.ArrayList;
 
+/*
+ * ta klasa zazwyczj używana kiedy z metody chcemy też zwrócić informację czy coś się udało zrobić
+ */
 class Bool<T>{
 	final T f;
 	final boolean bool;

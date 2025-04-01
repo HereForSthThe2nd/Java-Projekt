@@ -1,5 +1,9 @@
-package grafika;
+/*
+ * wyświetlanie wykresów
+ * prowizoryczne
+ */
 
+package grafika;
 
 import java.awt.Color;
 import java.awt.FlowLayout;

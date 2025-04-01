@@ -1,3 +1,8 @@
+/*
+ * niekiedy w celu prostoty wewnątrz programu funkcje zostały zapisane przy pomocy zamiany stringa
+ * ten błąd się wyrzuca jeśli taka funkcja zoestała błędnie zapisana
+ */
+
 package funkcja;
 
 public class WewnetzrnaFunkcjaZleZapisana extends Exception {

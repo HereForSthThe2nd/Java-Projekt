@@ -1,3 +1,9 @@
+/*
+ * funkcja która może zawierać iloczyn funkcji, np. 2x, x*z*x*exp(z)
+ * zawiera w sobie informacje o uproszczeniach typu x^2*x = x^3 itp.
+ * */
+
+
 package funkcja;
 
 import java.util.ArrayList;
@@ -23,7 +29,7 @@ class FuncMult extends Function {
 		this.f=f;
 	}
 	
- 	static SimplTwo putSameBasesTogether = new SimplTwo() {
+ 	static SimplifyTwo putSameBasesTogether = new SimplifyTwo() {
 		
 		private boolean sameBasesPom(Function f, Function g) {
 			if(f.type == Functions.COMPOSITE) {
@@ -157,7 +163,7 @@ class FuncMult extends Function {
 		}
 	};
 
-	static class PutSameExponentsTogether implements SimplTwo {
+	static class PutSameExponentsTogether implements SimplifyTwo {
 		Settings set;
 		public PutSameExponentsTogether(Settings settings) {
 			set = settings;

@@ -1,5 +1,13 @@
+/*
+ * zawarte klasy związane z FuncNamed
+ * */
+
+
 package funkcja;
 
+/*
+ * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
+ */
 abstract class FuncNamed extends Function{
 	//żadne 2 funkcje FuncNamed nie mogą mieć tego samego pola name
 	final String name;

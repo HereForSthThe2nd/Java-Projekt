@@ -1,8 +1,13 @@
+/*
+ * funkcja zawierająca stałą numeryczną
+ */
+
 package funkcja;
 
 //publiczne tymczasowo na cele testow
 public class FuncNumConst extends Function {
-	final static int DODR=1, //1.09, i, 0  //chodzi o to czy trzeba dodawać nawiasy przy wypisywaniu. i (1*i) to jest szczególny przypadek
+	//chodzi o to czy trzeba dodawać nawiasy przy wypisywaniu.
+	final static int DODR=1, //1.09, i, 0   (i to jest szczególny przypadek)
 			DODUR=2, //2i, 2.11i
 			UJEMNYPIERWSZY=3,//-1, -i, -1+i
 			ZES = 4;//1+i, 1-i

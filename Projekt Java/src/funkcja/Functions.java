@@ -1,3 +1,9 @@
+/*
+ * definiowane funkcje i zmienne
+ * tutaj też są metody do dodawania nowych funkcji zdefiniowanych przez użytkownika
+ * sprawdzanie czy jakaś nazwa to nazwa funkcji / zmiennej zachodzi tutaj
+ */
+
 package funkcja;
 
 import java.text.DecimalFormat;
@@ -6,6 +12,9 @@ import java.util.List;
 
 import funkcja.Function;
 
+/*
+ * NonStandardFuncStr do definiowania funkcji typu ln{α}, dla których istnieje nieskończona ilość możliwych nazw
+ */
 interface NonStandardFuncStr extends FuncChecker{
 	Function returnFunc(String str);
 	boolean check(String str);

@@ -1,3 +1,6 @@
+/*plik dotyczy rozczytywania stringa i zamieniania go na funkcję
+ * string dzielony jest na listę bloków (np. 12.3, pi, (...), exp(...))
+ * */
 package funkcja;
 
 import java.util.ArrayList; 

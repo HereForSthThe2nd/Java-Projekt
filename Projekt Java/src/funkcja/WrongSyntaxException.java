@@ -1,5 +1,8 @@
-package funkcja;
+/*
+ * błąd zachodzi jeśli użytkownik zle zapisze funkcję
+ */
 
+package funkcja;
 
 public class WrongSyntaxException extends Exception {
 	public String messageForUser;

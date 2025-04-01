@@ -20,4 +20,5 @@ do zrobienia:
 16.upraszczanie exp(a*ln(b)) na a^b
 17.zrobienie podobnej przemiany w funcsum.simplify co w funcmult.simplify
 18.zmienienie wszystkich Function[] na LinkedList / List<Function>
-19.szybsze / lepsze obliczanie re, im z jednokrotnym uproszczeniem na koniec zamiast cały czas to robić 
+	JADNAK NIE19.szybsze / lepsze obliczanie re, im z jednokrotnym uproszczeniem na koniec zamiast cały czas to robić 
+20.opcja w ustawieniach jeśli część rzeczyswista oraz urojona nie mają byc obliczne

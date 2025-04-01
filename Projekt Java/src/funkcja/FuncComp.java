@@ -1,3 +1,10 @@
+/*
+ * funkcja która może zawierać złączenie dwóch funkcji, np. exp(z^2)
+ * zewnętrzna funkja musi być funkcją z nazwą, a każda funkcja z nazwą ( w kontekście funkcji danej przez użytkownika) jest zapisana jako funkcja zewnętrzna w FuncComp
+ * zawiera w sobie informacje o uproszczeniach typu exp(ln(z)) = z 
+ * */
+
+
 package funkcja;
 
 class FuncComp extends Function {
@@ -163,7 +170,7 @@ class FuncComp extends Function {
 	
 	private Bool<Function> simplifyTrig(Settings settings){
 		
-		class MultOfPi implements FuncChecker{
+	class MultOfPi implements FuncChecker{
 			
 			@Override
 			public boolean check(Function func) {
@@ -175,7 +182,7 @@ class FuncComp extends Function {
 			private boolean checkPom1(Function funkcja) {
 				if(funkcja.nofArg > 0)
 					return false;
-				if(funkcja.type == Functions.MULT && ((FuncMult)funkcja).f[0].type == Functions.NUMCONST && ((FuncMult)funkcja).f[1].check(Functions.pi)) {
+				if(funkcja.type == Functions.MULT && ((FuncMult)funkcja).f[0].type == Functions.NUMCONST && ((FuncMult)funkcja).f[1].check(Functions.pi) && ((FuncMult)funkcja).f.length == 2) {
 					Complex c = ((FuncNumConst)((FuncMult)funkcja).f[0]).a;
 					if(c.y==0 && (c.x*2) % 1 == 0)
 						return true;
@@ -184,7 +191,7 @@ class FuncComp extends Function {
 			}
 			
 			private boolean checkPom2(Function funkcja) {
-				if(funkcja.nofArg > 0 || !(funkcja.type == Functions.MULT) || ((FuncMult)funkcja).f.length != 3 )
+				if(funkcja.nofArg > 0 || !(funkcja.type == Functions.MULT))
 					return false;
 				Function[] elements = ((FuncMult)funkcja).f;
 				boolean piIsContained = FuncMethods.findElement(elements, Functions.pi).bool;
@@ -196,7 +203,11 @@ class FuncComp extends Function {
 							return true;
 						return false;
 					}}).bool;
-				if(!piIsContained || !divBy2 || !licz)
+				if(!licz && ((FuncMult)funkcja).f.length != 2)
+					return false;
+				if(licz && ((FuncMult)funkcja).f.length != 3)
+					return false;
+				if(!piIsContained || !divBy2)
 					return false;
 				return true;
 			}
@@ -208,23 +219,27 @@ class FuncComp extends Function {
 			}
 			
 			public int k(Function funkcja) {
-				if(checkPom1(funkcja))
+				if(checkPom1(funkcja)) {
 					return (int)(2*((FuncNumConst)((FuncMult)funkcja).f[0]).a.x);
+				}
 				if(checkPom2(funkcja)) {
 					Function[] elements = ((FuncMult)funkcja).f;
-					int licz = FuncMethods.findElement(elements, new FuncChecker() {
+					Bool<Integer> liczWthB = FuncMethods.findElement(elements, new FuncChecker() {
 						@Override
 						public boolean check(Function func) {
 							if(FuncMethods.isInt.check(func))
 								return true;
 							return false;
-						}}).f;
-					return (int) ((FuncNumConst)((FuncMult)funkcja).f[licz]).a.x;
+						}});
+					if(liczWthB.bool)
+						return (int) ( ((FuncNumConst)((FuncMult)funkcja).f[liczWthB.f]).a.x);
+					else
+						return 1;
 				}
 				if(checkPom3(funkcja)) {
 					if(funkcja.type == Functions.NUMCONST)
 						return 0;
-					return 1;
+					return 2;
 				}
 				throw new IllegalArgumentException("Argument nipoprawny. funkcja: " + funkcja.write(new Settings()));
 			}
@@ -242,7 +257,7 @@ class FuncComp extends Function {
 			int k = multOfPi.k(g[0]);
 			if(k%2 == 0)
 				return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
-			return (k-1) % 2 == 0 ? new Bool<Function>(new FuncNumConst(new Complex(1)), true) : new Bool<Function>(new FuncNumConst(new Complex(-1)), true);
+			return (k-1) % 4 == 0 ? new Bool<Function>(new FuncNumConst(new Complex(1)), true) : new Bool<Function>(new FuncNumConst(new Complex(-1)), true);
 		}
 		
 		return new Bool<Function>(this, false);

@@ -1,3 +1,7 @@
+/*
+ * suma funkcji
+ */
+
 package funkcja;
 
 import java.util.ArrayList;
@@ -13,7 +17,7 @@ class FuncSum extends Function {
 			this.summands=f;
 	}
 	
-	SimplTwo sameStuff = new SimplTwo() {
+	SimplifyTwo sameStuff = new SimplifyTwo() {
 		
 		private static Function putTogetherTwoMult(FuncMult f, FuncMult g) {
 			if(!canPutTogetherPom2(f, g)) 

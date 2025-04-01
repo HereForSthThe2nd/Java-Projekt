@@ -1,3 +1,7 @@
+/*
+ * zawiera praktyczne metody itp.
+ */
+
 package funkcja;
 
 import java.util.ArrayList;
@@ -227,12 +231,17 @@ class FuncMethods {
 	
 }
 
+/*
+ * FuncChecker-y sprawdzają czy funkcja spełnia jakieś wymagania
+ */
 interface FuncChecker{
 	boolean check(Function func);
 }
 
-
-interface SimplTwo{
+/*
+ * SimplifyTwo łączy ze sobą elemnty w celu upraszczania (w funcsum i funcmult)
+ */
+interface SimplifyTwo{
 	boolean canPutTogether(Function func1, Function f2);
 	Function putTogether(Function func1, Function func2);
 	
