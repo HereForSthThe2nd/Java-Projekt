@@ -6,14 +6,14 @@ import java.util.List;
 
 class FuncMethods {
 
-	static FuncChecker isNumConst = new FuncChecker() {
+	static final FuncChecker isNumConst = new FuncChecker() {
 		@Override
 		public boolean check(Function func) {
 			return func.type == Functions.NUMCONST;
 		}
 	};
 	
-	static FuncChecker isInt = new  FuncChecker() {
+	static final FuncChecker isInt = new  FuncChecker() {
 		@Override
 		public boolean check(Function func) {
 			if(func.type == Functions.NUMCONST) {
@@ -25,6 +25,22 @@ class FuncMethods {
 		}
 	};
 	
+	static final FuncChecker minusOneTimes = new FuncChecker() {
+
+		@Override
+		public boolean check(Function func) {
+			if(func.type == Functions.MULT && ((FuncMult)func).f[0].type == Functions.NUMCONST) {
+				FuncNumConst c = (FuncNumConst)((FuncMult)func).f[0];
+				if(findElement(((FuncMult)func).f, isNumConst, new ArrayList<Integer>(List.of(0))).bool)
+					return false;
+				if(c.form == FuncNumConst.UJEMNYPIERWSZY)
+					return true;
+			}
+			return false;
+		} 
+		
+	};
+	
 	protected static int countArguments(Function[] f) {
 		int max=0;
 		for(int i=0;i<f.length; i++) {
@@ -34,6 +50,15 @@ class FuncMethods {
 		return max;
 	}
 
+	protected static int countArguments(LinkedList<Function> f) {
+		int max=0;
+		for(int i=0;i<f.size(); i++) {
+			if(f.get(i).nofArg>max)
+				max = f.get(i).nofArg;
+		}
+		return max;
+	}
+	
 	protected static Function[] simplifyAll(Function[] g, Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
 		Function[] g2 = new Function[g.length];
 		for(int i = 0; i<g.length;i++) {

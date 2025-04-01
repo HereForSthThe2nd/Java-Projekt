@@ -248,6 +248,35 @@ class FuncComp extends Function {
 		return new Bool<Function>(this, false);
 	}
 	
+	private Bool<Function> simplifyMiscellanious(Settings settings){
+		if(checkComponents(Functions.sinh, new FuncNumConst(new Complex(0))))
+			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
+		if(checkComponents(Functions.cosh, new FuncNumConst(new Complex(0))))
+			return new Bool<Function>(new FuncNumConst(new Complex(1)), true);
+		if(checkComponents(Functions.cosh, new FuncNumConst(new Complex(0))))
+			return new Bool<Function>(new FuncNumConst(new Complex(1)), true);
+		//zapomina o tym czy liczba rzeczywista jest dodatnia czy ujemna, ale może warto?
+		//TODO: kiedy wszystko inne bęzie zrobinone sprawdzić czy mogę usunąć poniższe
+		if(checkComponents(Functions.arg, Functions.Re))
+			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
+		if(checkComponents(Functions.arg, Functions.Im))
+			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
+		return new Bool<Function>(this, false);
+	}
+	
+	private Bool<Function> simplifyOpposites(Settings settings){
+		if(checkComponents(Functions.sin, FuncMethods.minusOneTimes) || checkComponents(Functions.sinh, FuncMethods.minusOneTimes)) {
+			FuncMult wewIloczyn = new FuncMult (new FuncMult(new FuncNumConst(new Complex(-1)), this.g[0]).removeInnerMult());
+			return new Bool<Function>(new FuncMult(new FuncNumConst(new Complex(-1)), new FuncComp(this.f, new Function[] {wewIloczyn})), true);
+		}
+		if(checkComponents(Functions.cos, FuncMethods.minusOneTimes) || checkComponents(Functions.cosh, FuncMethods.minusOneTimes)) {
+			FuncMult wewIloczyn = new FuncMult (new FuncMult(new FuncNumConst(new Complex(-1)), this.g[0]).removeInnerMult());
+			return new Bool<Function>(new FuncComp(this.f, new Function[] {wewIloczyn}), true);
+		}
+		return new Bool<Function>(this,false);
+
+	}
+	
 	@Override
 	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
 		calledSimp++;
@@ -261,6 +290,12 @@ class FuncComp extends Function {
 		if(fb.bool)
 			return fb.f;
 		fb = simplifyTrig(setting);
+		if(fb.bool)
+			return fb.f;
+		fb = simplifyMiscellanious(setting);
+		if(fb.bool)
+			return fb.f;
+		fb = simplifyOpposites(setting);
 		if(fb.bool)
 			return fb.f;
 		if(f.check(Functions.Re))

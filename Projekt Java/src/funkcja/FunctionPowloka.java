@@ -60,10 +60,7 @@ public class FunctionPowloka {
 	
 	
 	public FunctionPowloka splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
-		Settings set2 = set.copy();
-		set2.strictPow = false;
-		FunctionPowloka simplified = this.simplify(set2);
-		return new FunctionPowloka(new FuncSum (new Function[] {simplified.re(set2).f, new FuncMult(new FuncNumConst(Complex.i), simplified.im(set2).f)}));
+		return new FunctionPowloka(new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)}));
 	}
 	
 	public FunctionPowloka simplifyOnce(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
@@ -199,14 +196,9 @@ public class FunctionPowloka {
 		Settings set = new Settings(4);
 		set.strictPow = false;
 		//set.evaluateConstants = true;
-		FunctionPowloka f = new FunctionPowloka("1+0", set);
-		FunctionPowloka f2 = new FunctionPowloka("0+1", set);
-		System.out.println(f.equals(f2));
-		//Function f1 = new FuncMult()
-		System.out.println(FuncMethods.equals(new Function[] {new FuncNumConst(new Complex(0)), new FuncNumConst(new Complex(1))}, new Function[] {new FuncNumConst(new Complex(1)), new FuncNumConst(new Complex(0))}));
-		f.print(set);
-		f = f.splitByRealAndImaginery(set);
-		f.print(set);
+		FunctionPowloka f = new FunctionPowloka("-z", set);
+		f = f.simplify(set);
+		System.out.println(FuncMethods.minusOneTimes.check(f.f));
 		
 		/*FunctionPowloka c = new FunctionPowloka("1/2+pi*e^2+i", set);
 		c.simplify(set);

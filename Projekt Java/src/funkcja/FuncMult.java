@@ -15,8 +15,15 @@ class FuncMult extends Function {
 		super(Functions.MULT, FuncMethods.countArguments(new Function[] {f,g}));
 		this.f=new Function[] {f,g};
 	}
+	public FuncMult(LinkedList<Function> fL) {
+		super(Functions.MULT, FuncMethods.countArguments(fL));
+		Function[] f = fL.toArray(new Function[fL.size()]);
+		if(f.length == 0) 
+			f = new Function[] {new FuncNumConst(new Complex(1))};
+		this.f=f;
+	}
 	
-	static SimplTwo putSameBasesTogether = new SimplTwo() {
+ 	static SimplTwo putSameBasesTogether = new SimplTwo() {
 		
 		private boolean sameBasesPom(Function f, Function g) {
 			if(f.type == Functions.COMPOSITE) {

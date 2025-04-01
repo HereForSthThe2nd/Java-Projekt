@@ -45,6 +45,8 @@ public class Main extends JFrame {
 	JPanel containsWykres;
 	Graph legenda;
 	JLabel nadFunkcja;
+	Complex lDolnyWykres = new Complex(-3,-2);
+	Complex pGornyWykres = new Complex(1,2);
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -57,13 +59,13 @@ public class Main extends JFrame {
 		setJMenuBar(menuBar);
 		try {
 			legenda = new Graph(new FunctionPowloka("z", new Settings()), new Complex(-10,-10), new Complex(10,10), 0.5, 300);
-			wykres = new Graph(new FunctionPowloka("z^2", new Settings()), new Complex(-10,-10), new Complex(10,10), 0.5, 600);
+			wykres = new Graph(new FunctionPowloka("z^2", new Settings()), lDolnyWykres, pGornyWykres, 0.5, 600);
 		} catch (WrongSyntaxException e) {
 			throw new WewnetzrnaFunkcjaZleZapisana(e);
 		}
 		legenda.setPadx(100);
 		JPanel zawieraTextFunckcji = new JPanel();
-		JTextField funkcja = new JTextField(10);
+		JTextField funkcja = new JTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
 		funkcja.setFont(new Font(funkcja.getFont().getName(), Font.ITALIC, 20));
 		zawieraTextFunckcji.setLayout(new BoxLayout(zawieraTextFunckcji, BoxLayout.X_AXIS));
 		JPanel panelMaly = new JPanel();
@@ -180,7 +182,7 @@ public class Main extends JFrame {
 		nadLegenda.add(calaOpcja);
 		calaOpcja = new JPanel();
 		opcja = new JPanel ();
-		opcja.add(new JTextArea("Sposób pokolorowania dziedziny"));
+		opcja.add(new JTextArea("Sposób pokolorowania legendy"));
 		wybor= new JComboBox<String>();
 		calaOpcja.setLayout(new GridLayout(2,1));
 		calaOpcja.add(opcja);
@@ -236,7 +238,7 @@ public class Main extends JFrame {
 
 			@Override
 			protected Void doInBackground() throws Exception {
-				wykres.change(f, new Complex(-10,-10), new Complex(10,10), 0.5);
+				wykres.change(f, lDolnyWykres, pGornyWykres, 0.5);
 				timerListener.stop = true;
 				nadFunkcja.setForeground(Color.black);
 				nadFunkcja.setText("Obliczono i pokazano funkcję.");

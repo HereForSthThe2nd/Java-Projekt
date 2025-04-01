@@ -1,0 +1,8 @@
+do zrobienia:
+1.obliczanie funkcji co parę pikseli z interpolacją pomiędzy, z ustawieniem aby to zmienić
+2.dodanie funkcjonalności do wszystkich przycisków
+3.slider który zmienia sposób pokolorowania(jasność). Nie wiem jak(czy) to będzie działało z innymi opcjami pokolorowania
+3.1(?)fajnie by było gdyby slider zmieniał obraz dynamicznie i aby ładnie to wyglądało
+4.aby nie było tak że oblicza dwie funkcje naraz
+5.kiedy użytkownik ponownie kliknie, że chce pokazać funkcję która już się oblicza ignoruje polecenie i mu mówi że już robi
+6. dodanie wszystkich ustawień do menu

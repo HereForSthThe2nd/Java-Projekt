@@ -1,2 +1,2 @@
 # Java-Projekt
-lol
+Main w Projekt Java \ Grafika

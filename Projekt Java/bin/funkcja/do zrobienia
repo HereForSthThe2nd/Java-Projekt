@@ -15,4 +15,9 @@ do zrobienia:
 	ZROBIONE 11.aby exp(z)^a upraszczało się tak samo jak b^z ^ a
 	ZROBIONE 12.aby było w stanie się skapnąć kiedy występuje skracalny ułamek (z całkowitym licznikiem oraz mianownikiem) i to uprościć
 13(???)aby mogło upraszczać sumy logarytmów / logarytmy iloczynów 
-14 aby upraszczało sin(-z) na -sin(z) itp.
+	ZROBIONE 14.aby upraszczało sin(-z) na -sin(z), sinh(0) na 0 itp.
+15.ładna część rzeczywista i urojona potęg
+16.upraszczanie exp(a*ln(b)) na a^b
+17.zrobienie podobnej przemiany w funcsum.simplify co w funcmult.simplify
+18.zmienienie wszystkich Function[] na LinkedList / List<Function>
+19.szybsze / lepsze obliczanie re, im z jednokrotnym uproszczeniem na koniec zamiast cały czas to robić 
