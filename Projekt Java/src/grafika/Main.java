@@ -12,6 +12,7 @@ import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -45,8 +46,8 @@ public class Main extends JFrame {
 	JPanel containsWykres;
 	Graph legenda;
 	JLabel nadFunkcja;
-	Complex lDolnyWykres = new Complex(-3,-2);
-	Complex pGornyWykres = new Complex(1,2);
+	Complex lDolnyWykres = new Complex(-10,-10);
+	Complex pGornyWykres = new Complex(10,10);
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -155,7 +156,7 @@ public class Main extends JFrame {
 		legenda.gbc.gridx = 0;
 		legenda.layout.setConstraints(legenda.obraz, legenda.gbc);
 		JPanel nadLegenda = new JPanel();
-		nadLegenda.setLayout(new GridLayout(4,1));
+		nadLegenda.setLayout(new GridLayout(5,1));
 		JComponent opcja;
 		JComponent wybor;
 		JPanel calaOpcja;
@@ -166,6 +167,7 @@ public class Main extends JFrame {
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
 		nadLegenda.add(calaOpcja);
+		
 		calaOpcja = new JPanel();
 		opcja = new JTextArea("Pokazać oznaczenia legendy?");
 		wybor= new JCheckBox();
@@ -173,6 +175,7 @@ public class Main extends JFrame {
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
 		nadLegenda.add(calaOpcja);
+		
 		calaOpcja = new JPanel();
 		opcja = new JTextArea("Pokazać oznaczenia wykresu?");
 		wybor= new JCheckBox();
@@ -180,6 +183,7 @@ public class Main extends JFrame {
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
 		nadLegenda.add(calaOpcja);
+		
 		calaOpcja = new JPanel();
 		opcja = new JPanel ();
 		opcja.add(new JTextArea("Sposób pokolorowania legendy"));
@@ -189,6 +193,29 @@ public class Main extends JFrame {
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
 		nadLegenda.add(calaOpcja);
+		
+		calaOpcja = new JPanel();
+		wybor= new JButton("Zapisz");
+		JTextField zapisFld = new JTextField(10);
+		((JButton)wybor).addActionListener(new ActionListener() {
+			static int ilosc = 0;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					wykres.save(zapisFld.getText());
+					zapisFld.setText(zapisFld.getText() + ilosc);
+					ilosc++;
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
+		calaOpcja.add(zapisFld);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		nadLegenda.add(calaOpcja);
+
 		legenda.gbc.gridy = 0;
 		legenda.gbc.gridx = 0;
 		//legenda.gbc.fill = GridBagConstraints.HORIZONTAL;
