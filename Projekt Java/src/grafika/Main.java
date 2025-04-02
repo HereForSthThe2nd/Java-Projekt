@@ -46,8 +46,8 @@ public class Main extends JFrame {
 	JPanel containsWykres;
 	Graph legenda;
 	JLabel nadFunkcja;
-	Complex lDolnyWykres = new Complex(-10,-10);
-	Complex pGornyWykres = new Complex(10,10);
+	Complex lDolnyWykres = new Complex(-3,-3);
+	Complex pGornyWykres = new Complex(3,3);
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);

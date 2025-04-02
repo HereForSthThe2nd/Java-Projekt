@@ -357,8 +357,9 @@ public class Functions {
 		
 	protected final static nameAndValue<Function> defaultVar = new nameAndValue<Function>(new ArrayList<String>(List.of("e", "pi", "phi", "i")),
 			new ArrayList<Function>(List.of(e ,pi, phi, i)));
-	protected final static nameAndValue<FuncNamed> defaultFunctions = new nameAndValue<FuncNamed>(new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg")),
-			new ArrayList<FuncNamed>(List.of(exp, Ln,ln, Re, Im, pow,sin,cos,sinh,cosh,arg)));
+	protected final static nameAndValue<FuncNamed> defaultFunctions = new nameAndValue<FuncNamed>(
+			new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg")),
+			new ArrayList<FuncNamed>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg)));
 	protected static nameAndValue<FuncNamed> userFunctions = new nameAndValue<FuncNamed>();
 	protected static nameAndValue<FuncNamed> userVar = new nameAndValue<FuncNamed>();
 	
