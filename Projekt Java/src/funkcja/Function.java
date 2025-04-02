@@ -7,6 +7,7 @@
 
 package funkcja;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 /*
@@ -41,7 +42,7 @@ abstract public class Function implements FuncChecker
 	
 	//public abstract boolean check(Function f);
 	
-	protected abstract Function putArguments(Function[] args);
+	protected abstract Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
 	
 	protected abstract Function expand();
 	//bardzo podstawowe

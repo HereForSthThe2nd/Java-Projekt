@@ -6,6 +6,7 @@
 
 package funkcja;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -302,7 +303,7 @@ class FuncMult extends Function {
 		return str;
 	}
 	@Override
-	protected Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return new FuncMult(FuncMethods.putArguments(f, args));
 	}
 	@Override

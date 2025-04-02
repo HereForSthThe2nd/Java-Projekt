@@ -4,6 +4,7 @@
 
 package funkcja;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -143,7 +144,7 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
 		return new FuncSum(FuncMethods.putArguments(summands, args));
 	}
 

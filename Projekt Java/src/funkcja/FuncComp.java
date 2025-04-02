@@ -7,6 +7,7 @@
 
 package funkcja;
 
+@Deprecated
 class FuncComp extends Function {
 	private FuncNamed f;
 	private Function[] g;

@@ -4,6 +4,7 @@
 
 package funkcja;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -150,7 +151,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] putArguments(Function[] functions, Function[] args) {
+	protected static Function[] putArguments(Function[] functions, Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Function[] ret = new Function[functions.length];
 		for(int i=0; i<functions.length;i++) {
 			ret[i] = functions[i].putArguments(args);
@@ -158,6 +159,10 @@ class FuncMethods {
 		return ret;
 	}
 
+	protected static Function[] reim(Function[] f) throws WewnetzrnaFunkcjaZleZapisana {
+		return new Function[] {f[0].re(), f[0].im()};
+	}
+	
 	protected static Function[] subList(Function[] functions, int a, int b) {
 		//od a do b-1 włącznie
 		if(a<0 || b>functions.length || a>=b)

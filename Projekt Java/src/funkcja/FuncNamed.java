@@ -5,6 +5,8 @@
 
 package funkcja;
 
+import java.lang.reflect.InvocationTargetException;
+
 /*
  * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
  */
@@ -37,16 +39,25 @@ abstract class FuncNamed extends Function{
 
 }
 
-abstract class FuncDefault extends FuncNamed{
-
-	protected FuncDefault(int nofArg, String name) {
-
-		super(nofArg, name);
+abstract class Func extends FuncNamed{
+	final Function[] args;
+	protected Func(int nofArgs, String name, Function[] args) {
+		super(nofArgs, name);
+		this.args = args;
+	}
+	
+	@Override
+	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+			return this.getClass().getConstructor().newInstance(args);
 	}
 
-	@Override
-	protected Function putArguments(Function[] args) {
-		return new FuncComp(this, args);
+	
+}
+
+abstract class FuncDefault extends Func{
+
+	protected FuncDefault(int nofArg, String name, Function[] args) {
+		super(nofArg, name, args);
 	}
 
 	@Override
@@ -55,36 +66,16 @@ abstract class FuncDefault extends FuncNamed{
 	}
 }
 
-abstract class FuncConstDefault extends FuncNamed{
-	protected FuncConstDefault(String name) {
-		super(0, name);
-	}
-
-	@Override
-	protected Function putArguments(Function[] args) {
-		return this;
-	}
-	@Override
-	protected Function expand() {
-		return this;
-	}
-}
-
-class FuncGivenName extends FuncNamed{
+class FuncGivenName extends Func{
 	final Function f;
-	protected FuncGivenName(Function f, String name) {
-		super(f.nofArg, name);
+	protected FuncGivenName(Function f, String name, Function[] args) {
+		super(f.nofArg, name, args);
 		this.f=f;
 	}
 
 	@Override
 	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(arg);
-	}
-
-	@Override
-	protected Function putArguments(Function[] args) {
-		return new FuncComp(this, args);
 	}
 	
 	@Override
@@ -103,6 +94,23 @@ class FuncGivenName extends FuncNamed{
 	}
 }
 
+abstract class FuncConstDefault extends FuncNamed{
+	protected FuncConstDefault(String name) {
+		super(0, name);
+	}
+
+	@Override
+	protected Function putArguments(Function[] args) {
+		return this;
+	}
+	
+	@Override
+	protected Function expand() {
+		return this;
+	}
+}
+
+
 class VarGivenName extends FuncNamed{
 	final Function f;
 	protected VarGivenName(String name, Function f) {
@@ -116,7 +124,7 @@ class VarGivenName extends FuncNamed{
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		if(FuncMethods.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
 			return this;
 		return f.putArguments(args);
