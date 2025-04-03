@@ -39,15 +39,15 @@ class Blok{
 }
 
 class BlokWthDefFunction extends Blok{
-	protected FuncNamed funkcja;
-	BlokWthDefFunction(String wejsc, int[] konce, int type, FuncNamed funkcja) {
+	protected FuncReturn funkcja;
+	BlokWthDefFunction(String wejsc, int[] konce, int type, FuncReturn funkcja) {
 		super(wejsc, konce, type);
 		//System.out.println(type);
 		this.funkcja = funkcja;
 		if(type != Blok.FUNCTION)
 			throw new IllegalArgumentException("BlokWthFunction musi być typu Blok.FUNCTION");
 	}
-	BlokWthDefFunction(String wejsc, int pocz, int kon, int type, FuncNamed funkcja){
+	BlokWthDefFunction(String wejsc, int pocz, int kon, int type, FuncReturn funkcja){
 		super(wejsc, pocz,kon,type);
 		this.pocz -=  wejsc.length();
 		this.funkcja = funkcja;
@@ -55,12 +55,10 @@ class BlokWthDefFunction extends Blok{
 			throw new IllegalArgumentException("BlokWthFunction musi być typu Blok.FUNCTION");
 	}
 	
-	@Override
+	/*@Override
 	public void print() {
-
-
 		System.out.println(funkcja.name + str + " type: 2");
-	}
+	}*/
 }
 
 class BlokList{
@@ -523,7 +521,7 @@ class BlokList{
 				Blok prawaStrona = znajdzBlokPom(str, blok.kon);
 				if(prawaStrona.type != Blok.PARENTHASES)
 					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
-				return new BlokWthDefFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Functions.returnNmdFunc(blok.str));
+				return new BlokWthDefFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Functions.returnNmdFuncReturner(blok.str));
 			}
 				
 		}
@@ -532,7 +530,7 @@ class BlokList{
 				return blok;
 			Blok lewaStrona = znajdzBlokPom(str, blok.pocz-1);
 			if(lewaStrona.type == Blok.WORD && Functions.checkIfNmdFunc(lewaStrona.str))
-				return new BlokWthDefFunction(str, blok.pocz, blok.kon, Blok.FUNCTION, Functions.returnNmdFunc(lewaStrona.str));
+				return new BlokWthDefFunction(str, blok.pocz, blok.kon, Blok.FUNCTION, Functions.returnNmdFuncReturner(lewaStrona.str));
 		}
 		return blok;
 

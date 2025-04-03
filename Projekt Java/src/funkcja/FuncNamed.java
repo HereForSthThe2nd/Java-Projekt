@@ -41,10 +41,11 @@ abstract class FuncNamed extends Function{
 
 abstract class Func extends FuncNamed{
 	final Function[] args;
-	protected Func(int nofArgs, String name, Function[] args) {
-		super(nofArgs, name);
+	protected Func(String name, Function[] args) {
+		super(FuncMethods.countArguments(args), name);
 		this.args = args;
 	}
+
 	
 	@Override
 	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
@@ -55,9 +56,8 @@ abstract class Func extends FuncNamed{
 }
 
 abstract class FuncDefault extends Func{
-
-	protected FuncDefault(int nofArg, String name, Function[] args) {
-		super(nofArg, name, args);
+	protected FuncDefault(String name, Function[] args) {
+		super(name, args);
 	}
 
 	@Override
@@ -69,7 +69,7 @@ abstract class FuncDefault extends Func{
 class FuncGivenName extends Func{
 	final Function f;
 	protected FuncGivenName(Function f, String name, Function[] args) {
-		super(f.nofArg, name, args);
+		super(name, args);
 		this.f=f;
 	}
 
@@ -84,12 +84,12 @@ class FuncGivenName extends Func{
 	}
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
 		return f.re();
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
 		return f.im();
 	}
 }
@@ -136,53 +136,50 @@ class VarGivenName extends FuncNamed{
 	}
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
 		return f.re();
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
 		return f.im();
 	}
 
 }
 
-final class FuncConstGivenName extends FuncNamed{
-	final Function f;
-	protected FuncConstGivenName(String name, Function f) {
+class FuncConstGivenName extends FuncNamed{
+	final Complex value;
+	public FuncConstGivenName(String name, Function f) {
 		super(0, name);
-		if(f.nofArg != 0) {
-			throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Podana funkxja: " + f.write(new Settings()));
-		}
-		this.f=f;
+		value = f.evaluate(new Complex[] {});
+	}
+	
+	@Override
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return new FuncNumConst(new Complex((evaluate(new Complex[] {})).x));
+	}
+
+	@Override
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return new FuncNumConst(new Complex((evaluate(new Complex[] {})).x));
+	}
+
+	@Override
+	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return this;
+	}
+
+	@Override
+	protected Function expand() {
+		return this;
 	}
 
 	@Override
 	protected Complex evaluate(Complex[] arg) {
-		return f.evaluate(new Complex[] {});
-	}
-
-	@Override
-	protected Function putArguments(Function[] args) {
-		return this;
+		return null;
 	}
 	
-	@Override
-	final protected Function expand() {
-		return f;
-	}
-
-	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
-		if(evaluate(new Complex[] {}).y == 0)
-			return this;
-		return f.re();
-	}
-
-	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
-		if(evaluate(new Complex[] {}).x == 0)
-			return this;
-		return f.im();
-	}
 }

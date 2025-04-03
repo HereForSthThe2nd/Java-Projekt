@@ -4,6 +4,8 @@
 
 package funkcja;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class FunctionPowloka {
 	Function f;
 	//String canonicForm; gólne by było równe f.write, chyba że użytkownik dopiero przed chwilą wpisał funkcję i jeszcze jej w żaden sposób nie zmodyfikował... 
@@ -34,12 +36,12 @@ public class FunctionPowloka {
 		return f.evaluate(z);
 	}
 		
-	public FunctionPowloka changeToNamed(String str) throws IncorrectNameException {
-		return new FunctionPowloka(Functions.addNmdFunc(f, str));
+	public void changeToNamed(String str) throws IncorrectNameException {
+		Functions.addNmdFunc(f, str);
 	}
 	
-	public FunctionPowloka changeToVar(String str) throws IncorrectNameException {
-		return new FunctionPowloka(Functions.addVar(f, str));
+	public void changeToVar(String str) throws IncorrectNameException {
+		Functions.addVar(f, str);
 	}
 		
 	public boolean equals(FunctionPowloka fP) {
@@ -50,20 +52,20 @@ public class FunctionPowloka {
 		return new FunctionPowloka(f.expand());
 	}
 	
-	public FunctionPowloka re(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka re(Settings set) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		FunctionPowloka ret = new FunctionPowloka(f.re());
 		ret = ret.simplify(set);
 		return ret;
 	}
 
-	public FunctionPowloka im(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka im(Settings set) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		FunctionPowloka ret = new FunctionPowloka(f.im());
 		ret = ret.simplify(set);
 		return ret;
 	}
 	
 	
-	public FunctionPowloka splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return new FunctionPowloka(new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)}));
 	}
 	

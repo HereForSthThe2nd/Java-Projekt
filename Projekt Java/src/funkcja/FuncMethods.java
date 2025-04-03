@@ -135,7 +135,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] re(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static Function[] re(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Function[] ret = new Function[functions.length];
 		for(int i=0;i<functions.length;i++) {
 			ret[i] = functions[i].re();
@@ -143,7 +143,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] im(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static Function[] im(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Function[] ret = new Function[functions.length];
 		for(int i=0;i<functions.length;i++) {
 			ret[i] = functions[i].im();
@@ -159,7 +159,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] reim(Function[] f) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static Function[] reim(Function[] f) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return new Function[] {f[0].re(), f[0].im()};
 	}
 	

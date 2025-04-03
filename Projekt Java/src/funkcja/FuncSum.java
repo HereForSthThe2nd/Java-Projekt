@@ -120,11 +120,11 @@ class FuncSum extends Function {
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return new FuncSum(FuncMethods.re(summands));
 	}
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		return new FuncSum(FuncMethods.im(summands));
 	}
 	

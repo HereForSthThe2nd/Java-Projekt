@@ -175,12 +175,15 @@ public class Graph extends JPanel {
 	}
 	
 	static double przedNorm(double r) {
+		// nie da się dogodzić aby jedna funkcja zawsze ładnie wyglądała
 		if(r<-0.00001) {
 			throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
 		}
 		r = r>0 ? r : 0;
+		
+		//funkcja 1 / z wygląda tak jak powinna (na wykresie w przedziale -3,-3,  3,3)
+		return 2/Math.PI * (Math.atan(Math.sin(r / 20)*10 + Math.exp(r ) - 1));
 		//return 2/Math.PI * (Math.atan(r));
-		return 2/Math.PI * (Math.atan(Math.log(r+1)));
 	}
 	
 	static double[] pointToHSL(Complex z, double lSpeedChange) {
@@ -217,7 +220,7 @@ public class Graph extends JPanel {
 		return rgb[2] + 256*rgb[1]+ 256*256*rgb[0];
 	}
 
-	public static void main(String[] args) throws Exception {
+	/*public static void main(String[] args) throws Exception {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -254,6 +257,5 @@ public class Graph extends JPanel {
 				}
 			}
 		});
-
-	}
+	}*/
 }

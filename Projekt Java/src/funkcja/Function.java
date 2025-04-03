@@ -34,8 +34,8 @@ abstract public class Function implements FuncChecker
 	}
 	protected abstract Complex evaluate(Complex[] arg);
 	
-	protected abstract Function re() throws WewnetzrnaFunkcjaZleZapisana;
-	protected abstract Function im() throws WewnetzrnaFunkcjaZleZapisana;
+	protected abstract Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
+	protected abstract Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	protected abstract String write(Settings settings);
@@ -88,15 +88,15 @@ abstract public class Function implements FuncChecker
 				return new FuncNumConst(new Complex(Double.parseDouble(blok.str)));
 			case Blok.FUNCTION:
 				String[] strArg = blok.str.substring(1, blok.str.length()-1).split(",");
-				if(((BlokWthDefFunction)blok).funkcja.nofArg != strArg.length)
+				if(((BlokWthDefFunction)blok).funkcja.nofArgs != strArg.length)
 					throw new WrongSyntaxException("Funckcja " + ((BlokWthDefFunction)blok).funkcja.name
-							+ " przyjmuje " + ((BlokWthDefFunction)blok).funkcja.nofArg + " argumentów, a podano ich "+ strArg.length + ".");
+							+ " przyjmuje " + ((BlokWthDefFunction)blok).funkcja.nofArgs + " argumentów, a podano ich "+ strArg.length + ".");
 				Function[] arg = new Function[strArg.length];
 				for(int i=0; i<strArg.length;i++) {
 					arg[i] = read(new BlokList(strArg[i]), settings);
 
 				}
-				return new FuncComp(((BlokWthDefFunction)blok).funkcja, arg);
+				return ((BlokWthDefFunction)blok).funkcja.returnFunc(arg);
 			case Blok.WORD:
 				if(Functions.ckeckIfVar(blok.str)) {
 					return Functions.returnVar(blok.str);
@@ -135,7 +135,7 @@ abstract public class Function implements FuncChecker
 		if(splitIndex != -1) {
 			Function lFunc = read(bloki.subList(0, splitIndex), settings);
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
-			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
+			return new FuncMult(new Function[] {lFunc, Functions.pow.returnFunc(new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
 		}
 		
 		splitIndex = bloki.find("^",-1);
@@ -150,8 +150,7 @@ abstract public class Function implements FuncChecker
 			Function lFunc = read(lBlok, settings);
 			Function rFunc = read(rBlok, settings);
 			return new FuncMult(new Function[] {lFunc, rFunc,
-					new FuncComp(Functions.pow,
-							new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)})});
+					Functions.pow.returnFunc(new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)})});
 		}
 		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Ppodany argument: " + bloki.write());
 	}

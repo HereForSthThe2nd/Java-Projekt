@@ -224,7 +224,7 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		if(f.length == 1)
 			return f[0].re();
 		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).re()),
@@ -232,7 +232,7 @@ class FuncMult extends Function {
 		});
 	}
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		if(f.length == 1)
 			return f[0].im();
 		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).im()),
@@ -263,12 +263,12 @@ class FuncMult extends Function {
 			if(f.length == 1)
 				return "-1";
 			i++;
-			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).getOuter().check(Functions.pow)) {
-				if(((FuncComp)f[i]).getInner(1).check(new FuncNumConst(new Complex(-1)))) {
-					if(putParenthases(((FuncComp)f[i]).getInner(0), true))
-						str += "1 / ("+((FuncComp)f[i]).getInner(0).write(settings) + ")";
+			if(Functions.pow.check(f[i])) {
+				if(((Func)f[i]).args[0].check(new FuncNumConst(new Complex(-1)))) {
+					if(putParenthases(((Func)f[i]).args[0], true))
+						str += "1 / ("+((Func)f[i]).args[0].write(settings) + ")";
 					else
-						str += "1 / "+((FuncComp)f[i]).getInner(0).write(settings);
+						str += "1 / "+((Func)f[i]).args[0].write(settings);
 				}else
 					str += "- "+f[i].write(settings);
 			}else {
@@ -285,12 +285,12 @@ class FuncMult extends Function {
 				str += f[i].write(settings);
 		
 		for(i++;i<f.length;i++) {
-			if(f[i].type == Functions.COMPOSITE && ((FuncComp)f[i]).getOuter().check(Functions.pow)) {
-					if(((FuncComp)f[i]).getInner(1).check(new FuncNumConst(new Complex(-1)))) {
-						if(putParenthases(((FuncComp)f[i]).getInner(0), true))
-							str += " / ("+((FuncComp)f[i]).getInner(0).write(settings) + ")";
+			if(Functions.pow.check(f[i])) {
+					if(((Func)f[i]).args[0].check(new FuncNumConst(new Complex(-1)))) {
+						if(putParenthases(((Func)f[i]).args[0], true))
+							str += " / ("+((Func)f[i]).args[0].write(settings) + ")";
 						else
-							str += " / "+((FuncComp)f[i]).getInner(0).write(settings);
+							str += " / "+((Func)f[i]).args[0].write(settings);
 					}else
 						str += " * "+f[i].write(settings);
 			}else {
