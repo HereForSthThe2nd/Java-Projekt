@@ -94,7 +94,7 @@ public class Functions {
 	final private static FuncReturn Ln  = new FuncReturn(1, "Ln"){
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args) {
+			return new FuncDefault(name, nofArgs, args) {
 				//przy upraszczaniu pamięta konkretną gałąz
 				@Override
 				protected Complex evaluate(Complex[] arg) {
@@ -127,7 +127,7 @@ public class Functions {
 
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return Complex.Ln(args[0].evaluate(arg));
@@ -156,7 +156,7 @@ public class Functions {
 
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return new Complex (args[0].evaluate(arg).arg());
@@ -181,7 +181,7 @@ public class Functions {
 
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return Complex.exp(args[0].evaluate(arg));
@@ -217,7 +217,7 @@ public class Functions {
 
 		@Override
 public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){		
+			return new FuncDefault(name, nofArgs, args){		
 				
 				@Override
 				protected Complex evaluate(Complex[] arg) {
@@ -251,7 +251,7 @@ public Function returnFunc(Function[] args) {
 
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return Complex.cos(args[0].evaluate(arg));
@@ -284,7 +284,7 @@ public Function returnFunc(Function[] args) {
 
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return Complex.sinh(args[0].evaluate(arg));
@@ -318,7 +318,7 @@ public Function returnFunc(Function[] args) {
 
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){		@Override
+			return new FuncDefault(name, nofArgs, args){		@Override
 				protected Complex evaluate(Complex[] arg) {
 				return Complex.cosh(args[0].evaluate(arg));
 			}
@@ -350,7 +350,7 @@ public Function returnFunc(Function[] args) {
 
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return new Complex(args[0].evaluate(arg).x);
@@ -373,7 +373,7 @@ public Function returnFunc(Function[] args) {
 	
 		@Override
 		public Function returnFunc(Function[] args) {
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return new Complex(args[0].evaluate(arg).y);
@@ -401,17 +401,38 @@ public Function returnFunc(Function[] args) {
 			if(args.length < 2) {
 				throw new IllegalArgumentException("Liczba argumentów mniejsza od 2. argumenty: " + args);
 			}
-			return new FuncDefault(name, args){
+			return new FuncDefault(name, nofArgs, args){
 				//przy upraszczaniu niekoniecznie pamięta gałąź
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return args[0].evaluate(arg).pow(args[1].evaluate(arg));
 				}
 				@Override
-				protected String write(Settings settings) {
-					if(settings.strictPow)
-						return "Pow";
-					return "pow";
+				protected String write(Settings set) {
+					if(set.writePow) {
+						String str = "";
+						if(args[0].type == Functions.ADD || args[0].type == Functions.MULT) {
+							str += "(" + args[0].write(set) + ")";
+						}else {
+							if(args[0].type == Functions.NUMCONST && !(((FuncNumConst)args[0]).form == FuncNumConst.DODR)) {
+								str += "(" + args[0].write(set) + ")"; 
+							}else {
+								str += args[0].write(set);
+							}
+						}
+						str += " ^ ";
+						if(args[1].type == Functions.ADD || args[1].type == Functions.MULT || (Functions.pow.check( args[1] ))) {
+							str += "(" + args[1].write(set) + ")";
+						}else {
+							if(args[1].type == Functions.NUMCONST && !(((FuncNumConst)args[1]).form == FuncNumConst.DODR)) {
+								str += "(" + args[1].write(set) + ")"; 
+							}else {
+								str += args[1].write(set);
+							}
+						}
+						return str;
+					}
+					return super.write(set);
 				}
 				@Override
 				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
@@ -472,7 +493,7 @@ public Function returnFunc(Function[] args) {
 					
 					@Override
 					Function returnFunc(Function[] args) {
-						return new FuncDefault(name, args) {
+						return new FuncDefault(name, nofArgs, args) {
 							@Override
 							protected Complex evaluate(Complex[] arg) {
 								return Complex.ln(args[0].evaluate(arg), d);
@@ -533,7 +554,7 @@ public Function returnFunc(Function[] args) {
 						
 						@Override
 						Function returnFunc(Function[] args) {
-							return new FuncDefault(name, args) {
+							return new FuncDefault(name, nofArgs, args) {
 								@Override
 								protected Complex evaluate(Complex[] arg) {
 									return Complex.pow(args[0].evaluate(arg), args[1].evaluate(arg), d);
@@ -691,9 +712,14 @@ public Function returnFunc(Function[] args) {
 	}
 	
 	static protected void addNmdFunc(Function f0, String str) throws IncorrectNameException {
-		//TODO:zrobić
+		checkNameRequirements(str);
+		userFunctions.add(new FuncReturn(f0.nofArg, str) {
+			@Override
+			Function returnFunc(Function[] args) {
+				return new FuncGivenName(f0, str, nofArgs, args);
+			}
+		});
 	}
-
 	
 	static  BscVariables varChecker = new BscVariables();
 	static Identities idChecker = new Identities();
@@ -759,7 +785,13 @@ public Function returnFunc(Function[] args) {
 	}
 
 	static protected void addVar(Function f0, String str) throws IncorrectNameException {
-		//TODO: zrobić to
+		checkNameRequirements(str);
+		userVar.add(new VarReturn(str) {
+			@Override
+			Function returnFunc() {
+				return new VarGivenName(str, f0);
+			}
+		});
 	}
 	
 	static boolean ckeckIfVar(String str) {
@@ -862,7 +894,6 @@ public Function returnFunc(Function[] args) {
 					return Im.returnFunc(new Function[] {this});
 				}
 			};
-
 		}
 
 		@Override
@@ -884,16 +915,132 @@ public Function returnFunc(Function[] args) {
 		public Function returnFunc(String str) {
 
 			if(str.equals("x") || str.equals("x[0]")) 
-				return Re.returnFunc(new Function[] {idChecker.returnFunc("z")});
+				return new FuncNamed(1, "x") {
+					
+					@Override
+					protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+						return this;
+					}
+					
+					@Override
+					protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
+							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+						return Re.returnFunc(args);
+					}
+					
+					@Override
+					protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+						return new FuncNumConst(new Complex(0));
+					}
+					
+					@Override
+					protected Function expand() {
+						return this;
+					}
+					
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return new Complex(arg[0].x);
+					}
+				};
 			if(str.equals("y") || str.equals("y[0]")) 
-				return Im.returnFunc(new Function[] {idChecker.returnFunc("z")});
+				return new FuncNamed(1, "y") {
+				
+				@Override
+				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					return new FuncNumConst(new Complex(0));
+				}
+				
+				@Override
+				protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
+						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					return Im.returnFunc(args);
+				}
+				
+				@Override
+				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					return this;
+				}
+				
+				@Override
+				protected Function expand() {
+					return this;
+				}
+				
+				@Override
+				protected Complex evaluate(Complex[] arg) {
+					return new Complex(arg[0].y);
+				}
+			};
 			//System.out.println(str);
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
 			switch(str.charAt(0)) {
 			case 'x':
-				return Re.returnFunc(new Function[] {idChecker.returnFunc("z["+k+"]")});
+				return new FuncNamed(1, "x["+k+"]") {
+					
+					@Override
+					protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+						return this;
+					}
+					
+					@Override
+					protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
+							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+						return Re.returnFunc(new Function[] {args[k]});
+					}
+					
+					@Override
+					protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+						return new FuncNumConst(new Complex(0));
+					}
+					
+					@Override
+					protected Function expand() {
+						return this;
+					}
+					
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return new Complex(arg[k].x);
+					}
+				};
 			case 'y':
-				return Im.returnFunc(new Function[] {idChecker.returnFunc("z["+k+"]")});
+				return new FuncNamed(1, "y") {
+					
+				@Override
+				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					return new FuncNumConst(new Complex(0));
+				}
+				
+				@Override
+				protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
+						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					return Im.returnFunc(new Function[] {args[k]});
+				}
+				
+				@Override
+				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
+						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					return this;
+				}
+				
+				@Override
+				protected Function expand() {
+					return this;
+				}
+				
+				@Override
+				protected Complex evaluate(Complex[] arg) {
+					return new Complex(arg[k].y);
+				}
+			};
 			}
 			throw new IllegalArgumentException("Kod nie powinien tutaj dojść. Podano zły argument do funkcji. Argumenty najpierw trzeba sprawdzać checkiem.");
 		}

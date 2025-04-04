@@ -225,8 +225,8 @@ public class FunctionPowloka {
 		System.out.println(f.write(set) + " expand1");
 		f = f.expand();
 		System.out.println(f.write(set) + " expand2");
-		f = f.simplify(set);
-		System.out.println(f.write(set) + " jeszcze raz uproszczone: wcześniej tych re nie uprościło bo były ukryte");
+		//f = f.simplify(set);
+		//System.out.println(f.write(set) + " jeszcze raz uproszczone: wcześniej tych re nie uprościło bo były ukryte");
 		
 	}
 }

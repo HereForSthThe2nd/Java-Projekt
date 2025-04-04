@@ -41,10 +41,26 @@ abstract class FuncNamed extends Function{
 
 abstract class Func extends FuncNamed{
 	final Function[] args;
-	protected Func(String name, Function[] args) {
+	final int baseNofArgs;
+	protected Func(String name, int nofArgs, Function[] args) {
 		super(FuncMethods.countArguments(args), name);
 		this.args = args;
+		this.baseNofArgs = nofArgs;
 	}
+	@Override
+	protected String write(Settings set) {
+		if(baseNofArgs == 0) {
+			return name + "()";
+		}
+		String str = name;
+		str += "(";
+		for(int i = 0;i < baseNofArgs-1; i++) {
+			str += args[i].write(set) + ", ";
+		}
+		str += args[baseNofArgs-1].write(set) + ")";
+		return str;
+	}
+
 
 	
 	@Override
@@ -56,8 +72,8 @@ abstract class Func extends FuncNamed{
 }
 
 abstract class FuncDefault extends Func{
-	protected FuncDefault(String name, Function[] args) {
-		super(name, args);
+	protected FuncDefault(String name, int baseNofArgs, Function[] args) {
+		super(name, baseNofArgs, args);
 	}
 
 	@Override
@@ -68,8 +84,8 @@ abstract class FuncDefault extends Func{
 
 class FuncGivenName extends Func{
 	final Function f;
-	protected FuncGivenName(Function f, String name, Function[] args) {
-		super(name, args);
+	protected FuncGivenName(Function f, String name, int baseNofArgs, Function[] args) {
+		super(name,baseNofArgs ,args);
 		this.f=f;
 	}
 

@@ -145,12 +145,7 @@ abstract public class Function implements FuncChecker
 			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str.equals("^")) {
 				leftPowIndex -= 2;
 			}
-			BlokList lBlok = bloki.subList(0, leftPowIndex-1);
-			BlokList rBlok = bloki.subList(splitIndex+2, bloki.arr.size());
-			Function lFunc = read(lBlok, settings);
-			Function rFunc = read(rBlok, settings);
-			return new FuncMult(new Function[] {lFunc, rFunc,
-					Functions.pow.returnFunc(new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)})});
+			return Functions.pow.returnFunc(new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)});
 		}
 		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Ppodany argument: " + bloki.write());
 	}

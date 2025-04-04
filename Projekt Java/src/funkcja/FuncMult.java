@@ -29,7 +29,7 @@ class FuncMult extends Function {
 			f = new Function[] {new FuncNumConst(new Complex(1))};
 		this.f=f;
 	}
-	
+	/*
  	static SimplifyTwo putSameBasesTogether = new SimplifyTwo() {
 		
 		private boolean sameBasesPom(Function f, Function g) {
@@ -162,8 +162,8 @@ class FuncMult extends Function {
 				return true;
 			return false;
 		}
-	};
-
+	};*/
+	/*
 	static class PutSameExponentsTogether implements SimplifyTwo {
 		Settings set;
 		public PutSameExponentsTogether(Settings settings) {
@@ -286,7 +286,7 @@ class FuncMult extends Function {
 		
 		for(i++;i<f.length;i++) {
 			if(Functions.pow.check(f[i])) {
-					if(((Func)f[i]).args[0].check(new FuncNumConst(new Complex(-1)))) {
+					if(((Func)f[i]).args[1].check(new FuncNumConst(new Complex(-1)))) {
 						if(putParenthases(((Func)f[i]).args[0], true))
 							str += " / ("+((Func)f[i]).args[0].write(settings) + ")";
 						else
@@ -333,7 +333,8 @@ class FuncMult extends Function {
 	
 	@Override
 	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana { 
-		calledSimp++;
+		return this;
+		/*calledSimp++;
 		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
@@ -376,6 +377,12 @@ class FuncMult extends Function {
 		}
 		organisedMult.addAll(multPutTogether2);
 
-		return new FuncMult((Function[])(organisedMult.toArray(new Function[organisedMult.size()])));
+		return new FuncMult((Function[])(organisedMult.toArray(new Function[organisedMult.size()])));*/
+	}
+	public static void main(String[] args) throws WrongSyntaxException {
+		FunctionPowloka fp = new FunctionPowloka("2 / 3", new Settings());
+		FunctionPowloka fp2 = new FunctionPowloka("-1", new Settings());
+		fp.print(new Settings());
+		System.out.println(Functions.pow.check(Functions.pow.returnFunc(new Function[] {fp.f, fp2.f})));
 	}
 }
