@@ -9,6 +9,7 @@ package funkcja;
 import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import funkcja.Function;
@@ -89,7 +90,8 @@ public class Functions {
 			NAMED = 2,
 			ADD=3,
 			MULT=4,
-			POW=5;
+			POW=5,
+			MATCHER = 6;
 	
 	final private static FuncReturn Ln  = new FuncReturn(1, "Ln"){
 		@Override
@@ -591,7 +593,40 @@ public Function returnFunc(Function[] args) {
 			}
 		};
 
+	final static  BscVariables varChecker = new BscVariables();
 	
+	final static Identities idChecker = new Identities();
+	
+	final static VarReturnSpecial anyMatcher = new VarReturnSpecial() {
+		private LinkedList<Integer> doneIndekses = new LinkedList<Integer>();
+		private LinkedList<AnyMatcher> matcherList = new LinkedList<AnyMatcher>();
+		@Override
+		public Function returnFunc(String str) {
+			if(str.equals("Any"))
+				return returnFunc("Any[0]");
+			int k = returnNumber(str);
+			if(!doneIndekses.contains(k)) {
+				doneIndekses.add(k);
+				matcherList.add(new AnyMatcher(k));
+			}
+			return matcherList.get(doneIndekses.indexOf(k));
+		}
+
+		protected void reset() {
+			doneIndekses = new LinkedList<Integer>();
+			matcherList = new LinkedList<AnyMatcher>();
+		}
+		
+		@Override
+		public boolean check(String str) {
+			return str.matches("[Any]||(Any\\[[0-9]+\\])");
+		}
+		
+		protected int returnNumber(String str) {
+			//zakłada że wiadomo już, że str jest odpowiedniego rodzaju
+			return Integer.parseInt(str.substring(4, str.length()-1));
+		}
+	};
 	
 	final protected static VarReturn e =new VarReturn("e") {
 		
@@ -721,8 +756,6 @@ public Function returnFunc(Function[] args) {
 		});
 	}
 	
-	static  BscVariables varChecker = new BscVariables();
-	static Identities idChecker = new Identities();
 	
 	
 	
@@ -757,7 +790,6 @@ public Function returnFunc(Function[] args) {
 		}
 		throw new IllegalArgumentException("argument lista trzeba przepuścić przez checkIfContained nim się wywoła z nim tą funkcję.");
 	}
-
 	
 	
 	static protected boolean checkIfNmdFunc(String str) {
@@ -784,6 +816,7 @@ public Function returnFunc(Function[] args) {
 		return returnNmdFuncReturner(str).returnFunc(args);
 	}
 
+	
 	static protected void addVar(Function f0, String str) throws IncorrectNameException {
 		checkNameRequirements(str);
 		userVar.add(new VarReturn(str) {

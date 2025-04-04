@@ -200,7 +200,7 @@ public class FunctionPowloka {
 	
 	public static void main(String[] args) throws Exception {
 		Settings set = new Settings(4);//4 oznacza liczbę miejsc po przecinku które będą wypisywane
-		FunctionPowloka stalaUzytkownika = new FunctionPowloka("ln(2)", set);
+		/*FunctionPowloka stalaUzytkownika = new FunctionPowloka("ln(2)", set);
 		FunctionPowloka zmiennaUzytkownika = new FunctionPowloka("(x^2+y^2)^(1/2)", set);
 		zmiennaUzytkownika = zmiennaUzytkownika.simplify(set);
 		stalaUzytkownika = stalaUzytkownika.simplify(set);
@@ -208,8 +208,11 @@ public class FunctionPowloka {
 		zmiennaUzytkownika.changeToVar("r");
 		FunctionPowloka fUzytkownika = new FunctionPowloka("r^2 + log[2]", set);
 		fUzytkownika = fUzytkownika.simplify(set);
-		fUzytkownika.changeToNamed("f");
-		FunctionPowloka f = new FunctionPowloka("exp(z*exp(ln(z))) + (z^2)^(1/(sin(pi) + 2)) + sin(2) + f(z^2)+f(z^2)+r + log[2]", set);
+		fUzytkownika.changeToNamed("f");*/
+		FunctionPowloka f = new FunctionPowloka("exp(z)", set);
+		FunctionPowloka f2 = new FunctionPowloka("exp(z)", set);
+		System.out.println(f.equals(f2));
+		/*
 		System.out.println( f.write(set) + " pocz funkcja");
 		f = f.simplify(set);
 		System.out.println(f.write(set) + "  uproszczona");
@@ -227,6 +230,6 @@ public class FunctionPowloka {
 		System.out.println(f.write(set) + " expand2");
 		//f = f.simplify(set);
 		//System.out.println(f.write(set) + " jeszcze raz uproszczone: wcześniej tych re nie uprościło bo były ukryte");
-		
+		///*/
 	}
 }

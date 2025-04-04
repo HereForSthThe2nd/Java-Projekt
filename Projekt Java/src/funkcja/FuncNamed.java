@@ -22,8 +22,7 @@ abstract class FuncNamed extends Function{
 			return name;
 	}
 	@Override
-	public
-	final boolean check(Function f) {
+	public boolean check(Function f) {
 		if(f.type == Functions.NAMED) {
 			if(((FuncNamed)f).name.equals(this.name))
 				return true;
@@ -61,6 +60,11 @@ abstract class Func extends FuncNamed{
 		return str;
 	}
 
+	public final boolean check(Function f) {
+		if(super.check(f))
+			return FuncMethods.equals(((Func)f).args, args);
+		return false;
+	}
 
 	
 	@Override
