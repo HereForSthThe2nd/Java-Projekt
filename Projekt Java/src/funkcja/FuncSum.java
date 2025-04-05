@@ -4,7 +4,6 @@
 
 package funkcja;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -120,11 +119,11 @@ class FuncSum extends Function {
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function re() {
 		return new FuncSum(FuncMethods.re(summands));
 	}
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function im() {
 		return new FuncSum(FuncMethods.im(summands));
 	}
 	
@@ -144,7 +143,7 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
+	protected Function putArguments(Function[] args) { 
 		return new FuncSum(FuncMethods.putArguments(summands, args));
 	}
 
@@ -161,14 +160,18 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
-		calledSimp++;
+	protected Function simplify(SimplifyRule rule) {
+		LinkedList<Function> removedInner = removeInnerSum();
+		LinkedList<Function> simpl = FuncMethods.simplifyAll(removedInner, rule);
+		FuncMult simplified = new FuncMult(simpl);
+		return rule.simplify(simplified);
+		/*calledSimp++;
 		//System.out.println("w funcsum zwróci .  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
 		if(summands.length == 1)
-			return summands[0].simplify(settings);
-		Function[] simplSummands = FuncMethods.simplifyAll(summands, settings);
+			return summands[0].simplify(rule);
+		Function[] simplSummands = FuncMethods.simplifyAll(summands, rule);
 		ArrayList<Function> extendedSummands = new ArrayList<Function>();
 		for(int i=0;i<simplSummands.length;i++) {
 			if(simplSummands[i].type == Functions.ADD) {
@@ -204,6 +207,36 @@ class FuncSum extends Function {
 
 		if(organisedSummands.size() == 0)
 			return new FuncNumConst(new Complex(0));
-		return new FuncSum((organisedSummands.toArray(new Function[organisedSummands.size()])));
+		return new FuncSum((organisedSummands.toArray(new Function[organisedSummands.size()])));*/
+	}
+
+	@Override
+	protected Function replaceMatchers() {
+		return new FuncSum(FuncMethods.replaceMatchers(summands));
+	}
+
+	
+	private LinkedList<Function> removeInnerSum() { 
+		LinkedList<Function> extendedSum = new LinkedList<Function>(); 
+		for(int i=0;i<summands.length;i++) {
+			if(summands[i].type == Functions.MULT) {
+				LinkedList<Function> innerExtended = ((FuncSum)summands[i]).removeInnerSum();
+				extendedSum.addAll(innerExtended);
+			}
+			else {
+				extendedSum.add(summands[i]);
+			}
+		}
+		return extendedSum;
+	}
+	
+	@Override
+	protected Function removeInners() {
+		LinkedList<Function> fExpanded = removeInnerSum();
+		LinkedList<Function> fRemovedInners = new LinkedList<Function>();
+		for(Function i : fExpanded) {
+			fRemovedInners.add(i.removeInners());
+		}
+		return new FuncMult(fRemovedInners);
 	}
 }

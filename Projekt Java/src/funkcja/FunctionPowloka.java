@@ -6,8 +6,10 @@ package funkcja;
 
 import java.lang.reflect.InvocationTargetException;
 
+import funkcja.MatcherMethods.AnyMatcherReturn;
+
 public class FunctionPowloka {
-	Function f;
+	protected Function f;
 	//String canonicForm; gólne by było równe f.write, chyba że użytkownik dopiero przed chwilą wpisał funkcję i jeszcze jej w żaden sposób nie zmodyfikował... 
 		//może jeśli zmieni w ustawieniach znaczenie pow to może to mogłoby mieć sens? 
 		//Poza tym jeśli chce się to gdzieś przepisać bez zmian czy coś
@@ -17,7 +19,11 @@ public class FunctionPowloka {
 			f = new FuncNumConst(new Complex(0));
 			return;
 		}
-		f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings);
+		if(settings.matchersAllowed) {
+			AnyMatcherReturn match = new AnyMatcherReturn();
+			f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings, match);
+		}
+		f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings, new AnyMatcherReturn() {@Override protected boolean check(String str){return false;}});
 	}
 	
  	public FunctionPowloka copy() {
@@ -52,54 +58,30 @@ public class FunctionPowloka {
 		return new FunctionPowloka(f.expand());
 	}
 	
-	public FunctionPowloka re(Settings set) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public FunctionPowloka re() {
 		FunctionPowloka ret = new FunctionPowloka(f.re());
-		ret = ret.simplify(set);
+		ret = ret.simplify();
 		return ret;
 	}
 
-	public FunctionPowloka im(Settings set) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	public FunctionPowloka im(){
 		FunctionPowloka ret = new FunctionPowloka(f.im());
-		ret = ret.simplify(set);
+		ret = ret.simplify();
 		return ret;
 	}
 	
-	
-	public FunctionPowloka splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		return new FunctionPowloka(new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)}));
+	public FunctionPowloka splitByRealAndImaginery(Settings set){
+		return new FunctionPowloka(new FuncSum (new Function[] {this.re().f, new FuncMult(new FuncNumConst(Complex.i), this.im().f)}));
 	}
-	
-	public FunctionPowloka simplifyOnce(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
-		 return new FunctionPowloka(f.simplify(settings));
-	}
-	
-	public FunctionPowloka simplifyPom(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
-		int i = 0;
-		Function fLast = f;
-		Function fNew = fLast.simplify(settings);
-		while(!fNew.check(fLast)) {
-			fLast = fNew;
-			fNew = fNew.simplify(settings);
-			i++;
-			if(i >= 100) {
-				System.out.println("Podczas FuncPowloka simplify po 100 iteracjach program nadal mówi, że jaszcze się nie skończyło.");
-				break;
-			}
+		
+	public FunctionPowloka simplify() {
+		Function f = this.f;
+		for(SimplifyRule r : SimplifyRule.current) {
+			f = r.simplify(f);
 		}
-		return new FunctionPowloka(fNew);
+		return new FunctionPowloka(f);
 	}
-	
-	public FunctionPowloka simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
-		if(settings.evaluateConstants) {
-			Settings temp = settings.copy();
-			temp.evaluateConstants = false;
-			FunctionPowloka fp = simplifyPom(temp);
-			fp = fp.simplifyPom(settings);
-			return fp;
-		}
-		return simplifyPom(settings);
-	}
-	
+		
 	public void print(Settings set) { 
 		System.out.println(f.write(set));
 	}

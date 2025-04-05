@@ -64,18 +64,18 @@ class FuncMethods {
 		return max;
 	}
 	
-	protected static Function[] simplifyAll(Function[] g, Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static Function[] simplifyAll(Function[] g, SimplifyRule rule) {
 		Function[] g2 = new Function[g.length];
 		for(int i = 0; i<g.length;i++) {
-			g2[i] = g[i].simplify(settings);
+			g2[i] = g[i].simplify(rule);
 		}
 		return g2;
 	}
 
-	protected static LinkedList<Function> simplifyAll(List<Function> g, Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static LinkedList<Function> simplifyAll(List<Function> g, SimplifyRule rule) {
 		LinkedList<Function> g2 = new LinkedList<Function>();//[g.size()];
 		for(int i = 0; i<g.size();i++) {
-			g2.add(g.get(i).simplify(settings));
+			g2.add(g.get(i).simplify(rule));
 		}
 		return g2;
 	}
@@ -135,7 +135,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] re(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected static Function[] re(Function[] functions) {
 		Function[] ret = new Function[functions.length];
 		for(int i=0;i<functions.length;i++) {
 			ret[i] = functions[i].re();
@@ -143,7 +143,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] im(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected static Function[] im(Function[] functions) {
 		Function[] ret = new Function[functions.length];
 		for(int i=0;i<functions.length;i++) {
 			ret[i] = functions[i].im();
@@ -151,7 +151,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] putArguments(Function[] functions, Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected static Function[] putArguments(Function[] functions, Function[] args) {
 		Function[] ret = new Function[functions.length];
 		for(int i=0; i<functions.length;i++) {
 			ret[i] = functions[i].putArguments(args);
@@ -159,7 +159,23 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] reim(Function[] f) throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected static Function[] removeInners(Function[] functions) {
+		Function[] ret = new Function[functions.length];
+		for(int i=0;i<functions.length;i++) {
+			ret[i] = functions[i].removeInners();
+		}
+		return ret;
+	}
+	
+	protected static Function[] replaceMatchers(Function[] functions) {
+		Function[] ret = new Function[functions.length];
+		for(int i=0;i<functions.length;i++) {
+			ret[i] = functions[i].replaceMatchers();
+		}
+		return ret;
+	}
+ 
+ 	protected static Function[] reim(Function[] f)  {
 		return new Function[] {f[0].re(), f[0].im()};
 	}
 	

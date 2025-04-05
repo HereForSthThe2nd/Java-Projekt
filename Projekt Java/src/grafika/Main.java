@@ -38,7 +38,6 @@ import funkcja.Complex;
 import funkcja.Function;
 import funkcja.FunctionPowloka;
 import funkcja.Settings;
-import funkcja.WewnetzrnaFunkcjaZleZapisana;
 import funkcja.WrongSyntaxException;
 
 public class Main extends JFrame {
@@ -48,7 +47,7 @@ public class Main extends JFrame {
 	JLabel nadFunkcja;
 	Complex lDolnyWykres = new Complex(-3,-3);
 	Complex pGornyWykres = new Complex(3,3);
-	public Main() throws WewnetzrnaFunkcjaZleZapisana {
+	public Main() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setLayout(new BorderLayout());
@@ -62,7 +61,8 @@ public class Main extends JFrame {
 			legenda = new Graph(new FunctionPowloka("z", new Settings()), new Complex(-10,-10), new Complex(10,10), 0.5, 300);
 			wykres = new Graph(new FunctionPowloka("z^2", new Settings()), lDolnyWykres, pGornyWykres, 0.5, 600);
 		} catch (WrongSyntaxException e) {
-			throw new WewnetzrnaFunkcjaZleZapisana(e);
+			e.printStackTrace();
+			throw new IllegalStateException(e);
 		}
 		legenda.setPadx(100);
 		JPanel zawieraTextFunckcji = new JPanel();
@@ -111,9 +111,9 @@ public class Main extends JFrame {
 
 						@Override
 						protected Void doInBackground() throws Exception {
-							FunctionPowloka fch = f.simplify(new Settings());
+							FunctionPowloka fch = f.simplify();
 							funkcja.setText(fch.write(new Settings()));
-							changeFunc(f.simplify(new Settings()));
+							changeFunc(f.simplify());
 							return null;
 						}
 						
@@ -287,12 +287,8 @@ public class Main extends JFrame {
 			
 			@Override
 			public void run() {
-				try {
-					Main main = new Main();
-					main.setVisible(true);
-				} catch (WewnetzrnaFunkcjaZleZapisana e) {
-					e.printStackTrace();
-				}
+				Main main = new Main();
+				main.setVisible(true);
 			}
 		});
 	}

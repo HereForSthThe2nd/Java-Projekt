@@ -10,6 +10,8 @@ package funkcja;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
+import funkcja.MatcherMethods.AnyMatcherReturn;
+
 /*
  * ta klasa zazwyczj używana kiedy z metody chcemy też zwrócić informację czy coś się udało zrobić
  */
@@ -34,32 +36,32 @@ abstract public class Function implements FuncChecker
 	}
 	protected abstract Complex evaluate(Complex[] arg);
 	
-	protected abstract Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
-	protected abstract Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
+	protected abstract Function re();
+	protected abstract Function im();
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	protected abstract String write(Settings settings);
-	
-	//public abstract boolean check(Function f);
-	
-	protected abstract Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
+		
+	protected abstract Function putArguments(Function[] args);	
+	protected abstract Function replaceMatchers();
 	
 	protected abstract Function expand();
-	//bardzo podstawowe
-	protected abstract Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana;
 	
-	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
+	protected abstract Function removeInners();//(a+b)+c -> a+b+c, (a*b)*c -> a*b*c
+	
+	protected abstract Function simplify(SimplifyRule rule);
+	
+	protected static String preliminaryChanges(String str) {
 		if(str.equals("")) 
 			return "";
 		str = str.replaceAll("\\s", "");
 		if(str.charAt(0) == '=') str = str.substring(1);
 		str = BlokList.configureStr(str);
 		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE + "].*")) 
-			throw new WrongSyntaxException(
+			throw new IllegalStateException(
 					"Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.OPERATORY+"|[a-zA-Z0-9]|"+BlokList.SPECJALNE, ""));
 		if(str.matches(".*["+BlokList.OPERATORY+"|[,.]]["+BlokList.OPERATORY+"|[,.]].*"))
-			//TODO:to wyrzuca błąd jak się wpisze np. (-1)
-			throw new WrongSyntaxException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
+			throw new IllegalStateException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
 		return str;
 	}
 	
@@ -74,7 +76,7 @@ abstract public class Function implements FuncChecker
 	}
 	
 	static boolean readEmptyStringAsZero; //prawda: "" --> func(z->0), fałsz: "" --> func(z->1)
-	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
+	protected static Function read(BlokList bloki, Settings settings, AnyMatcherReturn matchers) throws WrongSyntaxException {
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0){//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
 			if(readEmptyStringAsZero)
@@ -93,7 +95,7 @@ abstract public class Function implements FuncChecker
 							+ " przyjmuje " + ((BlokWthDefFunction)blok).funkcja.nofArgs + " argumentów, a podano ich "+ strArg.length + ".");
 				Function[] arg = new Function[strArg.length];
 				for(int i=0; i<strArg.length;i++) {
-					arg[i] = read(new BlokList(strArg[i]), settings);
+					arg[i] = read(new BlokList(strArg[i]), settings, matchers);
 
 				}
 				return ((BlokWthDefFunction)blok).funkcja.returnFunc(arg);
@@ -108,33 +110,33 @@ abstract public class Function implements FuncChecker
 		splitIndex = bloki.find("+", 1);
 		if(splitIndex != -1) {
 			readEmptyStringAsZero = true;
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			Function lFunc = read(bloki.subList(0, splitIndex), settings, matchers);
+			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings, matchers);
 			return new FuncSum(new Function[] {lFunc, rFunc});
 		}
 		splitIndex = bloki.find("-",-1);
 		if(splitIndex != -1) {
 			readEmptyStringAsZero = true;
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			Function lFunc = read(bloki.subList(0, splitIndex), settings, matchers);
+			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings, matchers);
 			return new FuncSum(new Function[] {lFunc, new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc)});
 		}
 		splitIndex = bloki.find("*",1);
 		if(splitIndex != -1) {
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			Function lFunc = read(bloki.subList(0, splitIndex), settings, matchers);
+			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings, matchers);
 			return new FuncMult(lFunc, rFunc);
 		}
 		splitIndex = bloki.findConcatenation(1);
 		if(splitIndex != -1) {
-			Function lFunc = read(bloki.subList(0, splitIndex+1), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			Function lFunc = read(bloki.subList(0, splitIndex+1), settings, matchers);
+			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings, matchers);
 			return new FuncMult(lFunc, rFunc);
 		}
 		splitIndex = bloki.find("/",-1);
 		if(splitIndex != -1) {
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			Function lFunc = read(bloki.subList(0, splitIndex), settings, matchers);
+			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings, matchers);
 			return new FuncMult(new Function[] {lFunc, Functions.pow.returnFunc(new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
 		}
 		
@@ -145,11 +147,8 @@ abstract public class Function implements FuncChecker
 			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str.equals("^")) {
 				leftPowIndex -= 2;
 			}
-			return Functions.pow.returnFunc(new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)});
+			return Functions.pow.returnFunc(new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings, matchers), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings, matchers)});
 		}
 		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Ppodany argument: " + bloki.write());
-	}
-	
-	public static void main(String[] args) throws WrongSyntaxException {
 	}
 }

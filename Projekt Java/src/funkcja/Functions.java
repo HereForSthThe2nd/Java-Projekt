@@ -6,7 +6,6 @@
 
 package funkcja;
 
-import java.lang.reflect.InvocationTargetException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -93,7 +92,7 @@ public class Functions {
 			POW=5,
 			MATCHER = 6;
 	
-	final private static FuncReturn Ln  = new FuncReturn(1, "Ln"){
+	final protected static FuncReturn Ln  = new FuncReturn(1, "Ln"){
 		@Override
 		public Function returnFunc(Function[] args) {
 			return new FuncDefault(name, nofArgs, args) {
@@ -104,13 +103,14 @@ public class Functions {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function re() {
 					FunctionPowloka r;
 					try {
 						r = new FunctionPowloka("(z[0]^2+z[1]^2)^(1/2)", new Settings());
 						return Ln.returnFunc(new Function[] {r.f.putArguments(FuncMethods.reim(args))});
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 
@@ -124,7 +124,7 @@ public class Functions {
 	};
 	
 	
-	final private static FuncReturn ln  = new FuncReturn(1, "ln"){
+	final protected static FuncReturn ln  = new FuncReturn(1, "ln"){
 		//przy upraszczaniu niekoniecznie pamięta gałąź
 
 		@Override
@@ -136,13 +136,14 @@ public class Functions {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function re() {
 					FunctionPowloka r;
 					try {
 						r = new FunctionPowloka("(z[0]^2+z[1]^2)^(1/2)", new Settings());
 						return Ln.returnFunc(new Function[] {r.f.putArguments(FuncMethods.reim(args))});
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 
@@ -165,7 +166,7 @@ public class Functions {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re()  {
 					return this;
 				}
 
@@ -190,23 +191,25 @@ public class Functions {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function re() {
 					FunctionPowloka pom;
 					try {
 						pom = new FunctionPowloka("exp(z[0])*cos(z[1])", new Settings());
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 					return pom.f.putArguments(FuncMethods.reim(args));
 				}
 
 				@Override
-				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function im() {
 					FunctionPowloka pom;
 					try {
 						pom = new FunctionPowloka("exp(z[0])*sin(z[1])", new Settings());
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 					return pom.f.putArguments(FuncMethods.reim(args));
 				}
@@ -218,7 +221,7 @@ public class Functions {
 
 
 		@Override
-public Function returnFunc(Function[] args) {
+		public Function returnFunc(Function[] args) {
 			return new FuncDefault(name, nofArgs, args){		
 				
 				@Override
@@ -227,22 +230,24 @@ public Function returnFunc(Function[] args) {
 				}
 	
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function re() {
 					try {
 						FunctionPowloka pom = new FunctionPowloka("cosh(z[1])*sin(z[0])", new Settings());
 						return pom.f.putArguments(FuncMethods.reim(args));
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 	
 				@Override
-				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function im() {
 					try {
 						FunctionPowloka pom = new FunctionPowloka("sinh(z[1])*cos(z[0])", new Settings());
 						return pom.f.putArguments(FuncMethods.reim(args));
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 			};
@@ -260,22 +265,24 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function re() {
 					try {
 						FunctionPowloka pom = new FunctionPowloka("cosh(z[1])*cos(z[0])", new Settings());
 						return pom.f.putArguments(FuncMethods.reim(args));
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 
 				@Override
-				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function im() {
 					try {
 						FunctionPowloka pom = new FunctionPowloka("-sinh(z[1])*sin(z[0])", new Settings());
 						return pom.f.putArguments(FuncMethods.reim(args));
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 			};
@@ -293,22 +300,24 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function re() {
 					try {
 						FunctionPowloka pom = new FunctionPowloka("sinh(z[0])*cos(z[1])", new Settings());
 						return pom.f.putArguments(FuncMethods.reim(args));
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 
 				@Override
-				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function im() {
 					try {
 						FunctionPowloka pom = new FunctionPowloka("cosh(z[0])*sin(z[1])", new Settings());
 						return pom.f.putArguments(FuncMethods.reim(args));
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 
@@ -326,22 +335,24 @@ public Function returnFunc(Function[] args) {
 			}
 
 			@Override
-			protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+			protected Function re() {
 				try {
 					FunctionPowloka pom = new FunctionPowloka("cosh(z[0])*cos(z[1])", new Settings());
 					return pom.f.putArguments(FuncMethods.reim(args));
 				} catch (WrongSyntaxException e) {
-					throw new WewnetzrnaFunkcjaZleZapisana(e);
+					e.printStackTrace();
+					throw new IllegalStateException(e);
 				}
 			}
 
 			@Override
-			protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+			protected Function im() {
 				try {
 					FunctionPowloka pom = new FunctionPowloka("sinh(z[0])*sin(z[1])", new Settings());
 					return pom.f.putArguments(FuncMethods.reim(args));
 				} catch (WrongSyntaxException e) {
-					throw new WewnetzrnaFunkcjaZleZapisana(e);
+					e.printStackTrace();
+					throw new IllegalStateException(e);
 				}
 			}
 };
@@ -359,7 +370,7 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re()  {
 					return this;
 				}
 
@@ -382,7 +393,7 @@ public Function returnFunc(Function[] args) {
 				}
 	
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re()  {
 					return this;
 				}
 	
@@ -437,24 +448,26 @@ public Function returnFunc(Function[] args) {
 					return super.write(set);
 				}
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function re() {
 					FunctionPowloka innyZapis;
 					try {
 						innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 						return innyZapis.f.re().putArguments(args);
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 
 				@Override
-				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+				protected Function im() {
 					FunctionPowloka innyZapis;
 					try {
 						innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 						return innyZapis.f.im().putArguments(args);
 					} catch (WrongSyntaxException e) {
-						throw new WewnetzrnaFunkcjaZleZapisana(e);
+						e.printStackTrace();
+						throw new IllegalStateException(e);
 					}
 				}
 
@@ -502,13 +515,14 @@ public Function returnFunc(Function[] args) {
 							}
 
 							@Override
-							protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+							protected Function re() {
 								FunctionPowloka r;
 								try {
 									r = new FunctionPowloka("(x^2+y^2)^(1/2)", new Settings());
 									return ln.returnFunc(new Function[] {r.f});
 								} catch (WrongSyntaxException e) {
-									throw new WewnetzrnaFunkcjaZleZapisana(e);
+									e.printStackTrace();
+									throw new IllegalStateException(e);
 								}
 							}
 
@@ -563,24 +577,26 @@ public Function returnFunc(Function[] args) {
 								}
 
 								@Override
-								protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+								protected Function re() {
 									FunctionPowloka innyZapis;
 									try {
 										innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 										return innyZapis.f.re();
 									} catch (WrongSyntaxException e) {
-										throw new WewnetzrnaFunkcjaZleZapisana(e);
+										e.printStackTrace();
+										throw new IllegalStateException(e);
 									}
 								}
 
 								@Override
-								protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+								protected Function im() {
 									FunctionPowloka innyZapis;
 									try {
 										innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 										return innyZapis.f.im();
 									} catch (WrongSyntaxException e) {
-										throw new WewnetzrnaFunkcjaZleZapisana(e);
+										e.printStackTrace();
+										throw new IllegalStateException(e);
 									}
 								}
 							};
@@ -596,38 +612,7 @@ public Function returnFunc(Function[] args) {
 	final static  BscVariables varChecker = new BscVariables();
 	
 	final static Identities idChecker = new Identities();
-	
-	final static VarReturnSpecial anyMatcher = new VarReturnSpecial() {
-		private LinkedList<Integer> doneIndekses = new LinkedList<Integer>();
-		private LinkedList<AnyMatcher> matcherList = new LinkedList<AnyMatcher>();
-		@Override
-		public Function returnFunc(String str) {
-			if(str.equals("Any"))
-				return returnFunc("Any[0]");
-			int k = returnNumber(str);
-			if(!doneIndekses.contains(k)) {
-				doneIndekses.add(k);
-				matcherList.add(new AnyMatcher(k));
-			}
-			return matcherList.get(doneIndekses.indexOf(k));
-		}
-
-		protected void reset() {
-			doneIndekses = new LinkedList<Integer>();
-			matcherList = new LinkedList<AnyMatcher>();
-		}
 		
-		@Override
-		public boolean check(String str) {
-			return str.matches("[Any]||(Any\\[[0-9]+\\])");
-		}
-		
-		protected int returnNumber(String str) {
-			//zakłada że wiadomo już, że str jest odpowiedniego rodzaju
-			return Integer.parseInt(str.substring(4, str.length()-1));
-		}
-	};
-	
 	final protected static VarReturn e =new VarReturn("e") {
 		
 		@Override
@@ -639,7 +624,7 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re() {
 					return this;
 				}
 
@@ -662,7 +647,7 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re() {
 					return this;
 				}
 
@@ -685,7 +670,7 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re() {
 					return this;
 				}
 
@@ -707,7 +692,7 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re() {
 					return this;
 				}
 
@@ -718,6 +703,7 @@ public Function returnFunc(Function[] args) {
 			};
 		}
 	}; 			
+	
 	final private static ArrayList<VarReturn> defaultVar = new ArrayList<VarReturn>(List.of(e,pi,phi,i));//new ArrayList<String>(List.of("e", "pi", "phi", "i"));
 	final private static ArrayList<FuncReturn> defaultFunctions = new ArrayList<FuncReturn>(List.of(exp, Ln,ln, Re, Im, pow, sin, cos, sinh, cosh, arg));
 	private static ArrayList<FuncReturn> userFunctions = new ArrayList<FuncReturn>();
@@ -847,61 +833,12 @@ public Function returnFunc(Function[] args) {
 
 		@Override
 		public Function returnFunc(String str) {
-			if(str.equals("z") || str.equals("z[0]")) 
-				return new FuncNamed(1, "z") {
-
-					@Override
-					protected Complex evaluate(Complex[] arg) {
-						return arg[0];
-					}
-					@Override
-					protected Function putArguments(Function[] args) {
-						return args[0];
-					}
-					@Override
-					protected Function expand() {
-						return this;
-					}
-					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
-						return Re.returnFunc(new Function[] {this});
-					}
-					@Override
-					protected Function im() {
-						return Im.returnFunc( new Function[] {this});
-					}
-				};
-			if(str.equals("w")) {
-				return new FuncNamed(2, "z[1]") { 
-					
-					@Override
-					protected Complex evaluate(Complex[] arg) {
-						return arg[1];
-					}
-
-					@Override
-					protected Function putArguments(Function[] args) {
-						return args[1];
-					}
-
-					@Override
-					protected Function expand() {
-						return this;
-					}
-
-					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
-						return Re.returnFunc(new Function[] {this});
-					}
-
-					@Override
-					protected Function im() {
-						return Im.returnFunc(new Function[] {this});
-					}
-				};
-			}
+			if(str.equals("z")) 
+				return returnFunc("z[0]");
+			if(str.equals("w"))
+				return returnFunc("z[1]");
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
-			return new FuncNamed(k+1, k == 0 ? "z" : str) {
+			return new VarDefaut(k+1, k == 0 ? "z" : str) {
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return arg[k];
@@ -913,18 +850,13 @@ public Function returnFunc(Function[] args) {
 				}
 
 				@Override
-				protected Function expand()  {
-					return this;
-				}
-
-				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
-					return Re.returnFunc(new Function[] {this});
+				protected Function re()  {
+					return varChecker.returnFunc("x["+k+"]");
 				}
 
 				@Override
 				protected Function im() {
-					return Im.returnFunc(new Function[] {this});
+					return varChecker.returnFunc("y["+k+"]");
 				}
 			};
 		}
@@ -947,133 +879,59 @@ public Function returnFunc(Function[] args) {
 		@Override
 		public Function returnFunc(String str) {
 
-			if(str.equals("x") || str.equals("x[0]")) 
-				return new FuncNamed(1, "x") {
-					
-					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-						return this;
-					}
-					
-					@Override
-					protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
-							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-						return Re.returnFunc(args);
-					}
-					
-					@Override
-					protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-						return new FuncNumConst(new Complex(0));
-					}
-					
-					@Override
-					protected Function expand() {
-						return this;
-					}
-					
-					@Override
-					protected Complex evaluate(Complex[] arg) {
-						return new Complex(arg[0].x);
-					}
-				};
-			if(str.equals("y") || str.equals("y[0]")) 
-				return new FuncNamed(1, "y") {
-				
-				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-					return new FuncNumConst(new Complex(0));
-				}
-				
-				@Override
-				protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
-						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-					return Im.returnFunc(args);
-				}
-				
-				@Override
-				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-					return this;
-				}
-				
-				@Override
-				protected Function expand() {
-					return this;
-				}
-				
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return new Complex(arg[0].y);
-				}
-			};
+			if(str.equals("x")) 
+				return returnFunc("x[0]");
+			if(str.equals("y")) 
+				return returnFunc("y[0]");
 			//System.out.println(str);
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
 			switch(str.charAt(0)) {
 			case 'x':
-				return new FuncNamed(1, "x["+k+"]") {
+				return new VarDefaut(1, k == 0? "x" : "x["+k+"]") {
 					
 					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					protected Function re() {
 						return this;
 					}
 					
 					@Override
-					protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
-							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					protected Function putArguments(Function[] args) {
 						return Re.returnFunc(new Function[] {args[k]});
 					}
 					
 					@Override
-					protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-							IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+					protected Function im() {
 						return new FuncNumConst(new Complex(0));
 					}
-					
-					@Override
-					protected Function expand() {
-						return this;
-					}
-					
+										
 					@Override
 					protected Complex evaluate(Complex[] arg) {
 						return new Complex(arg[k].x);
 					}
 				};
 			case 'y':
-				return new FuncNamed(1, "y") {
+				return new VarDefaut(1, k == 0? "y" : "y["+k+"]") {
 					
-				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-					return new FuncNumConst(new Complex(0));
-				}
-				
-				@Override
-				protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
-						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-					return Im.returnFunc(new Function[] {args[k]});
-				}
-				
-				@Override
-				protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-						IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-					return this;
-				}
-				
-				@Override
-				protected Function expand() {
-					return this;
-				}
-				
-				@Override
-				protected Complex evaluate(Complex[] arg) {
-					return new Complex(arg[k].y);
-				}
-			};
+					@Override
+					protected Function re() {
+						return new FuncNumConst(new Complex(0));
+					}
+					
+					@Override
+					protected Function putArguments(Function[] args) {
+						return Im.returnFunc(new Function[] {args[k]});
+					}
+					
+					@Override
+					protected Function im() {
+						return this;
+					}
+									
+					@Override
+					protected Complex evaluate(Complex[] arg) {
+						return new Complex(arg[k].y);
+					}
+				};
 			}
 			throw new IllegalArgumentException("Kod nie powinien tutaj dojść. Podano zły argument do funkcji. Argumenty najpierw trzeba sprawdzać checkiem.");
 		}

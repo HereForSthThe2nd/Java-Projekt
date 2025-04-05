@@ -6,7 +6,6 @@
 
 package funkcja;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -224,7 +223,7 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function re() {
 		if(f.length == 1)
 			return f[0].re();
 		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).re()),
@@ -232,7 +231,7 @@ class FuncMult extends Function {
 		});
 	}
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function im() {
 		if(f.length == 1)
 			return f[0].im();
 		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).im()),
@@ -303,7 +302,7 @@ class FuncMult extends Function {
 		return str;
 	}
 	@Override
-	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function putArguments(Function[] args) {
 		return new FuncMult(FuncMethods.putArguments(f, args));
 	}
 	@Override
@@ -317,7 +316,7 @@ class FuncMult extends Function {
 		return false;
 	}
 	
-	protected LinkedList<Function> removeInnerMult() {
+	protected LinkedList<Function> removeInnerMult() { 
 		LinkedList<Function> extendedMult = new LinkedList<Function>(); 
 		for(int i=0;i<f.length;i++) {
 			if(f[i].type == Functions.MULT) {
@@ -332,8 +331,11 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana { 
-		return this;
+	protected Function simplify(SimplifyRule rule) { 
+		LinkedList<Function> removedInner = removeInnerMult();
+		LinkedList<Function> simpl = FuncMethods.simplifyAll(removedInner, rule);
+		FuncMult simplified = new FuncMult(simpl);
+		return rule.simplify(simplified);
 		/*calledSimp++;
 		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
@@ -384,5 +386,18 @@ class FuncMult extends Function {
 		FunctionPowloka fp2 = new FunctionPowloka("-1", new Settings());
 		fp.print(new Settings());
 		System.out.println(Functions.pow.check(Functions.pow.returnFunc(new Function[] {fp.f, fp2.f})));
+	}
+	@Override
+	protected Function replaceMatchers() {
+		return new FuncMult(FuncMethods.replaceMatchers(f));
+	}
+	@Override
+	protected Function removeInners() {
+		LinkedList<Function> fExpanded = removeInnerMult();
+		LinkedList<Function> fRemovedInners = new LinkedList<Function>();
+		for(Function i : fExpanded) {
+			fRemovedInners.add(i.removeInners());
+		}
+		return new FuncMult(fRemovedInners);
 	}
 }

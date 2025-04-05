@@ -11,13 +11,8 @@ public class Settings {
 	public boolean strictPow = true; //czy podczas upraszczania potęga zachowuje się ściśle (np. czy zamienia (z^2)^(1/2) na z czy nie)
 	public boolean writeRealVar = true; // czy pisze Re(z) czy x 
 	public boolean evaluateConstants = false; //czy podczas upraszczania zamienia np.exp(3*pi) na stałą numeryczną
-	public Settings() {
-		this.doubleAcc = 3;
-		this.strictPow = true;
-		this.writePow = true;
-		this.writeRealVar = true;
-		this.evaluateConstants = false;
-	}
+	protected boolean matchersAllowed = false;
+	public Settings() {}
 	public Settings(int doubleAcc) {
 		this.doubleAcc = doubleAcc;
 		this.strictPow = true;

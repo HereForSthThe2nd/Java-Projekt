@@ -294,7 +294,7 @@ class FuncComp extends Function {
 	}
 	
 	@Override
-	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function simplify(SimplifyRule rule) throws WewnetzrnaFunkcjaZleZapisana {
 		calledSimp++;
 		//System.out.println("w funccomp początek.  " + this.write(setting) + "   " + calledSimp);
 		Bool<Function> fb;

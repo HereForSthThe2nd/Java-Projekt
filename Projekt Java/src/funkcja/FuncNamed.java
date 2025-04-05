@@ -5,6 +5,7 @@
 
 package funkcja;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 /*
@@ -29,13 +30,6 @@ abstract class FuncNamed extends Function{
 		}
 		return false;
 	}
-	@Override
-	final protected Function simplify(Settings setting) {
-		if(setting.evaluateConstants && nofArg == 0)
-			return new FuncNumConst( evaluate(new Complex[] {}) );
-		return this;
-	}
-
 }
 
 abstract class Func extends FuncNamed{
@@ -65,14 +59,25 @@ abstract class Func extends FuncNamed{
 			return FuncMethods.equals(((Func)f).args, args);
 		return false;
 	}
-
-	
+		
 	@Override
-	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-			return this.getClass().getConstructor().newInstance(args);
+	protected Function replaceMatchers() {
+		return Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.replaceMatchers(args));
+	} 
+
+	protected Function putArguments(Function[] args) {
+		return Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.putArguments(this.args, args));
 	}
 
+	@Override
+	protected Function removeInners() {
+		return Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.removeInners(args));
+	}
 	
+	@Override
+	protected Function simplify(SimplifyRule rule) {
+		return rule.simplify(Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.simplifyAll(args, rule)));
+	}
 }
 
 abstract class FuncDefault extends Func{
@@ -104,12 +109,12 @@ class FuncGivenName extends Func{
 	}
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
+	protected Function re() { 
 		return f.re();
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
+	protected Function im() { 
 		return f.im();
 	}
 }
@@ -120,6 +125,11 @@ abstract class FuncConstDefault extends FuncNamed{
 	}
 
 	@Override
+	protected Function replaceMatchers() {
+		return this;
+	}
+	
+	@Override
 	protected Function putArguments(Function[] args) {
 		return this;
 	}
@@ -128,8 +138,45 @@ abstract class FuncConstDefault extends FuncNamed{
 	protected Function expand() {
 		return this;
 	}
+	
+	@Override
+	protected Function removeInners() {
+		return this;
+	}
+
+	@Override
+	protected Function simplify(SimplifyRule rule) {
+		return rule.simplify(this);
+	}
+	
 }
 
+abstract class VarDefaut extends FuncNamed{
+	public VarDefaut(int nofArg, String name) {
+		super(nofArg, name);
+	}
+
+	@Override
+	protected Function expand() {
+		return this;
+	}
+	
+	@Override
+	protected Function removeInners() {
+		return this;
+	}
+	
+	@Override
+	protected Function replaceMatchers() {
+		return this;
+	}
+	
+	@Override
+	protected Function simplify(SimplifyRule rule) {
+		System.out.println("w varDefault.simplify");
+		return rule.simplify(this);
+	}
+}
 
 class VarGivenName extends FuncNamed{
 	final Function f;
@@ -144,7 +191,7 @@ class VarGivenName extends FuncNamed{
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function putArguments(Function[] args) {
 		if(FuncMethods.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
 			return this;
 		return f.putArguments(args);
@@ -156,15 +203,29 @@ class VarGivenName extends FuncNamed{
 	}
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
+	protected Function re() { 
 		return f.re();
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException { 
+	protected Function im() { 
 		return f.im();
 	}
 
+	@Override
+	protected Function replaceMatchers() {
+		return this;
+	}
+
+	@Override
+	protected Function removeInners() {
+		return this;
+	}
+
+	@Override
+	protected Function simplify(SimplifyRule rule) {
+		return rule.simplify(this);
+	}
 }
 
 class FuncConstGivenName extends FuncNamed{
@@ -175,20 +236,17 @@ class FuncConstGivenName extends FuncNamed{
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function re() {
 		return new FuncNumConst(new Complex((evaluate(new Complex[] {})).x));
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana, InstantiationException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function im() {
 		return new FuncNumConst(new Complex((evaluate(new Complex[] {})).x));
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) throws InstantiationException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	protected Function putArguments(Function[] args) {
 		return this;
 	}
 
@@ -201,5 +259,19 @@ class FuncConstGivenName extends FuncNamed{
 	protected Complex evaluate(Complex[] arg) {
 		return null;
 	}
-	
+
+	@Override
+	protected Function replaceMatchers() {
+		return this;
+	}
+
+	@Override
+	protected Function removeInners() {
+		return this;
+	}
+
+	@Override
+	protected Function simplify(SimplifyRule rule) {
+		return rule.simplify(this);
+	}
 }

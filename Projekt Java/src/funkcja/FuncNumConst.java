@@ -64,17 +64,25 @@ public class FuncNumConst extends Function {
 	}
 
 	@Override
-	protected Function simplify(Settings setting) {
-		return this;
+	protected Function simplify(SimplifyRule rule) {
+		return rule.simplify(this);
 	}
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function re() {
 		return new FuncNumConst(new Complex(a.x));
 	}
 
 	@Override
 	protected Function im() {
 		return new FuncNumConst(new Complex(a.y));
+	}
+
+	@Override
+	protected Function replaceMatchers() {return this;}
+
+	@Override
+	protected Function removeInners() {
+		return this;
 	}	
 }
