@@ -75,7 +75,7 @@ public class FunctionPowloka {
 	}
 		
 	public FunctionPowloka simplify() {
-		Function f = this.f;
+		Function f = this.f.removeInners();
 		for(SimplifyRule r : SimplifyRule.current) {
 			f = f.simplify(r);
 		}

@@ -6,8 +6,10 @@ class MatcherMethods{
 		
 	final static class AnyMatcher extends FuncNamed{
 		Function currentMatch = null;
-		protected AnyMatcher(int k) {
+		final int k;
+ 		protected AnyMatcher(int k) {
 			super(Functions.NAMED, "Any["+k+"]");
+			this.k = k;
 		}
 
 		@Override
@@ -64,6 +66,11 @@ class MatcherMethods{
 		@Override
 		protected Function copyPom(MatcherReturn matcherRet) {
 			return matcherRet.returnFunc(name);
+		}
+
+		@Override
+		protected FunctionInfo info() {
+			return new FunctionInfo(k);
 		}
 	}
 

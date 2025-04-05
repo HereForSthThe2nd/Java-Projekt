@@ -260,6 +260,16 @@ class FuncMethods {
 		return true;
 	}
 	
+	protected static FunctionInfo[] info(Function[] functions) {
+		FunctionInfo[] ret = new FunctionInfo[functions.length];
+		for(int i = 0;i<functions.length;i++)
+			ret[i] = functions[i].info();
+		return ret;
+	}
+	
+	protected static MatcherReturn match(Function[] args, Function[] matchers) {
+		FunctionInfo[] matcherInfo = info(matchers);
+	}
 }
 
 /*

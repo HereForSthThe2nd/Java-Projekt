@@ -58,6 +58,8 @@ abstract public class Function implements FuncChecker
 		return copyPom(mr);
 	}
 	
+	protected abstract FunctionInfo info();
+	
 	protected abstract Function simplify(SimplifyRule rule);
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {

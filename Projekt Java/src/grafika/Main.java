@@ -111,13 +111,12 @@ public class Main extends JFrame {
 								FunctionPowloka fch = f.simplify();
 								funkcja.setText(fch.write(new Settings()));
 								changeFunc(f.simplify());
-								return null;
 								}catch(Exception e) {
 									e.printStackTrace();
 									nadFunkcja.setForeground(Color.red);
-									nadFunkcja.setText(e.getMessage());
-									return null;
+									nadFunkcja.setText("Coś poszło nie tak");
 								}
+								return null;
 							}
 							
 						};
@@ -140,9 +139,15 @@ public class Main extends JFrame {
 
 						@Override
 						protected Void doInBackground() throws Exception {
-							FunctionPowloka fch = f.splitByRealAndImaginery(new Settings());
+							try{
+								FunctionPowloka fch = f.splitByRealAndImaginery(new Settings());
 							funkcja.setText(fch.write(new Settings()));
 							changeFunc(fch);
+							}catch(Exception e) {
+								e.printStackTrace();
+								nadFunkcja.setForeground(Color.red);
+								nadFunkcja.setText("Coś poszło nie tak");
+							}
 							return null;
 						}
 					};
@@ -267,11 +272,17 @@ public class Main extends JFrame {
 		SwingWorker<Void,Void> narysuj = new SwingWorker<Void, Void>(){
 
 			@Override
-			protected Void doInBackground() throws Exception {
-				wykres.change(f, lDolnyWykres, pGornyWykres, 0.5);
-				timerListener.stop = true;
-				nadFunkcja.setForeground(Color.black);
-				nadFunkcja.setText("Obliczono i pokazano funkcję.");
+			protected Void doInBackground() {
+				try {
+					wykres.change(f, lDolnyWykres, pGornyWykres, 0.5);
+					timerListener.stop = true;
+					nadFunkcja.setForeground(Color.black);
+					nadFunkcja.setText("Obliczono i pokazano funkcję.");
+				} catch (Exception e) {
+					e.printStackTrace();
+					nadFunkcja.setForeground(Color.red);
+					nadFunkcja.setText("Coś poszło nie tak");
+				}
 				return null;
 			}
 			

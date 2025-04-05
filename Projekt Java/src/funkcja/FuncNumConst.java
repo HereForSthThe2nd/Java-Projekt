@@ -91,5 +91,10 @@ public class FuncNumConst extends Function {
 	@Override
 	protected Function copyPom(MatcherReturn matcherRet) {
 		return this;
+	}
+
+	@Override
+	protected FunctionInfo info() {
+		return new FunctionInfo(-1);
 	}	
 }

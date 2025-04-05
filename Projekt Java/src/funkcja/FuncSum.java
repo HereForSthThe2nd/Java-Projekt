@@ -172,12 +172,10 @@ class FuncSum extends Function {
 
 	@Override
 	protected Function simplify(SimplifyRule rule) {
-		System.out.println("w funcsum.simplify ");
-		LinkedList<Function> removedInner = removeInnerSum();
-		LinkedList<Function> simpl = FuncMethods.simplifyAll(removedInner, rule);
-		FuncSum simplified = new FuncSum(simpl);
-		System.out.println("pod koniec funcsum.simplify ");
-		return rule.simplify(simplified);
+		//na początku tego już powinno nie być rzadnych nawiasów wewnętrznych
+		Function[] simpl = FuncMethods.simplifyAll(summands, rule);
+		LinkedList<Function> removedInner = new FuncSum(simpl).removeInnerSum();
+		return rule.simplify(new FuncSum(removedInner));
 		/*calledSimp++;
 		//System.out.println("w funcsum zwróci .  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce

@@ -26,13 +26,13 @@ class SimplifyFunction extends SimplifyRule{
 	final private Function matcher;
 	final private Function ret;
  	protected SimplifyFunction(Function matcher, Function ret) {
-		this.matcher = matcher;
+		this.matcher = matcher.removeInners();
 		this.ret = ret;
 	}
 	
 	@Override
 	Function simplify(Function f) {
-		MatcherReturn mr = new MatcherReturn();
+		final MatcherReturn mr = new MatcherReturn();
 		Function matcherCopy = matcher.copyPom(mr);
 		if(matcherCopy.check(f)) {
 			return ret.copyPom(mr).replaceMatchers();

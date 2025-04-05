@@ -335,12 +335,10 @@ class FuncMult extends Function {
 	
 	@Override
 	protected Function simplify(SimplifyRule rule) {
-		System.out.println("w funcmult.simplify ");
-		LinkedList<Function> removedInner = removeInnerMult();
-		LinkedList<Function> simpl = FuncMethods.simplifyAll(removedInner, rule);
-		FuncMult simplified = new FuncMult(simpl);
-		System.out.println("pod koniec funcsum.simplify ");
-		return rule.simplify(simplified);
+		//na początku tego zawsze już nie powninno nie mieć wewnętrznych nawiasów
+		Function[] simpl = FuncMethods.simplifyAll(this.f, rule);
+		LinkedList<Function> removedInner = new FuncMult(simpl).removeInnerMult();
+		return rule.simplify(new FuncMult(removedInner));
 		/*calledSimp++;
 		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
@@ -408,5 +406,9 @@ class FuncMult extends Function {
 	@Override
 	protected Function copyPom(MatcherReturn matcherRet) {
 		return new FuncMult(FuncMethods.copyAll(f, matcherRet));
+	}
+	@Override
+	protected FunctionInfo info() {
+		return new FunctionInfo(FuncMethods.info(f), true);
 	}
 }

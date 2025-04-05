@@ -57,8 +57,14 @@ abstract class Func extends FuncNamed{
 	}
 
 	public final boolean check(Function f) {
-		if(super.check(f))
-			return FuncMethods.equals(((Func)f).args, args);
+		if(super.check(f) && args.length == ((Func)f).args.length) {
+			for(int i=0;i<args.length;i++) {
+				if(! args[i].check(((Func)f).args[i]) ) {
+					return false;
+				}
+			}
+			return true;
+		}
 		return false;
 	}
 		
@@ -84,6 +90,11 @@ abstract class Func extends FuncNamed{
 	@Override
 	protected Function simplify(SimplifyRule rule) {
 		return rule.simplify(Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.simplifyAll(args, rule)));
+	}
+
+	@Override
+	protected FunctionInfo info() {
+		return new FunctionInfo(FuncMethods.info(args), false);
 	}
 }
 
@@ -127,55 +138,63 @@ class FuncGivenName extends Func{
 
 }
 
-abstract class FuncConstDefault extends VarDefault{
-	protected FuncConstDefault(String name) {
-		super(0, name);
+abstract class Variable extends FuncNamed{
+	//nie może być np. Any ( w sensie matchera )
+	public Variable(int nofArg, String name) {
+		super(nofArg, name);
+	}
+	
+	@Override
+	final protected Function removeInners() {
+		return this;
+	}
+	
+	@Override
+	final protected Function replaceMatchers() {
+		return this;
+	}
+	
+	@Override
+	final protected Function simplify(SimplifyRule rule) {
+		return rule.simplify(this);
+	}
+	
+	@Override
+	final protected Function copyPom(MatcherReturn matcherRet) {
+		return this;
 	}
 
 	@Override
-	protected Function copyPom(MatcherReturn matcherRet) {
-		return this;
+	protected FunctionInfo info() {
+		return new FunctionInfo(-1);
 	}
-	
-	@Override
-	protected Function putArguments(Function[] args) {
-		return this;
-	}
-	
 }
 
-abstract class VarDefault extends FuncNamed{
+
+abstract class VarDefault extends Variable{
 	public VarDefault(int nofArg, String name) {
 		super(nofArg, name);
 	}
 
 	@Override
-	protected Function expand() {
-		return this;
-	}
-	
-	@Override
-	protected Function removeInners() {
-		return this;
-	}
-	
-	@Override
-	protected Function replaceMatchers() {
-		return this;
-	}
-	
-	@Override
-	protected Function simplify(SimplifyRule rule) {
-		return rule.simplify(this);
-	}
-	
-	@Override
-	protected Function copyPom(MatcherReturn matcherRet) {
+	final protected Function expand() {
 		return this;
 	}
 }
 
-class VarGivenName extends FuncNamed{
+abstract class FuncConstDefault extends VarDefault{
+	protected FuncConstDefault(String name) {
+		super(0, name);
+	}
+	
+	@Override
+	final protected Function putArguments(Function[] args) {
+		return this;
+	}
+	
+}
+
+class VarGivenName extends Variable{
 	final Function f;
 	protected VarGivenName(String name, Function f) {
 		super(f.nofArg, name);
@@ -208,29 +227,9 @@ class VarGivenName extends FuncNamed{
 	protected Function im() { 
 		return f.im();
 	}
-
-	@Override
-	protected Function replaceMatchers() {
-		return this;
-	}
-
-	@Override
-	protected Function removeInners() {
-		return this;
-	}
-
-	@Override
-	protected Function simplify(SimplifyRule rule) {
-		return rule.simplify(this);
-	}
-
-	@Override
-	protected Function copyPom(MatcherReturn matcherRet) {
-		return this;
-	}
 }
 
-class FuncConstGivenName extends FuncNamed{
+class FuncConstGivenName extends Variable{
 	final Complex value;
 	public FuncConstGivenName(String name, Function f) {
 		super(0, name);
@@ -238,47 +237,27 @@ class FuncConstGivenName extends FuncNamed{
 	}
 	
 	@Override
-	protected Function re() {
+	final protected Function re() {
 		return new FuncNumConst(new Complex((evaluate(new Complex[] {})).x));
 	}
 
 	@Override
-	protected Function im() {
+	final protected Function im() {
 		return new FuncNumConst(new Complex((evaluate(new Complex[] {})).x));
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	final protected Function putArguments(Function[] args) {
 		return this;
 	}
 
 	@Override
-	protected Function expand() {
+	final protected Function expand() {
 		return this;
 	}
 
 	@Override
-	protected Complex evaluate(Complex[] arg) {
-		return null;
-	}
-
-	@Override
-	protected Function replaceMatchers() {
-		return this;
-	}
-
-	@Override
-	protected Function removeInners() {
-		return this;
-	}
-
-	@Override
-	protected Function simplify(SimplifyRule rule) {
-		return rule.simplify(this);
-	}
-
-	@Override
-	protected Function copyPom(MatcherReturn matcherRet) {
-		return this;
+	final protected Complex evaluate(Complex[] arg) {
+		return value;
 	}
 }
