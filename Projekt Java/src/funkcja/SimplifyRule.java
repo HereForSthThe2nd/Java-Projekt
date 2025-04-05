@@ -1,36 +1,42 @@
 package funkcja;
 
-import funkcja.MatcherMethods.AnyMatcherReturn;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import funkcja.MatcherMethods.AnyMatcher;
+import funkcja.MatcherMethods.MatcherReturn;
 
 
-abstract class SimplifyRule {
-	static final SimplifyFunction eOfl = new SimplifyFunction(Functions.exp.returnFunc(new Function[] {Functions.ln.returnFunc(new Function[] {new AnyMatcher(0)})}));
-	static LinkedList<SimplifyRule> current = new LinkedList<SimplifyRule>(List.of(eOfl));
+public abstract class SimplifyRule {
+	static LinkedList<SimplifyRule> current = new LinkedList<SimplifyRule>();
+	
+	public static void init() {
+		MatcherReturn mr = new MatcherReturn();
+		SimplifyFunction expOFlog =  new SimplifyFunction(
+				Functions.exp.returnFunc(new Function[] {Functions.ln.returnFunc(new Function[] {mr.returnFunc(0)})}),mr.returnFunc(0));
+		current.add(expOFlog);
+	}
+	
 	abstract Function simplify(Function f);
 }
 
-class SimplifyFunction extends SimplifyRule implements FuncChecker{
-	final Function matcher;
-	protected SimplifyFunction(Function matcher) {
+class SimplifyFunction extends SimplifyRule{
+	final private Function matcher;
+	final private Function ret;
+ 	protected SimplifyFunction(Function matcher, Function ret) {
 		this.matcher = matcher;
+		this.ret = ret;
 	}
 	
 	@Override
-	public boolean check(Function func) {
-		//jak na razie nie radzi sobie dobrze z sumami oraz iloczynami
-		return matcher.check(func);
-	}
-
-	@Override
 	Function simplify(Function f) {
-		if(check(f))
-			return matcher.replaceMatchers();
+		MatcherReturn mr = new MatcherReturn();
+		Function matcherCopy = matcher.copyPom(mr);
+		if(matcherCopy.check(f)) {
+			return ret.copyPom(mr).replaceMatchers();
+		}
 		return f;
 	}
 }

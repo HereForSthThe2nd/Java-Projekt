@@ -4,6 +4,8 @@
 
 package funkcja;
 
+import funkcja.MatcherMethods.MatcherReturn;
+
 //publiczne tymczasowo na cele testow
 public class FuncNumConst extends Function {
 	//chodzi o to czy trzeba dodawać nawiasy przy wypisywaniu.
@@ -83,6 +85,11 @@ public class FuncNumConst extends Function {
 
 	@Override
 	protected Function removeInners() {
+		return this;
+	}
+
+	@Override
+	protected Function copyPom(MatcherReturn matcherRet) {
 		return this;
 	}	
 }

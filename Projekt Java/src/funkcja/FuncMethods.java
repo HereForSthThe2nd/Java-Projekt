@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import funkcja.MatcherMethods.MatcherReturn;
+
 class FuncMethods {
 
 	static final FuncChecker isNumConst = new FuncChecker() {
@@ -55,7 +57,7 @@ class FuncMethods {
 		return max;
 	}
 
-	protected static int countArguments(LinkedList<Function> f) {
+	protected static int countArguments(List<Function> f) {
 		int max=0;
 		for(int i=0;i<f.size(); i++) {
 			if(f.get(i).nofArg>max)
@@ -175,7 +177,15 @@ class FuncMethods {
 		return ret;
 	}
  
- 	protected static Function[] reim(Function[] f)  {
+	protected static Function[] copyAll(Function[] functions, MatcherReturn matcherRet) {
+		Function[] f = new Function[functions.length];
+		for(int i=0;i<functions.length;i++) {
+			f[i] = functions[i].copyPom(matcherRet);
+		}
+		return f;
+	}
+	
+	protected static Function[] reim(Function[] f)  {
 		return new Function[] {f[0].re(), f[0].im()};
 	}
 	

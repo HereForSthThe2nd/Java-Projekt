@@ -838,7 +838,7 @@ public class Functions {
 			if(str.equals("w"))
 				return returnFunc("z[1]");
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
-			return new VarDefaut(k+1, k == 0 ? "z" : str) {
+			return new VarDefault(k+1, k == 0 ? "z" : str) {
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return arg[k];
@@ -887,7 +887,7 @@ public class Functions {
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
 			switch(str.charAt(0)) {
 			case 'x':
-				return new VarDefaut(1, k == 0? "x" : "x["+k+"]") {
+				return new VarDefault(1, k == 0? "x" : "x["+k+"]") {
 					
 					@Override
 					protected Function re() {
@@ -910,7 +910,7 @@ public class Functions {
 					}
 				};
 			case 'y':
-				return new VarDefaut(1, k == 0? "y" : "y["+k+"]") {
+				return new VarDefault(1, k == 0? "y" : "y["+k+"]") {
 					
 					@Override
 					protected Function re() {

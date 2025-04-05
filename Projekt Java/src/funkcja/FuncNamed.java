@@ -8,6 +8,8 @@ package funkcja;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import funkcja.MatcherMethods.MatcherReturn;
+
 /*
  * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
  */
@@ -75,6 +77,11 @@ abstract class Func extends FuncNamed{
 	}
 	
 	@Override
+	protected Function copyPom(MatcherReturn matcherRet) {
+		return Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.copyAll(args, matcherRet));
+	}
+	
+	@Override
 	protected Function simplify(SimplifyRule rule) {
 		return rule.simplify(Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.simplifyAll(args, rule)));
 	}
@@ -117,15 +124,16 @@ class FuncGivenName extends Func{
 	protected Function im() { 
 		return f.im();
 	}
+
 }
 
-abstract class FuncConstDefault extends FuncNamed{
+abstract class FuncConstDefault extends VarDefault{
 	protected FuncConstDefault(String name) {
 		super(0, name);
 	}
 
 	@Override
-	protected Function replaceMatchers() {
+	protected Function copyPom(MatcherReturn matcherRet) {
 		return this;
 	}
 	
@@ -134,25 +142,10 @@ abstract class FuncConstDefault extends FuncNamed{
 		return this;
 	}
 	
-	@Override
-	protected Function expand() {
-		return this;
-	}
-	
-	@Override
-	protected Function removeInners() {
-		return this;
-	}
-
-	@Override
-	protected Function simplify(SimplifyRule rule) {
-		return rule.simplify(this);
-	}
-	
 }
 
-abstract class VarDefaut extends FuncNamed{
-	public VarDefaut(int nofArg, String name) {
+abstract class VarDefault extends FuncNamed{
+	public VarDefault(int nofArg, String name) {
 		super(nofArg, name);
 	}
 
@@ -173,8 +166,12 @@ abstract class VarDefaut extends FuncNamed{
 	
 	@Override
 	protected Function simplify(SimplifyRule rule) {
-		System.out.println("w varDefault.simplify");
 		return rule.simplify(this);
+	}
+	
+	@Override
+	protected Function copyPom(MatcherReturn matcherRet) {
+		return this;
 	}
 }
 
@@ -192,7 +189,7 @@ class VarGivenName extends FuncNamed{
 
 	@Override
 	protected Function putArguments(Function[] args) {
-		if(FuncMethods.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
+		if(FuncMethods.argsAreIdentities(args, f.nofArg))
 			return this;
 		return f.putArguments(args);
 	}
@@ -225,6 +222,11 @@ class VarGivenName extends FuncNamed{
 	@Override
 	protected Function simplify(SimplifyRule rule) {
 		return rule.simplify(this);
+	}
+
+	@Override
+	protected Function copyPom(MatcherReturn matcherRet) {
+		return this;
 	}
 }
 
@@ -273,5 +275,10 @@ class FuncConstGivenName extends FuncNamed{
 	@Override
 	protected Function simplify(SimplifyRule rule) {
 		return rule.simplify(this);
+	}
+
+	@Override
+	protected Function copyPom(MatcherReturn matcherRet) {
+		return this;
 	}
 }

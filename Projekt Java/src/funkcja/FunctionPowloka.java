@@ -6,7 +6,7 @@ package funkcja;
 
 import java.lang.reflect.InvocationTargetException;
 
-import funkcja.MatcherMethods.AnyMatcherReturn;
+import funkcja.MatcherMethods.MatcherReturn;
 
 public class FunctionPowloka {
 	protected Function f;
@@ -20,10 +20,10 @@ public class FunctionPowloka {
 			return;
 		}
 		if(settings.matchersAllowed) {
-			AnyMatcherReturn match = new AnyMatcherReturn();
+			MatcherReturn match = new MatcherReturn();
 			f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings, match);
 		}
-		f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings, new AnyMatcherReturn() {@Override protected boolean check(String str){return false;}});
+		f = Function.read(new BlokList(Function.preliminaryChanges(str)), settings, new MatcherReturn() {@Override protected boolean check(String str){return false;}});
 	}
 	
  	public FunctionPowloka copy() {
@@ -77,7 +77,7 @@ public class FunctionPowloka {
 	public FunctionPowloka simplify() {
 		Function f = this.f;
 		for(SimplifyRule r : SimplifyRule.current) {
-			f = r.simplify(f);
+			f = f.simplify(r);
 		}
 		return new FunctionPowloka(f);
 	}

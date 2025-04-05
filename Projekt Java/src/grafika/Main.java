@@ -34,11 +34,7 @@ import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
-import funkcja.Complex;
-import funkcja.Function;
-import funkcja.FunctionPowloka;
-import funkcja.Settings;
-import funkcja.WrongSyntaxException;
+import funkcja.*;
 
 public class Main extends JFrame {
 	Graph wykres;
@@ -104,25 +100,32 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				FunctionPowloka f;
-				try {
-					f = new FunctionPowloka(funkcja.getText(), new Settings());
-					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
-
-						@Override
-						protected Void doInBackground() throws Exception {
-							FunctionPowloka fch = f.simplify();
-							funkcja.setText(fch.write(new Settings()));
-							changeFunc(f.simplify());
-							return null;
-						}
-						
-					};
-					uprosc.execute();
-				} catch (WrongSyntaxException e1) {
-					nadFunkcja.setForeground(Color.red);
-					nadFunkcja.setText(e1.messageForUser);
-				}
+					FunctionPowloka f;
+					try {
+						f = new FunctionPowloka(funkcja.getText(), new Settings());
+						SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
+	
+							@Override
+							protected Void doInBackground() throws Exception {
+								try {
+								FunctionPowloka fch = f.simplify();
+								funkcja.setText(fch.write(new Settings()));
+								changeFunc(f.simplify());
+								return null;
+								}catch(Exception e) {
+									e.printStackTrace();
+									nadFunkcja.setForeground(Color.red);
+									nadFunkcja.setText(e.getMessage());
+									return null;
+								}
+							}
+							
+						};
+						uprosc.execute();
+					} catch (WrongSyntaxException e1) {
+						nadFunkcja.setForeground(Color.red);
+						nadFunkcja.setText(e1.messageForUser);
+					}
 			}
 		});
 		JButton rzeczIUroj = new JButton("Rozbij na część rzeczywistą i urojoną");
@@ -283,8 +286,8 @@ public class Main extends JFrame {
 	}
 	
 	public static void main(String[] args) {
+		SimplifyRule.init();
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-			
 			@Override
 			public void run() {
 				Main main = new Main();

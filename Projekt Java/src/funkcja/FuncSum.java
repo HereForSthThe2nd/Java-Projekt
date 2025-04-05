@@ -6,6 +6,9 @@ package funkcja;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+
+import funkcja.MatcherMethods.MatcherReturn;
 
 class FuncSum extends Function {
 	final Function[] summands;
@@ -15,6 +18,14 @@ class FuncSum extends Function {
 			this.summands = new Function[] {new FuncNumConst(new Complex(0))};
 		else
 			this.summands=f;
+	}
+	
+	protected FuncSum(List<Function> f) {
+		super(Functions.ADD, FuncMethods.countArguments(f));
+		if(f.size() == 0) 
+			this.summands = new Function[] {new FuncNumConst(new Complex(0))};
+		else
+			this.summands= f.toArray(new Function[f.size()]);
 	}
 	
 	SimplifyTwo sameStuff = new SimplifyTwo() {
@@ -161,9 +172,11 @@ class FuncSum extends Function {
 
 	@Override
 	protected Function simplify(SimplifyRule rule) {
+		System.out.println("w funcsum.simplify ");
 		LinkedList<Function> removedInner = removeInnerSum();
 		LinkedList<Function> simpl = FuncMethods.simplifyAll(removedInner, rule);
-		FuncMult simplified = new FuncMult(simpl);
+		FuncSum simplified = new FuncSum(simpl);
+		System.out.println("pod koniec funcsum.simplify ");
 		return rule.simplify(simplified);
 		/*calledSimp++;
 		//System.out.println("w funcsum zwróci .  " + this.write(settings) + "   " + calledSimp);
@@ -219,7 +232,7 @@ class FuncSum extends Function {
 	private LinkedList<Function> removeInnerSum() { 
 		LinkedList<Function> extendedSum = new LinkedList<Function>(); 
 		for(int i=0;i<summands.length;i++) {
-			if(summands[i].type == Functions.MULT) {
+			if(summands[i].type == Functions.ADD) {
 				LinkedList<Function> innerExtended = ((FuncSum)summands[i]).removeInnerSum();
 				extendedSum.addAll(innerExtended);
 			}
@@ -238,5 +251,10 @@ class FuncSum extends Function {
 			fRemovedInners.add(i.removeInners());
 		}
 		return new FuncMult(fRemovedInners);
+	}
+
+	@Override
+	protected Function copyPom(MatcherReturn matcherRet) {
+		return new FuncSum(FuncMethods.copyAll(summands, matcherRet));
 	}
 }

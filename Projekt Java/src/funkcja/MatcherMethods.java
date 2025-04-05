@@ -3,7 +3,7 @@ package funkcja;
 import java.util.LinkedList;
 
 class MatcherMethods{
-	
+		
 	final static class AnyMatcher extends FuncNamed{
 		Function currentMatch = null;
 		protected AnyMatcher(int k) {
@@ -46,7 +46,6 @@ class MatcherMethods{
 
 		@Override
 		protected Function replaceMatchers() {
-			System.out.println("W aymatcher.replacematchers");
 			if(currentMatch == null)
 				throw new IllegalStateException("Coś poszło nie tak");
 			return currentMatch;
@@ -61,9 +60,14 @@ class MatcherMethods{
 		protected Function simplify(SimplifyRule rule) {
 			return this;
 		}
+
+		@Override
+		protected Function copyPom(MatcherReturn matcherRet) {
+			return matcherRet.returnFunc(name);
+		}
 	}
 
-	static class AnyMatcherReturn extends VarReturnSpecial{
+	static class MatcherReturn extends VarReturnSpecial{
 		private LinkedList<Integer> doneIndekses = new LinkedList<Integer>();
 		private LinkedList<AnyMatcher> matcherList = new LinkedList<AnyMatcher>();
 				
@@ -92,7 +96,6 @@ class MatcherMethods{
 			return matcherList.get(doneIndekses.indexOf(k));
 		}
 
-		
 		@Override
 		boolean check(String str) {
 			return str.matches("[Any]||(Any\\[[0-9]+\\])");

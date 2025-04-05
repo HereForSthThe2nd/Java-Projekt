@@ -10,7 +10,7 @@ package funkcja;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
-import funkcja.MatcherMethods.AnyMatcherReturn;
+import funkcja.MatcherMethods.MatcherReturn;
 
 /*
  * ta klasa zazwyczj używana kiedy z metody chcemy też zwrócić informację czy coś się udało zrobić
@@ -37,31 +37,40 @@ abstract public class Function implements FuncChecker
 	protected abstract Complex evaluate(Complex[] arg);
 	
 	protected abstract Function re();
+	
 	protected abstract Function im();
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	protected abstract String write(Settings settings);
 		
 	protected abstract Function putArguments(Function[] args);	
+		
 	protected abstract Function replaceMatchers();
 	
 	protected abstract Function expand();
 	
 	protected abstract Function removeInners();//(a+b)+c -> a+b+c, (a*b)*c -> a*b*c
 	
+	protected abstract Function copyPom(MatcherReturn matcherRet);
+
+	protected Function copy() {
+		MatcherReturn mr = new MatcherReturn();
+		return copyPom(mr);
+	}
+	
 	protected abstract Function simplify(SimplifyRule rule);
 	
-	protected static String preliminaryChanges(String str) {
+	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.equals("")) 
 			return "";
 		str = str.replaceAll("\\s", "");
 		if(str.charAt(0) == '=') str = str.substring(1);
 		str = BlokList.configureStr(str);
 		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE + "].*")) 
-			throw new IllegalStateException(
+			throw new WrongSyntaxException(
 					"Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.OPERATORY+"|[a-zA-Z0-9]|"+BlokList.SPECJALNE, ""));
 		if(str.matches(".*["+BlokList.OPERATORY+"|[,.]]["+BlokList.OPERATORY+"|[,.]].*"))
-			throw new IllegalStateException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
+			throw new WrongSyntaxException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
 		return str;
 	}
 	
@@ -76,7 +85,7 @@ abstract public class Function implements FuncChecker
 	}
 	
 	static boolean readEmptyStringAsZero; //prawda: "" --> func(z->0), fałsz: "" --> func(z->1)
-	protected static Function read(BlokList bloki, Settings settings, AnyMatcherReturn matchers) throws WrongSyntaxException {
+	protected static Function read(BlokList bloki, Settings settings, MatcherReturn matchers) throws WrongSyntaxException {
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0){//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
 			if(readEmptyStringAsZero)

@@ -8,6 +8,9 @@ package funkcja;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+
+import funkcja.MatcherMethods.MatcherReturn;
 
 class FuncMult extends Function {
 	final Function[] f;
@@ -21,7 +24,7 @@ class FuncMult extends Function {
 		super(Functions.MULT, FuncMethods.countArguments(new Function[] {f,g}));
 		this.f=new Function[] {f,g};
 	}
-	public FuncMult(LinkedList<Function> fL) {
+	public FuncMult(List<Function> fL) {
 		super(Functions.MULT, FuncMethods.countArguments(fL));
 		Function[] f = fL.toArray(new Function[fL.size()]);
 		if(f.length == 0) 
@@ -331,10 +334,12 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function simplify(SimplifyRule rule) { 
+	protected Function simplify(SimplifyRule rule) {
+		System.out.println("w funcmult.simplify ");
 		LinkedList<Function> removedInner = removeInnerMult();
 		LinkedList<Function> simpl = FuncMethods.simplifyAll(removedInner, rule);
 		FuncMult simplified = new FuncMult(simpl);
+		System.out.println("pod koniec funcsum.simplify ");
 		return rule.simplify(simplified);
 		/*calledSimp++;
 		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
@@ -399,5 +404,9 @@ class FuncMult extends Function {
 			fRemovedInners.add(i.removeInners());
 		}
 		return new FuncMult(fRemovedInners);
+	}
+	@Override
+	protected Function copyPom(MatcherReturn matcherRet) {
+		return new FuncMult(FuncMethods.copyAll(f, matcherRet));
 	}
 }
