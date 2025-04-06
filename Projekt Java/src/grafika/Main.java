@@ -242,7 +242,6 @@ public class Main extends JFrame {
 	
 	private void changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
-		System.out.println("W main.changeFunc: " + f.write(new Settings()));
 		nadFunkcja.setText("W trakcie obliczania funkcji");
 		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
 			static int liczKropki = 0;

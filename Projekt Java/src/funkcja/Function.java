@@ -39,11 +39,13 @@ abstract public class Function implements FuncChecker
 	protected abstract Function replaceMatchers();
 	
 	protected abstract Function expand();
+		
+	protected abstract boolean match(Function f, MatcherReturn mr);
 	
 	protected abstract Function removeInners();//(a+b)+c -> a+b+c, (a*b)*c -> a*b*c
 	
 	protected abstract Function copyPom(MatcherReturn matcherRet);
-
+	
 	protected Function copy() {
 		MatcherReturn mr = new MatcherReturn();
 		return copyPom(mr);

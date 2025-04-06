@@ -98,6 +98,11 @@ abstract class Func extends FuncNamed{
 	protected FunctionInfo info() {
 		return new FunctionInfo(FuncMethods.info(args), false);
 	}
+
+	@Override
+	protected boolean match(Function f, MatcherReturn mr) {
+		throw new IllegalStateException("Przy wywoływaniu match funkcja powinna najpierw zostać skopiowana");
+	}
 }
 
 abstract class FuncDefault extends Func{
@@ -194,6 +199,10 @@ abstract class FuncConstDefault extends VarDefault{
 		return this;
 	}
 	
+	@Override
+	protected boolean match(Function f, MatcherReturn mr) {
+		return check(f);
+	}
 }
 
 class VarGivenName extends Variable{
@@ -229,6 +238,11 @@ class VarGivenName extends Variable{
 	protected Function im() { 
 		return f.im();
 	}
+
+	@Override
+	protected boolean match(Function f, MatcherReturn mr) {
+		return check(f);
+	}
 }
 
 class FuncConstGivenName extends Variable{
@@ -261,5 +275,10 @@ class FuncConstGivenName extends Variable{
 	@Override
 	final protected Complex evaluate(Complex[] arg) {
 		return value;
+	}
+
+	@Override
+	protected boolean match(Function f, MatcherReturn mr) {
+		return check(f);
 	}
 }

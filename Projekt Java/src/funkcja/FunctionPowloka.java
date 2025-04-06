@@ -118,7 +118,7 @@ public class FunctionPowloka {
 
 	}*/
 	
-	static public void test2(String str) throws Exception {
+	/*static public void test2(String str) throws Exception {
 		//TODO: klarownie coś nie działa dużo rzeczy
 		Settings set1 = new Settings(3);
 		set1.strictPow = true;
@@ -182,7 +182,7 @@ public class FunctionPowloka {
 		g3.print(set4);
 		g4.print(set4);
 
-	}
+	}*/
 	
 	public static void main(String[] args) throws Exception {
 		Settings set = new Settings(4);//4 oznacza liczbę miejsc po przecinku które będą wypisywane

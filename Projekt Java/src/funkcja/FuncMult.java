@@ -408,10 +408,14 @@ class FuncMult extends Function {
 	}
 	@Override
 	protected Function copyPom(MatcherReturn matcherRet) {
-		return new FuncMult(FuncMethods.copyAll(f, matcherRet));
+		return new CheckStageMS(new FuncMult(FuncMethods.copyAll(f, matcherRet)));
 	}
 	@Override
 	protected FunctionInfo info() {
 		return new FunctionInfo(FuncMethods.info(f), true);
+	}
+	@Override
+	protected boolean match(Function f, MatcherReturn mr) {
+		throw new IllegalStateException("Przy wywoływaniu match funkcja powinna najpierw zostać skopiowana");
 	}
 }

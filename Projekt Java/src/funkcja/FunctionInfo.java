@@ -5,12 +5,12 @@ import java.util.List;
 
 class FunctionInfo {
 	//trzy dolne pola uwzględniają tylko matchery, które jeszcze się do niczego nie dopasowały
-	final List<String> containedAnyMatchers;
+	final LinkedList<String> containedAnyMatchers;
 	final List<List<String>> matchersContainedInSM;
-	final String anyMatcherIndex; //którym matcherem jest, jeśli nie jest żadnym(pustym) to anyMatcherIndex == ""
+	final String anyMatcherName; //którym matcherem jest, jeśli nie jest żadnym(pustym) to anyMatcherIndex == ""
 	
 	public FunctionInfo(String name) {
-		this.anyMatcherIndex = name;
+		this.anyMatcherName = name;
 		this.containedAnyMatchers = new LinkedList<String>();
 		this.matchersContainedInSM = new LinkedList<List<String>>();
 	}
@@ -19,7 +19,7 @@ class FunctionInfo {
 		//fromSM == false : jeśli info pochodzi od funkcji ( jej argumentów )
 		containedAnyMatchers = new LinkedList<String>();
 		matchersContainedInSM = new LinkedList<List<String>>();
-		anyMatcherIndex = "";
+		anyMatcherName = "";
 		LinkedList<String> directlyContainedAnyMatchers = new LinkedList<String>();
 		for(FunctionInfo i : info) {
 			for(String j : i.containedAnyMatchers) {
@@ -29,8 +29,8 @@ class FunctionInfo {
 			/*--------*/
 			matchersContainedInSM.addAll(i.matchersContainedInSM);
 			/*-------*/
-			if(!i.anyMatcherIndex.equals("") && fromSM)
-				directlyContainedAnyMatchers.add(i.anyMatcherIndex);
+			if(!i.anyMatcherName.equals("") && fromSM)
+				directlyContainedAnyMatchers.add(i.anyMatcherName);
 		}
 		if(!directlyContainedAnyMatchers.equals(new LinkedList<Integer>()))
 			matchersContainedInSM.add(directlyContainedAnyMatchers);

@@ -256,11 +256,16 @@ class FuncSum extends Function {
 
 	@Override
 	protected Function copyPom(MatcherReturn matcherRet) {
-		return new FuncSum(FuncMethods.copyAll(summands, matcherRet));
+		return new CheckStageMS(new FuncSum(FuncMethods.copyAll(summands, matcherRet)));
 	}
 
 	@Override
 	protected FunctionInfo info() {
 		return new FunctionInfo(FuncMethods.info(summands), true);
+	}
+
+	@Override
+	protected boolean match(Function f, MatcherReturn mr) {
+		throw new IllegalStateException("Przy wywoływaniu match funkcja powinna najpierw zostać skopiowana");
 	}
 }

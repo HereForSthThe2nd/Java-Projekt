@@ -98,5 +98,10 @@ public class FuncNumConst extends Function {
 	@Override
 	protected FunctionInfo info() {
 		return new FunctionInfo("");
+	}
+
+	@Override
+	protected boolean match(Function f, MatcherReturn mr) {
+		return check(f);
 	}	
 }
