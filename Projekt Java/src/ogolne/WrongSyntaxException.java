@@ -2,7 +2,7 @@
  * błąd zachodzi jeśli użytkownik zle zapisze funkcję
  */
 
-package funkcja;
+package ogolne;
 
 public class WrongSyntaxException extends Exception {
 	public String messageForUser;

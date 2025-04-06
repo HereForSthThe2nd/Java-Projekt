@@ -12,6 +12,10 @@ import java.util.LinkedList;
 import java.util.List;
 
 import funkcja.Function;
+import ogolne.Complex;
+import ogolne.IncorrectNameException;
+import ogolne.Settings;
+import ogolne.WrongSyntaxException;
 
 /*
  * FuncReturn do zamieniania stringów na funkcje, definiowania funkcji bazowych

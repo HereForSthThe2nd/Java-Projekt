@@ -9,6 +9,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import funkcja.MatcherMethods.MatcherReturn;
+import ogolne.Complex;
+import ogolne.Pair;
+import ogolne.Settings;
 
 class FuncSum extends Function {
 	final Function[] summands;
@@ -248,11 +251,16 @@ class FuncSum extends Function {
 		for(Function i : fExpanded) {
 			fRemovedInners.add(i.removeInners());
 		}
-		return new FuncMult(fRemovedInners);
+		return new FuncSum(fRemovedInners);
 	}
 
 	@Override
 	protected Function copyPom(MatcherReturn matcherRet) {
 		return new FuncSum(FuncMethods.copyAll(summands, matcherRet));
+	}
+
+	@Override
+	protected FunctionInfo info() {
+		return new FunctionInfo(FuncMethods.info(summands), true);
 	}
 }

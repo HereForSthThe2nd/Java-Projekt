@@ -1,4 +1,4 @@
-package funkcja;
+package ogolne;
 
 import java.text.DecimalFormat;
 

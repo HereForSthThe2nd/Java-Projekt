@@ -9,6 +9,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import funkcja.MatcherMethods.MatcherReturn;
+import ogolne.Complex;
+import ogolne.Settings;
 
 /*
  * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
@@ -166,7 +168,7 @@ abstract class Variable extends FuncNamed{
 
 	@Override
 	protected FunctionInfo info() {
-		return new FunctionInfo(-1);
+		return new FunctionInfo("");
 	}
 }
 

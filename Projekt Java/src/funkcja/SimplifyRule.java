@@ -7,6 +7,7 @@ import java.util.List;
 
 import funkcja.MatcherMethods.AnyMatcher;
 import funkcja.MatcherMethods.MatcherReturn;
+import ogolne.*;
 
 
 public abstract class SimplifyRule {

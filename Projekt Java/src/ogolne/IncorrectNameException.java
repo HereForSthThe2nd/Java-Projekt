@@ -1,4 +1,4 @@
-package funkcja;
+package ogolne;
 
 //dotyczy próby stworzenia nowej nazwy funkcji zmiennej lub stałej, np. kedy ta pokrywa się z już zdefiniowaną funkcją
 public class IncorrectNameException extends Exception {

@@ -3,7 +3,9 @@
  * */
 package funkcja;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;
+
+import ogolne.WrongSyntaxException; 
 
 class Blok{
 	final static int 

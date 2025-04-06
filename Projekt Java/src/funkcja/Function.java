@@ -11,18 +11,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
 import funkcja.MatcherMethods.MatcherReturn;
-
-/*
- * ta klasa zazwyczj używana kiedy z metody chcemy też zwrócić informację czy coś się udało zrobić
- */
-class Bool<T>{
-	final T f;
-	final boolean bool;
-	Bool(T f, boolean p){
-		this.f = f;
-		this.bool = p;
-	}
-}
+import ogolne.Complex;
+import ogolne.Settings;
+import ogolne.WrongSyntaxException;
 
 abstract public class Function implements FuncChecker
  {	

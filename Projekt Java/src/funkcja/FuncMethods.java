@@ -10,6 +10,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 import funkcja.MatcherMethods.MatcherReturn;
+import ogolne.Bool;
+import ogolne.Complex;
+import ogolne.Settings;
 
 class FuncMethods {
 
@@ -265,10 +268,6 @@ class FuncMethods {
 		for(int i = 0;i<functions.length;i++)
 			ret[i] = functions[i].info();
 		return ret;
-	}
-	
-	protected static MatcherReturn match(Function[] args, Function[] matchers) {
-		FunctionInfo[] matcherInfo = info(matchers);
 	}
 }
 

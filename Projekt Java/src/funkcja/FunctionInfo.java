@@ -4,33 +4,35 @@ import java.util.LinkedList;
 import java.util.List;
 
 class FunctionInfo {
-	final List<Integer> containedAnyMatchers;
-	final List<List<Integer>> matchersContainedInSM;
-	final int anyMatcherIndex; //którym Any[k] jest, jeśli nie jest żadnym to -1
-	public FunctionInfo(int k) {
-		this.anyMatcherIndex = k;
-		this.containedAnyMatchers = new LinkedList<Integer>();
-		this.matchersContainedInSM = new LinkedList<List<Integer>>();
+	//trzy dolne pola uwzględniają tylko matchery, które jeszcze się do niczego nie dopasowały
+	final List<String> containedAnyMatchers;
+	final List<List<String>> matchersContainedInSM;
+	final String anyMatcherIndex; //którym matcherem jest, jeśli nie jest żadnym(pustym) to anyMatcherIndex == ""
+	
+	public FunctionInfo(String name) {
+		this.anyMatcherIndex = name;
+		this.containedAnyMatchers = new LinkedList<String>();
+		this.matchersContainedInSM = new LinkedList<List<String>>();
 	}
 	public FunctionInfo(FunctionInfo[] info, boolean fromSM) {
-		containedAnyMatchers = new LinkedList<Integer>();
-		matchersContainedInSM = new LinkedList<List<Integer>>();
 		//fromSM == true : jeśli info pochodzi od iloczynu lub sumy
 		//fromSM == false : jeśli info pochodzi od funkcji ( jej argumentów )
-		LinkedList<Integer> directlyContainedAnyMatchers = new LinkedList<Integer>();
+		containedAnyMatchers = new LinkedList<String>();
+		matchersContainedInSM = new LinkedList<List<String>>();
+		anyMatcherIndex = "";
+		LinkedList<String> directlyContainedAnyMatchers = new LinkedList<String>();
 		for(FunctionInfo i : info) {
-			for(int j : i.containedAnyMatchers) {
+			for(String j : i.containedAnyMatchers) {
 				if(!containedAnyMatchers.contains(j))
 					containedAnyMatchers.add(j);
 			}
 			/*--------*/
 			matchersContainedInSM.addAll(i.matchersContainedInSM);
 			/*-------*/
-			if(i.anyMatcherIndex != -1 && fromSM)
+			if(!i.anyMatcherIndex.equals("") && fromSM)
 				directlyContainedAnyMatchers.add(i.anyMatcherIndex);
 		}
 		if(!directlyContainedAnyMatchers.equals(new LinkedList<Integer>()))
 			matchersContainedInSM.add(directlyContainedAnyMatchers);
-		anyMatcherIndex = -1;
 	}
 }

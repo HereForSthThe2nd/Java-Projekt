@@ -35,6 +35,9 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
 import funkcja.*;
+import ogolne.Complex;
+import ogolne.Settings;
+import ogolne.WrongSyntaxException;
 
 public class Main extends JFrame {
 	Graph wykres;
@@ -239,6 +242,7 @@ public class Main extends JFrame {
 	
 	private void changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
+		System.out.println("W main.changeFunc: " + f.write(new Settings()));
 		nadFunkcja.setText("W trakcie obliczania funkcji");
 		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
 			static int liczKropki = 0;

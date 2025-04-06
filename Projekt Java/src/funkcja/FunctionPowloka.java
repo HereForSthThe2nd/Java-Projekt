@@ -7,6 +7,10 @@ package funkcja;
 import java.lang.reflect.InvocationTargetException;
 
 import funkcja.MatcherMethods.MatcherReturn;
+import ogolne.Complex;
+import ogolne.IncorrectNameException;
+import ogolne.Settings;
+import ogolne.WrongSyntaxException;
 
 public class FunctionPowloka {
 	protected Function f;

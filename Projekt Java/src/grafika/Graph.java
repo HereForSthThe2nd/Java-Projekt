@@ -33,6 +33,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import funkcja.*;
+import ogolne.Complex;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;

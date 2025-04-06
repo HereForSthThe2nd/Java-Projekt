@@ -7,6 +7,10 @@
 
 package funkcja;
 
+import ogolne.Bool;
+import ogolne.Complex;
+import ogolne.Settings;
+
 @Deprecated
 class FuncComp extends Function {
 	private FuncNamed f;

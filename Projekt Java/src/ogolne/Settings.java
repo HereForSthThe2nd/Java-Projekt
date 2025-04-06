@@ -3,7 +3,7 @@
  * poza tym też sposobu upraszcznia 
  */
 
-package funkcja;
+package ogolne;
 
 public class Settings {
 	public int doubleAcc = 3;	//do wypisywania
@@ -11,7 +11,7 @@ public class Settings {
 	public boolean strictPow = true; //czy podczas upraszczania potęga zachowuje się ściśle (np. czy zamienia (z^2)^(1/2) na z czy nie)
 	public boolean writeRealVar = true; // czy pisze Re(z) czy x 
 	public boolean evaluateConstants = false; //czy podczas upraszczania zamienia np.exp(3*pi) na stałą numeryczną
-	protected boolean matchersAllowed = false;
+	public boolean matchersAllowed = false;
 	public Settings() {}
 	public Settings(int doubleAcc) {
 		this.doubleAcc = doubleAcc;

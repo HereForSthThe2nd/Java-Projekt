@@ -5,6 +5,8 @@
 package funkcja;
 
 import funkcja.MatcherMethods.MatcherReturn;
+import ogolne.Complex;
+import ogolne.Settings;
 
 //publiczne tymczasowo na cele testow
 public class FuncNumConst extends Function {
@@ -95,6 +97,6 @@ public class FuncNumConst extends Function {
 
 	@Override
 	protected FunctionInfo info() {
-		return new FunctionInfo(-1);
+		return new FunctionInfo("");
 	}	
 }
