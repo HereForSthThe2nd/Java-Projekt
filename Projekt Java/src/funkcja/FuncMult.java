@@ -418,4 +418,9 @@ class FuncMult extends Function {
 	protected boolean match(Function f, MatcherReturn mr) {
 		throw new IllegalStateException("Przy wywoływaniu match funkcja powinna najpierw zostać skopiowana");
 	}
+	@Override
+	protected void resetPomiedzy() {
+		for(Function i : f)
+			i.resetPomiedzy();
+	}
 }

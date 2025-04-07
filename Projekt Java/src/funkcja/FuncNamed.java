@@ -86,7 +86,7 @@ abstract class Func extends FuncNamed{
 	
 	@Override
 	protected Function copyPom(MatcherReturn matcherRet) {
-		return Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.copyAll(args, matcherRet));
+		return new CheckstageFunc( Functions.returnNmdFuncReturner(name).returnFunc(FuncMethods.copyAll(args, matcherRet)) );
 	}
 	
 	@Override
@@ -99,6 +99,12 @@ abstract class Func extends FuncNamed{
 		return new FunctionInfo(FuncMethods.info(args), false);
 	}
 
+	@Override
+	protected void resetPomiedzy() {
+		for(Function f : args)
+			f.resetPomiedzy();
+	}
+	
 	@Override
 	protected boolean match(Function f, MatcherReturn mr) {
 		throw new IllegalStateException("Przy wywoływaniu match funkcja powinna najpierw zostać skopiowana");
@@ -172,6 +178,14 @@ abstract class Variable extends FuncNamed{
 	}
 
 	@Override
+	final protected boolean match(Function f, MatcherReturn mr) {
+		return check(f);
+	}
+	
+	@Override
+	protected void resetPomiedzy() {}
+	
+	@Override
 	protected FunctionInfo info() {
 		return new FunctionInfo("");
 	}
@@ -199,10 +213,6 @@ abstract class FuncConstDefault extends VarDefault{
 		return this;
 	}
 	
-	@Override
-	protected boolean match(Function f, MatcherReturn mr) {
-		return check(f);
-	}
 }
 
 class VarGivenName extends Variable{
@@ -239,10 +249,6 @@ class VarGivenName extends Variable{
 		return f.im();
 	}
 
-	@Override
-	protected boolean match(Function f, MatcherReturn mr) {
-		return check(f);
-	}
 }
 
 class FuncConstGivenName extends Variable{
@@ -275,10 +281,5 @@ class FuncConstGivenName extends Variable{
 	@Override
 	final protected Complex evaluate(Complex[] arg) {
 		return value;
-	}
-
-	@Override
-	protected boolean match(Function f, MatcherReturn mr) {
-		return check(f);
 	}
 }

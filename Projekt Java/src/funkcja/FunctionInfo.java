@@ -6,12 +6,13 @@ import java.util.List;
 class FunctionInfo {
 	//trzy dolne pola uwzględniają tylko matchery, które jeszcze się do niczego nie dopasowały
 	final LinkedList<String> containedAnyMatchers;
-	final List<List<String>> matchersContainedInSM;
+	final LinkedList<List<String>> matchersContainedInSM;
 	final String anyMatcherName; //którym matcherem jest, jeśli nie jest żadnym(pustym) to anyMatcherIndex == ""
 	
 	public FunctionInfo(String name) {
 		this.anyMatcherName = name;
 		this.containedAnyMatchers = new LinkedList<String>();
+		this.containedAnyMatchers.add(name);
 		this.matchersContainedInSM = new LinkedList<List<String>>();
 	}
 	public FunctionInfo(FunctionInfo[] info, boolean fromSM) {

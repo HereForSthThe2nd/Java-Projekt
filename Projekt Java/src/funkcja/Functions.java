@@ -94,7 +94,7 @@ public class Functions {
 			ADD=3,
 			MULT=4,
 			POW=5,
-			MATCHER = 6;
+			SPECIAL = 6;
 	
 	final protected static FuncReturn Ln  = new FuncReturn(1, "Ln"){
 		@Override

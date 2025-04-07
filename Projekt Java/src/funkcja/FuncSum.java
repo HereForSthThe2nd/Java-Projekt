@@ -261,9 +261,16 @@ class FuncSum extends Function {
 
 	@Override
 	protected FunctionInfo info() {
+		System.out.println("w funcsum.info");
 		return new FunctionInfo(FuncMethods.info(summands), true);
 	}
-
+	
+	@Override
+	protected void resetPomiedzy() {
+		for(Function f : summands)
+			f.resetPomiedzy();
+	}
+	
 	@Override
 	protected boolean match(Function f, MatcherReturn mr) {
 		throw new IllegalStateException("Przy wywoływaniu match funkcja powinna najpierw zostać skopiowana");

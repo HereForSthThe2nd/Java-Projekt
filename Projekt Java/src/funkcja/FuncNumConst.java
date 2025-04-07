@@ -103,5 +103,8 @@ public class FuncNumConst extends Function {
 	@Override
 	protected boolean match(Function f, MatcherReturn mr) {
 		return check(f);
-	}	
+	}
+
+	@Override
+	protected void resetPomiedzy() {}	
 }

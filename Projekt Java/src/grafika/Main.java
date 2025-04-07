@@ -65,7 +65,8 @@ public class Main extends JFrame {
 		}
 		legenda.setPadx(100);
 		JPanel zawieraTextFunckcji = new JPanel();
-		JTextField funkcja = new JTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
+		//JTextField funkcja = new JTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
+		JTextField funkcja = new JTextField("x^2 + 2x*y + y^2");
 		funkcja.setFont(new Font(funkcja.getFont().getName(), Font.ITALIC, 20));
 		zawieraTextFunckcji.setLayout(new BoxLayout(zawieraTextFunckcji, BoxLayout.X_AXIS));
 		JPanel panelMaly = new JPanel();
@@ -106,14 +107,14 @@ public class Main extends JFrame {
 					FunctionPowloka f;
 					try {
 						f = new FunctionPowloka(funkcja.getText(), new Settings());
-						SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
+						SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){ 
 	
 							@Override
 							protected Void doInBackground() throws Exception {
 								try {
 								FunctionPowloka fch = f.simplify();
 								funkcja.setText(fch.write(new Settings()));
-								changeFunc(f.simplify());
+								changeFunc(fch);
 								}catch(Exception e) {
 									e.printStackTrace();
 									nadFunkcja.setForeground(Color.red);

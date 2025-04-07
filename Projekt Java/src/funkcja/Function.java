@@ -46,6 +46,8 @@ abstract public class Function implements FuncChecker
 	
 	protected abstract Function copyPom(MatcherReturn matcherRet);
 	
+	protected abstract void resetPomiedzy();
+	
 	protected Function copy() {
 		MatcherReturn mr = new MatcherReturn();
 		return copyPom(mr);
