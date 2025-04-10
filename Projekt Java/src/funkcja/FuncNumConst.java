@@ -4,7 +4,6 @@
 
 package funkcja;
 
-import funkcja.MatcherMethods.MatcherReturn;
 import ogolne.Complex;
 import ogolne.Settings;
 

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import funkcja.MatcherMethods.MatcherReturn;
 import ogolne.Complex;
 import ogolne.Pair;
 import ogolne.Settings;
@@ -261,7 +260,6 @@ class FuncSum extends Function {
 
 	@Override
 	protected FunctionInfo info() {
-		System.out.println("w funcsum.info");
 		return new FunctionInfo(FuncMethods.info(summands), true);
 	}
 	

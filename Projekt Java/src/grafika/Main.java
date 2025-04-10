@@ -1,5 +1,6 @@
 package grafika;
 
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -86,16 +87,43 @@ public class Main extends JFrame {
 		funkcja.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				//TODO: odmienieć na to jak było wcześniej
+				/*FunctionPowloka f;
+				 *
+				 * try { f = new FunctionPowloka(e.getActionCommand(), new Settings());
+				 * changeFunc(f); } catch (WrongSyntaxException e1) {
+				 * nadFunkcja.setForeground(Color.red); nadFunkcja.setText(e1.messageForUser); }
+				 */
 				FunctionPowloka f;
 				try {
-					f = new FunctionPowloka(e.getActionCommand(), new Settings());
-					changeFunc(f);
+					f = new FunctionPowloka(funkcja.getText(), new Settings());
+					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){ 
+
+						@Override
+						protected Void doInBackground() throws Exception {
+							try {
+							FunctionPowloka fch = f.simplify();
+							funkcja.setText(fch.write(new Settings()));
+							changeFunc(fch);
+							}catch(Exception e) {
+								e.printStackTrace();
+								nadFunkcja.setForeground(Color.red);
+								nadFunkcja.setText("Coś poszło nie tak");
+							}
+							return null;
+						}
+						
+					};
+					uprosc.execute();
 				} catch (WrongSyntaxException e1) {
 					nadFunkcja.setForeground(Color.red);
 					nadFunkcja.setText(e1.messageForUser);
 				}
+
 			}
 		});
+
+		
 		//zawieraTextFunckcji.add(Box.createRigidArea(new Dimension(0,0)));
 		//zawieraTextFunckcji.setBackground(Color.red);
 		JPanel przyciski = new JPanel();
@@ -241,6 +269,9 @@ public class Main extends JFrame {
 		add(wykres, BorderLayout.CENTER);
 	}
 	
+	/**
+	 * @param f
+	 */
 	private void changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setText("W trakcie obliczania funkcji");
@@ -301,7 +332,6 @@ public class Main extends JFrame {
 	}
 	
 	public static void main(String[] args) {
-		SimplifyRule.init();
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {

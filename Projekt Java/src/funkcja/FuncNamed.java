@@ -8,7 +8,6 @@ package funkcja;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import funkcja.MatcherMethods.MatcherReturn;
 import ogolne.Complex;
 import ogolne.Settings;
 

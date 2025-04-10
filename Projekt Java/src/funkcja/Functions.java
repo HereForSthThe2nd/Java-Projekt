@@ -882,7 +882,6 @@ public class Functions {
 
 		@Override
 		public Function returnFunc(String str) {
-
 			if(str.equals("x")) 
 				return returnFunc("x[0]");
 			if(str.equals("y")) 

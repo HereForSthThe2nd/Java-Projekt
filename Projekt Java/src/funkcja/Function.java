@@ -10,7 +10,6 @@ package funkcja;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
-import funkcja.MatcherMethods.MatcherReturn;
 import ogolne.Complex;
 import ogolne.Settings;
 import ogolne.WrongSyntaxException;

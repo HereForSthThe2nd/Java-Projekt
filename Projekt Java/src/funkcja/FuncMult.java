@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import funkcja.MatcherMethods.MatcherReturn;
 import ogolne.Complex;
 import ogolne.Settings;
 import ogolne.WrongSyntaxException;

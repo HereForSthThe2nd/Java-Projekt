@@ -5,15 +5,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import funkcja.MatcherMethods.AnyMatcher;
-import funkcja.MatcherMethods.MatcherReturn;
 import ogolne.*;
 
 
 public abstract class SimplifyRule {
 	static LinkedList<SimplifyRule> current = new LinkedList<SimplifyRule>();
 	
-	public static void init() {
+	static {
 		MatcherReturn mr = new MatcherReturn();
 		SimplifyFunction expOFlog =  new SimplifyFunction(
 				Functions.exp.returnFunc(new Function[] {Functions.ln.returnFunc(new Function[] {mr.returnFunc(0)})}),mr.returnFunc(0));
@@ -25,23 +23,33 @@ public abstract class SimplifyRule {
 				}),
 				Functions.pow.returnFunc(new Function[] {
 						new FuncSum(new Function[] {mr.returnFunc(0), mr.returnFunc(1)}), new FuncNumConst(new Complex(2))
-				})
+			})
 				);
 		
 		mr = new MatcherReturn();
 		SimplifyFunction mult =  new SimplifyFunction(new FuncMult(new Function[] {
-				mr.returnFunc(0), mr.returnFunc(1)
-			}),
-			mr.returnFunc(0)
-		);
+					mr.returnFunc(0), mr.returnFunc(1)
+				}),
+				mr.returnFunc(0)
+				);
 
 		mr = new MatcherReturn();
 		SimplifyFunction pow =  new SimplifyFunction(Functions.pow.returnFunc(new Function[] {
 				new FuncNumConst(new Complex(1)), new FuncNumConst(new Complex(1))
 				}),
 				new FuncNumConst(new Complex(1))
-		);
+				);
 
+		mr = new MatcherReturn();
+		SimplifyFunction idk =  new SimplifyFunction(new FuncMult(new Function[] {new FuncSum (new Function[] { mr.returnFunc(0), mr.returnFunc(1)}),
+				Functions.pow.returnFunc(new Function[] {mr.returnFunc(0), new FuncNumConst(new Complex(-1))})}),
+				new FuncSum(new Function[] {new FuncNumConst(new Complex(1)), new FuncMult(
+						new Function[] {mr.returnFunc(1), Functions.pow.returnFunc(new Function[] {
+						mr.returnFunc(0), new FuncNumConst(new Complex(-1))
+				})})})
+		);	
+		
+		current.add(idk);
 		current.add(pow);
 		//current.add(expOFlog);
 		current.add(sqOFsum);
