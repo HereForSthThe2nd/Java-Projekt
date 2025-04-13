@@ -87,7 +87,6 @@ class MatcherMethods{
 		return new LinkedList<Integer>();
 	}
 	
-	
 	static private boolean subsetsWtExclusionsCoverPom(List<Integer> subSets, List<Integer> set, RememberStageMS stage, List<Integer> coveredPortionOfSet, int[] lastToConsider, Integer lenOfSet){
 		/*
 		 * subsets - informacja na jakie podzbiory podzielić, zawiera informację czy któreś podzbiory muszą byc te same
@@ -179,6 +178,44 @@ class MatcherMethods{
 		stage.intoSubSets.get(lastToConsider[1])*/
 	}
 	
+	static private void przygotowaniaMatchers2(Function[] args, RememberStageMS stage, FunctionInfo[] matcherInfo) {
+		List<Integer> matchers2 = stage.matchers2;
+		List<Integer> matcherToArgsMap = stage.matcherToArgMap;
+		List<Integer> argsMatched = stage.argsMatched;
+		List<Integer> markersOfMatchers = stage.markersOfMatchersAtMatching;
+
+		stage.i0 = matchers2.size()-1;
+		stage.j0 = matcherToArgsMap.get(stage.i0);
+		//warunek początkowy rekurencji: - jeśli nie ma szansy by ponownie mogło się zmatchiwać w inny sposób
+		if(matcherInfo[ matchers2.get(stage.i0) ].matchersContainedInSM.equals(new LinkedList<List<String>>())) {
+			argsMatched.removeLast();
+			matcherToArgsMap.set(matchers2.size()-1, -1);
+			stage.j0++;
+			while(stage.i0 >= 0) {
+				stage.j0 = nextAvailable(stage.j0, argsMatched);
+				if(stage.j0 == args.length && stage.i0 == 0) {
+					stage.i0--;
+					break;
+				}
+				if(stage.j0 == args.length && stage.i0 > 0) {
+					stage.i0--;
+					stage.j0 = matcherToArgsMap.get(stage.i0);
+					argsMatched.removeLast();
+					matcherToArgsMap.set(stage.i0, -1);
+					if(matcherInfo[ matchers2.get(stage.i0) ].matchersContainedInSM.equals(new LinkedList<List<String>>())) {
+						stage.nextTimResetTo = markersOfMatchers.get(stage.i0)-1;
+						stage.j0++;
+					}
+				}
+				else
+					break;
+			}
+		}
+		if(stage.i0 < 0)
+			stage.returnsFalse = true;
+
+	}
+	
 	protected static boolean match(Function[] args, Function[] matchers, RememberStageMS stage, MatcherReturn mr, int startMarker) {
 		//dopasowuje matchers do args. kontynuuje od momentu stage i znajduje następne najbliższe dopasowanie
 		//jeśli już niema więcej możliwych dopasowań zwraca false
@@ -211,7 +248,7 @@ class MatcherMethods{
 			
 			/*-----*/
 			for(int i = 0;i<matchers.length;i++) {
-				if(argsMatched.contains(i) || MatcherReturn.canBeMult.check(matchers[i]))
+				if(argsMatched.contains(i))
 					continue; 
 				//TODO:zmienić kolejność by usprawnić program
 				matchers2.add(i);
@@ -275,38 +312,7 @@ class MatcherMethods{
 		}
 		/*-----*/
 		
-		
-		
-		//przygotowania aby za następnym razem kiedy funkcja zostanie wywołana znalazło następne dopasowanie
-		stage.i0 = matchers2.size()-1;
-		stage.j0 = matcherToArgsMap.get(stage.i0);
-		//warunek początkowy rekurencji: - jeśli nie ma szansy by ponownie mogło się zmatchiwać w inny sposób
-		if(matcherInfo[ matchers2.get(stage.i0) ].matchersContainedInSM.equals(new LinkedList<List<String>>())) {
-			argsMatched.removeLast();
-			matcherToArgsMap.set(matchers2.size()-1, -1);
-			stage.j0++;
-			while(stage.i0 >= 0) {
-				stage.j0 = nextAvailable(stage.j0, argsMatched);
-				if(stage.j0 == args.length && stage.i0 == 0) {
-					stage.i0--;
-					break;
-				}
-				if(stage.j0 == args.length && stage.i0 > 0) {
-					stage.i0--;
-					stage.j0 = matcherToArgsMap.get(stage.i0);
-					argsMatched.removeLast();
-					matcherToArgsMap.set(stage.i0, -1);
-					if(matcherInfo[ matchers2.get(stage.i0) ].matchersContainedInSM.equals(new LinkedList<List<String>>())) {
-						stage.nextTimResetTo = markersOfMatchers.get(stage.i0)-1;
-						stage.j0++;
-					}
-				}
-				else
-					break;
-			}
-		}
-		if(stage.i0 < 0)
-			stage.returnsFalse = true;
+		przygotowaniaMatchers2(args, stage, matcherInfo);
 		return true;
 	}
 
