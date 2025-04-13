@@ -10,6 +10,16 @@ class MatcherReturn extends VarReturnSpecial{
 	final private LinkedList<AnyMatcher> matcherList = new LinkedList<AnyMatcher>();
 	private LinkedList<LinkedList<AnyMatcher>> situationAtMarker = new LinkedList<LinkedList<AnyMatcher>>();
 	
+	static FuncChecker canBeMult = new FuncChecker() {
+		@Override
+		public boolean check(Function func) {
+			if(func.type == Functions.NAMED) {
+				return AnyMatcher.checkIfAnyMatcher(((FuncNamed)func).name);
+			}
+			return false;
+		}
+	}; 
+	
 	protected static int returnNumber(String str) {
 		//zakłada że wiadomo już, że str jest odpowiedniego rodzaju
 		return Integer.parseInt(str.substring(4, str.length()-1));
@@ -64,7 +74,7 @@ class MatcherReturn extends VarReturnSpecial{
 	
 	@Override
 	boolean check(String str) {
-		return str.matches("[Any]||(Any\\[[0-9]+\\])");
+		return AnyMatcher.checkIfAnyMatcher(str);
 	}
 
 	void resetTo(int marker) {
@@ -80,5 +90,4 @@ class MatcherReturn extends VarReturnSpecial{
 		situationAtMarker.add(getMatched());
 		return situationAtMarker.size()-1;
 	}
-	
 }

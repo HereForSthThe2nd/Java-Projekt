@@ -189,6 +189,8 @@ class RememberStageMS{
 	boolean returnsFalse;
 	LinkedList<Integer> markersOfMatchersAtMatching;
 	Integer nextTimResetTo;
+	//ostatni etap : dopasowanie matcherów bezpośrednio typu Any[k], które jeszcze nie przyjęły rzadnej wartości
+	LinkedList<LinkedList<Integer>> intoSubSets;
 	public RememberStageMS() {
 		reset();
 	}
@@ -198,6 +200,7 @@ class RememberStageMS{
 		matchers2 = new LinkedList<Integer>();
 		argsMatched = new LinkedList<Integer>();
 		staticMatchers = new LinkedList<Integer>();
+		intoSubSets = null;
 		goneThroughOnce = false;
 		returnsFalse = false;
 		i0 = 0;

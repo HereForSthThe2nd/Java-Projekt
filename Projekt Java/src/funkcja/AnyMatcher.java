@@ -10,6 +10,10 @@ class AnyMatcher extends FuncNamed{
 		super(Functions.NAMED, "Any["+k+"]");
 	}
 	
+	static boolean checkIfAnyMatcher(String str) {
+		return str.matches("[Any]||(Any\\[[0-9]+\\])");
+	}
+	
 	@Override
 	protected String write(Settings set) {
 		if(currentMatch == null)

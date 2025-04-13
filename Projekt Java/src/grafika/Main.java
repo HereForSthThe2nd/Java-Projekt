@@ -1,3 +1,4 @@
+
 package grafika;
 
 
@@ -102,9 +103,9 @@ public class Main extends JFrame {
 						@Override
 						protected Void doInBackground() throws Exception {
 							try {
-							FunctionPowloka fch = f.simplify();
-							funkcja.setText(fch.write(new Settings()));
-							changeFunc(fch);
+								FunctionPowloka fch = f.simplify();
+								funkcja.setText(fch.write(new Settings()));
+								changeFunc(fch);
 							}catch(Exception e) {
 								e.printStackTrace();
 								nadFunkcja.setForeground(Color.red);
