@@ -12,7 +12,8 @@ class FunctionInfo {
 	public FunctionInfo(String name) {
 		this.anyMatcherName = name;
 		this.containedAnyMatchers = new LinkedList<String>();
-		this.containedAnyMatchers.add(name);
+		if(name != null)
+			this.containedAnyMatchers.add(name);
 		this.matchersContainedInSM = new LinkedList<List<String>>();
 	}
 	public FunctionInfo(FunctionInfo[] info, boolean fromSM) {

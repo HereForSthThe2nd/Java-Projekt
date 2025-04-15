@@ -87,7 +87,7 @@ class MatcherMethods{
 		return new LinkedList<Integer>();
 	}
 	
-	static private boolean subsetsWtExclusionsCoverPom(List<Integer> subSets, List<Integer> set, RememberStageMS stage, List<Integer> coveredPortionOfSet, int[] lastToConsider, Integer lenOfSet){
+	static private boolean subsetsWtExclusionsPom(List<Integer> subSets, List<Integer> set, RememberStageMS stage, List<Integer> coveredPortionOfSet, int[] lastToConsider, Integer lenOfSet){
 		/*
 		 * subsets - informacja na jakie podzbiory podzielić, zawiera informację czy któreś podzbiory muszą byc te same
 		 * pierwszy indeks - ilość podzbiorów, które są niezależne od wszystkich innych
@@ -155,7 +155,7 @@ class MatcherMethods{
 			while(subSets.get( lastToConsider[0] - 1) == 0) {
 				lastToConsider[0]--;
 			}
-			boolean didSth = subsetsWtExclusionsCoverPom(subSets, set, stage, coveredPortionOfSet, lastToConsider, lenOfSet-1);
+			boolean didSth = subsetsWtExclusionsPom(subSets, set, stage, coveredPortionOfSet, lastToConsider, lenOfSet-1);
 			
 			if(didSth) {
 				return true;
@@ -184,6 +184,10 @@ class MatcherMethods{
 		List<Integer> argsMatched = stage.argsMatched;
 		List<Integer> markersOfMatchers = stage.markersOfMatchersAtMatching;
 
+		stage.intoSubSets = null;
+		stage.directMatchedMatchers = new LinkedList<Integer>();
+		stage.argsMatched = stage.argsMatchedBefore;
+		stage.argsMatchedBefore = new LinkedList<Integer>();
 		stage.i0 = matchers2.size()-1;
 		stage.j0 = matcherToArgsMap.get(stage.i0);
 		//warunek początkowy rekurencji: - jeśli nie ma szansy by ponownie mogło się zmatchiwać w inny sposób
@@ -216,7 +220,7 @@ class MatcherMethods{
 
 	}
 	
-	protected static boolean match(Function[] args, Function[] matchers, RememberStageMS stage, MatcherReturn mr, int startMarker) {
+	protected static boolean match(Function[] args, Function[] matchers, RememberStageMS stage, MatcherReturn mr, int startMarker, boolean sORm) {
 		//dopasowuje matchers do args. kontynuuje od momentu stage i znajduje następne najbliższe dopasowanie
 		//jeśli już niema więcej możliwych dopasowań zwraca false
 		if(stage.returnsFalse)
@@ -224,6 +228,7 @@ class MatcherMethods{
 		final FunctionInfo[] matcherInfo = FuncMethods.info(matchers);
 		final LinkedList<Integer>argsMatched = stage.argsMatched;//indeksy elemtów args
 		final LinkedList<Integer>staticMatchers = stage.staticMatchers;//matchery które się nie zmieniają bo wywołaniu .match
+		final LinkedList<Integer>directMatchedMatchers = stage.directMatchedMatchers;
 		final LinkedList<Integer> matchers2 = stage.matchers2;//indeksy kolejnych matcherów, które będą robione. Nie zawiera bezpośrednio matcherów które się zmieniają. (np.'sin(Any)' może zarzeć a 'Any' już nie)
 		final LinkedList<Integer> matcherToArgsMap = stage.matcherToArgMap;//informacja dotyczy tylko matcherów z matchers2
 		final LinkedList<Integer> markersOfMatchers = stage.markersOfMatchersAtMatching;//zapamiętuje sytuację w momencie w którym dany matcher się zmatchował. Dotyczy tylko matcherów z matchers2
@@ -248,9 +253,8 @@ class MatcherMethods{
 			
 			/*-----*/
 			for(int i = 0;i<matchers.length;i++) {
-				if(argsMatched.contains(i))
+				if(argsMatched.contains(i) || mr.check(matchers[i]))
 					continue; 
-				//TODO:zmienić kolejność by usprawnić program
 				matchers2.add(i);
 			}
 			for(int i = 0;i<matchers2.size();i++) {
@@ -274,10 +278,9 @@ class MatcherMethods{
 		}
 		/*---sprawdza matchery które są jeszcze w czymś zawarte / nie są bezpośrednio mtcherami ( są zawarte w orderOfMatching ) -----*/
 		//( bardzo )niezoptymalizowane
-		int j = 0;
 		outer:
 		for(int i = stage.i0;i<matchers2.size();i++) {
-			for(j = 0;j<args.length;j++) {
+			for(int j = 0;j<args.length;j++) {
 				if(i == stage.i0 && j < stage.j0) {
 					j = stage.j0;
 				}
@@ -311,6 +314,51 @@ class MatcherMethods{
 			}
 		}
 		/*-----*/
+		for(Integer i=0;i<matchers.length;i++) {
+			if(mr.check(matchers[i]) && ((Matcher)matchers[i]).currentMatch != null){
+				directMatchedMatchers.add(i);
+			}
+		}
+		
+		stage.argsMatchedBefore.addAll(argsMatched);
+		outer:
+		for(Integer i : directMatchedMatchers) {
+			if(((Matcher)matchers[i]).currentMatch.type == Functions.MULT && sORm == false) {
+				spec:
+				for(Function f : ((FuncMult)((Matcher)matchers[i]).currentMatch).f) {
+					for(int j=0;j<args.length;j++) {
+						if(!argsMatched.contains(j) && f.check(args[j])) {
+							argsMatched.add(j);
+							continue spec;
+						}
+					}
+					przygotowaniaMatchers2(args, stage, matcherInfo);
+					return match(args, matchers, stage, mr, startMarker, sORm);
+				}
+			}
+			if(((Matcher)matchers[i]).currentMatch.type == Functions.ADD && sORm == true) {
+				spec:
+				for(Function f : ((FuncSum)((Matcher)matchers[i]).currentMatch).summands) {
+					for(int j=0;j<args.length;j++) {
+						if(!argsMatched.contains(j) && f.check(args[j])) {
+							argsMatched.add(j);
+							continue spec;
+						}
+					}
+					przygotowaniaMatchers2(args, stage, matcherInfo);
+					return match(args, matchers, stage, mr, startMarker, sORm);
+				}
+			}
+			for(int j=0;j<args.length;j++) {
+				if(!argsMatched.contains(j) && matchers[i].check(args[j])) {
+					argsMatched.add(j);
+					continue outer;
+				}
+			}
+			przygotowaniaMatchers2(args, stage, matcherInfo);
+			return match(args, matchers, stage, mr, startMarker, sORm);
+		}
+		
 		
 		przygotowaniaMatchers2(args, stage, matcherInfo);
 		return true;

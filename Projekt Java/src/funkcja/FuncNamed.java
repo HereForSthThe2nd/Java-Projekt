@@ -186,7 +186,7 @@ abstract class Variable extends FuncNamed{
 	
 	@Override
 	protected FunctionInfo info() {
-		return new FunctionInfo("");
+		return new FunctionInfo(null);
 	}
 }
 

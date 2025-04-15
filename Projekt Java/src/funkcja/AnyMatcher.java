@@ -3,24 +3,27 @@ package funkcja;
 import ogolne.Complex;
 import ogolne.Settings;
 
-class AnyMatcher extends FuncNamed{
-	//dopasowuje się do jakiejkolwiek funkcji (any)
+abstract class Matcher extends FuncNamed{
 	Function currentMatch = null;
-	protected AnyMatcher(int k) { 
-		super(Functions.NAMED, "Any["+k+"]");
+	public Matcher(int nofArg, String name) {
+		super(nofArg, name);
+	}
+
+	@Override
+	public boolean check(Function f) {
+		return currentMatch.check(f);
 	}
 	
-	static boolean checkIfAnyMatcher(String str) {
-		return str.matches("[Any]||(Any\\[[0-9]+\\])");
-	}
-	
+	@Override
+	protected void resetPomiedzy() {}
+
 	@Override
 	protected String write(Settings set) {
 		if(currentMatch == null)
 			return name+"{}";
 		return name+"{="+currentMatch.write(set)+"}";
 	}
-	
+
 	@Override
 	protected Complex evaluate(Complex[] arg) {
 		throw new IllegalStateException("Nie powinno nigdy tutaj dochodzić");
@@ -74,8 +77,23 @@ class AnyMatcher extends FuncNamed{
 	protected FunctionInfo info() {
 		if(currentMatch == null)
 			return new FunctionInfo(name);
-		return new FunctionInfo("");
+		return new FunctionInfo(null);
 	}
+	
+}
+
+class AnyMatcher extends Matcher{
+	//dopasowuje się do jakiejkolwiek funkcji (any)
+	Function currentMatch = null;
+	protected AnyMatcher(int k) { 
+		super(Functions.NAMED, "Any["+k+"]");
+	}
+	
+	static boolean checkIfAnyMatcher(String str) {
+		return str.matches("[Any]||(Any\\[[0-9]+\\])");
+	}
+	
+	
 
 	@Override
 	protected boolean match(Function f, MatcherReturn mr) {
@@ -86,6 +104,4 @@ class AnyMatcher extends FuncNamed{
 		return currentMatch.check(f);
 	}
 
-	@Override
-	protected void resetPomiedzy() {}
 }

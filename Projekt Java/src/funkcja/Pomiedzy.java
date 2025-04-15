@@ -131,7 +131,7 @@ class CheckStageMS extends Pomiedzy{
 			return false;
 			}
 		int startMarker = mr.setMarker();
-		boolean ret = MatcherMethods.match(args, this.args, stage, mr, startMarker);
+		boolean ret = MatcherMethods.match(args, this.args, stage, mr, startMarker, true);
 		return ret;
 	}
 
@@ -191,6 +191,8 @@ class RememberStageMS{
 	Integer nextTimResetTo;
 	//ostatni etap : dopasowanie matcherów bezpośrednio typu Any[k], które jeszcze nie przyjęły rzadnej wartości
 	LinkedList<LinkedList<Integer>> intoSubSets;
+	LinkedList<Integer> directMatchedMatchers;
+	LinkedList<Integer> argsMatchedBefore;
 	public RememberStageMS() {
 		reset();
 	}
@@ -201,6 +203,8 @@ class RememberStageMS{
 		argsMatched = new LinkedList<Integer>();
 		staticMatchers = new LinkedList<Integer>();
 		intoSubSets = null;
+		directMatchedMatchers = new LinkedList<Integer>();
+		argsMatchedBefore = new LinkedList<Integer>();
 		goneThroughOnce = false;
 		returnsFalse = false;
 		i0 = 0;

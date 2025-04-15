@@ -96,7 +96,7 @@ public class FuncNumConst extends Function {
 
 	@Override
 	protected FunctionInfo info() {
-		return new FunctionInfo("");
+		return new FunctionInfo(null);
 	}
 
 	@Override

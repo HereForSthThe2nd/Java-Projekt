@@ -7,10 +7,11 @@ import java.util.logging.*;
 class MatcherReturn extends VarReturnSpecial{
 	//zarządza metcherami
 	final private LinkedList<String> matcherNames = new LinkedList<String>();
-	final private LinkedList<AnyMatcher> matcherList = new LinkedList<AnyMatcher>();
-	private LinkedList<LinkedList<AnyMatcher>> situationAtMarker = new LinkedList<LinkedList<AnyMatcher>>();
+	final private LinkedList<Matcher> matcherList = new LinkedList<Matcher>();
+	private LinkedList<LinkedList<Matcher>> situationAtMarker = new LinkedList<LinkedList<Matcher>>();
 	
 	static FuncChecker canBeMult = new FuncChecker() {
+		//TODO: gdzie to się miało przydać??
 		@Override
 		public boolean check(Function func) {
 			if(func.type == Functions.NAMED) {
@@ -20,7 +21,7 @@ class MatcherReturn extends VarReturnSpecial{
 		}
 	}; 
 	
-	protected static int returnNumber(String str) {
+	protected static int returnNumberForAny(String str) {
 		//zakłada że wiadomo już, że str jest odpowiedniego rodzaju
 		return Integer.parseInt(str.substring(4, str.length()-1));
 	}
@@ -32,16 +33,16 @@ class MatcherReturn extends VarReturnSpecial{
 	List<String> getNotDone(Function function) {
 		LinkedList<String> ret = new LinkedList<String>();
 		LinkedList<String> inFunction = function.info().containedAnyMatchers;
-		for(AnyMatcher m : matcherList) {
+		for(Matcher m : matcherList) {
 			if(inFunction.contains(m.name) && m.currentMatch == null)
 				ret.add(m.name);
 		}
 		return ret;
 	}
 	
-	LinkedList<AnyMatcher> getMatched(){
-		LinkedList<AnyMatcher> ret = new LinkedList<AnyMatcher>();
-		for(AnyMatcher m : matcherList)
+	LinkedList<Matcher> getMatched(){
+		LinkedList<Matcher> ret = new LinkedList<Matcher>();
+		for(Matcher m : matcherList)
 			if(m.currentMatch != null)
 				ret.add(m);
 		return ret;
@@ -50,14 +51,14 @@ class MatcherReturn extends VarReturnSpecial{
 	@Override
 	Function returnFunc(String name) {
 		if(!matcherNames.contains(name)) {
-			int k = returnNumber(name);
+			int k = returnNumberForAny(name);
 			matcherNames.add(name);
 			matcherList.add(new AnyMatcher(k));
 		}
 		return matcherList.get(matcherNames.indexOf(name));
 	}
 
-	Function returnFunc(int k) {
+	Function returnFuncAny(int k) {
 		if(!matcherNames.contains("Any["+k+"]")) {
 			AnyMatcher matcher = new AnyMatcher(k);
 			matcherNames.add(matcher.name);
@@ -67,7 +68,7 @@ class MatcherReturn extends VarReturnSpecial{
 	}
 
 	void reset(List<String> matchers) {
-		for(AnyMatcher i : this.matcherList)
+		for(Matcher i : this.matcherList)
 			if(matchers.contains(i.name))
 				i.currentMatch = null;
 	}
@@ -79,7 +80,7 @@ class MatcherReturn extends VarReturnSpecial{
 
 	void resetTo(int marker) {
 		//resetuje wszystkie matchery które nie miały wartości w momencie stawienia markera. niekoniecznie pamięta jakie wtedy matchery miały wartości
-		for(AnyMatcher i : matcherList) {
+		for(Matcher i : matcherList) {
 			if(!situationAtMarker.get(marker).contains(i))
 				i.currentMatch = null;
 		}
@@ -90,4 +91,5 @@ class MatcherReturn extends VarReturnSpecial{
 		situationAtMarker.add(getMatched());
 		return situationAtMarker.size()-1;
 	}
+
 }

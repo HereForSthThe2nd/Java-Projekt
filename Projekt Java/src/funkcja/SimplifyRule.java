@@ -14,23 +14,23 @@ public abstract class SimplifyRule {
 	static {
 		MatcherReturn mr = new MatcherReturn();
 		SimplifyFunction expOFlog =  new SimplifyFunction(
-				Functions.exp.returnFunc(new Function[] {Functions.ln.returnFunc(new Function[] {mr.returnFunc(0)})}),mr.returnFunc(0));
+				Functions.exp.returnFunc(new Function[] {Functions.ln.returnFunc(new Function[] {mr.returnFuncAny(0)})}),mr.returnFuncAny(0));
 		mr = new MatcherReturn();
 		SimplifyFunction sqOFsum =  new SimplifyFunction(new FuncSum(new Function[] {
-					Functions.pow.returnFunc(new Function[] {mr.returnFunc(0), new FuncNumConst(new Complex(2))}), 
-					new FuncMult(new Function[] {new FuncNumConst(new Complex(2)), mr.returnFunc(0), mr.returnFunc(1)}),
-					Functions.pow.returnFunc(new Function[] {mr.returnFunc(1), new FuncNumConst(new Complex(2))})
+					Functions.pow.returnFunc(new Function[] {mr.returnFuncAny(0), new FuncNumConst(new Complex(2))}), 
+					new FuncMult(new Function[] {new FuncNumConst(new Complex(2)), mr.returnFuncAny(0), mr.returnFuncAny(1)}),
+					Functions.pow.returnFunc(new Function[] {mr.returnFuncAny(1), new FuncNumConst(new Complex(2))})
 				}),
 				Functions.pow.returnFunc(new Function[] {
-						new FuncSum(new Function[] {mr.returnFunc(0), mr.returnFunc(1)}), new FuncNumConst(new Complex(2))
+						new FuncSum(new Function[] {mr.returnFuncAny(0), mr.returnFuncAny(1)}), new FuncNumConst(new Complex(2))
 			})
 				);
 		
 		mr = new MatcherReturn();
 		SimplifyFunction mult =  new SimplifyFunction(new FuncMult(new Function[] {
-					mr.returnFunc(0), mr.returnFunc(1)
+					mr.returnFuncAny(0), mr.returnFuncAny(1)
 				}),
-				mr.returnFunc(0)
+				mr.returnFuncAny(0)
 				);
 
 		mr = new MatcherReturn();
@@ -41,11 +41,11 @@ public abstract class SimplifyRule {
 				);
 
 		mr = new MatcherReturn();
-		SimplifyFunction idk =  new SimplifyFunction(new FuncMult(new Function[] {new FuncSum (new Function[] { mr.returnFunc(0), mr.returnFunc(1)}),
-				Functions.pow.returnFunc(new Function[] {mr.returnFunc(0), new FuncNumConst(new Complex(-1))})}),
+		SimplifyFunction idk =  new SimplifyFunction(new FuncMult(new Function[] {new FuncSum (new Function[] { mr.returnFuncAny(0), mr.returnFuncAny(1)}),
+				Functions.pow.returnFunc(new Function[] {mr.returnFuncAny(0), new FuncNumConst(new Complex(-1))})}),
 				new FuncSum(new Function[] {new FuncNumConst(new Complex(1)), new FuncMult(
-						new Function[] {mr.returnFunc(1), Functions.pow.returnFunc(new Function[] {
-						mr.returnFunc(0), new FuncNumConst(new Complex(-1))
+						new Function[] {mr.returnFuncAny(1), Functions.pow.returnFunc(new Function[] {
+						mr.returnFuncAny(0), new FuncNumConst(new Complex(-1))
 				})})})
 		);	
 		
