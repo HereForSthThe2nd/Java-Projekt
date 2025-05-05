@@ -1,6 +1,5 @@
 package funkcja;
 
-import java.util.LinkedList;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
@@ -176,39 +175,4 @@ class CheckstageFunc extends Pomiedzy{
 		// TODO Auto-generated method stub		
 	}
 	
-}
-
-class RememberStageMS{
-	LinkedList<Integer> matcherToArgMap;
-	int i0;
-	int j0;
-	LinkedList<Integer> staticMatchers;
-	LinkedList<Integer> matchers2;
-	LinkedList<Integer> argsMatched;
-	boolean goneThroughOnce;
-	boolean returnsFalse;
-	LinkedList<Integer> markersOfMatchersAtMatching;
-	Integer nextTimResetTo;
-	//ostatni etap : dopasowanie matcherów bezpośrednio typu Any[k], które jeszcze nie przyjęły rzadnej wartości
-	LinkedList<LinkedList<Integer>> intoSubSets;
-	LinkedList<Integer> directMatchedMatchers;
-	LinkedList<Integer> argsMatchedBefore;
-	public RememberStageMS() {
-		reset();
-	}
-	public void reset() {
-		markersOfMatchersAtMatching = new LinkedList<Integer>();
-		matcherToArgMap = new LinkedList<Integer>();
-		matchers2 = new LinkedList<Integer>();
-		argsMatched = new LinkedList<Integer>();
-		staticMatchers = new LinkedList<Integer>();
-		intoSubSets = null;
-		directMatchedMatchers = new LinkedList<Integer>();
-		argsMatchedBefore = new LinkedList<Integer>();
-		goneThroughOnce = false;
-		returnsFalse = false;
-		i0 = 0;
-		j0 = 0;
-		nextTimResetTo = -1;
-	}
 }

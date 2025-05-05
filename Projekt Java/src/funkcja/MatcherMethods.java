@@ -33,7 +33,7 @@ class MatcherMethods{
 		return j;
 	}
 	
-	static private Integer findNextSpot(Integer thisSubSet, List<Integer> set, List<Integer> coveredPortionOfSet, Integer startIndex) {
+	static private Integer findNextSpot(Integer thisSubSet, List<Integer> set,List<Integer> coveredPortionOfSet, Integer startIndex) {
 		for(int i = startIndex;i<set.size();i++) {
 			if(set.get(i) - coveredPortionOfSet.get(i) >= thisSubSet) {
 				return i;
@@ -47,6 +47,8 @@ class MatcherMethods{
 		 * dotyczy znalezienia następnego możliwego podzbioru jakim subSet może być
 		 * 
 		 * 'thisSubset' to rodzaj podzbioru jaki chcemy znalezć
+		 * 
+		 * zwraca indeksy pól podzbioru
 		 */
 		Integer index;
 		if(thisSubSetCurrent == null || thisSubSetCurrent.equals(new LinkedList<Integer>()))
@@ -74,7 +76,7 @@ class MatcherMethods{
 		}
 		int currLast = thisSubSetCurrent.getLast();
 		thisSubSetCurrent.removeLast();
-		LinkedList<Integer> retP = findNextSubSet(thisSubSet, set, coveredPortionOfSet, thisSubSetCurrent);
+		LinkedList<Integer> retP = findNextSubSet(thisSubSet, set ,coveredPortionOfSet, thisSubSetCurrent);
 		coveredPortionOfSet.set(currLast, coveredPortionOfSet.get(currLast) - thisSubSet);
 		if(!retP.equals(new LinkedList<Integer>())) {
 			index = findNextSpot(thisSubSet, set, coveredPortionOfSet, retP.getLast());
@@ -87,19 +89,84 @@ class MatcherMethods{
 		return new LinkedList<Integer>();
 	}
 	
-	static private boolean subsetsWtExclusionsPom(List<Integer> subSets, List<Integer> set, RememberStageMS stage, List<Integer> coveredPortionOfSet, int[] lastToConsider, Integer lenOfSet){
+	static private boolean nextCover(List<Integer> subSets, List<Integer> set, RememberStageMS stage) {
+		//TODO: to wogóle jeszcze nie jest zrobione
+		
+		/*
+		 * takie samo zadanie co divIntoSubSets, plus jeszcze robi setup
+		 */
+		if(!stage.goneThorughLastStageOnce) {
+			LinkedList<Integer> coveredPortionOfSet = new LinkedList<Integer>();
+			for(int i = 0 ;i<set.size();i++) {
+				coveredPortionOfSet.add(0);
+			}
+			int lenOfSet = 0;
+			for(Integer i : set) {
+				lenOfSet += i;
+			}
+			
+			int lastNum = 0;
+			for(Integer i : subSets) {
+				lastNum += i;
+			}
+			int[] lastToConsider = new int[] {subSets.size(), lastNum};
+			
+			if(stage.intoSubSets == null) {
+				for(Integer i : subSets) {
+					for(int j = 0;j<i;j++) {
+						stage.intoSubSets.add(null);
+					}
+				}
+			}
+			
+			if(stage.intoSubSets.get(lastToConsider[1]) == null/*TODO: to zawsze będzie prawdą*/) {
+				int indeks = -1;
+				for(int i = 0;i<set.size();i++) {
+					if(set.get(i) - coveredPortionOfSet.get(i) >= lastToConsider[0]) {
+						indeks = i;
+						break;
+					}
+				}
+				if(indeks == -1) {
+					return false;
+				}
+				coveredPortionOfSet.set(indeks,  coveredPortionOfSet.get(indeks) + lastToConsider[0]);
+				stage.intoSubSets.set(lastToConsider[1], new LinkedList<Integer>(List.of(indeks)));
+				lastToConsider[1]--;
+				if(lastToConsider[1] == 0) {
+					return true;
+				}
+				while(subSets.get( lastToConsider[0] - 1) == 0) {
+					lastToConsider[0]--;
+				}
+				
+				boolean didSth = divIntoSubsets(subSets, set, stage, coveredPortionOfSet, lastToConsider, lenOfSet-1);
+				
+				if(didSth) {
+					return true;
+				}
+				coveredPortionOfSet.set(indeks,  0);
+				stage.intoSubSets.set(lastToConsider[1]+1, new LinkedList<Integer>(List.of(indeks)));
+				return false;
+			}
+		}
+	}
+
+	static private boolean divIntoSubsets(List<Integer> subSets, List<Integer> set, RememberStageMS stage, List<Integer> coveredPortionOfSet, int[] lastToConsider, Integer lenOfSet){
 		/*
 		 * subsets - informacja na jakie podzbiory podzielić, zawiera informację czy któreś podzbiory muszą byc te same
 		 * pierwszy indeks - ilość podzbiorów, które są niezależne od wszystkich innych
-		 * drugi indeks - 1/2 iości podzbiorów, dla których istnieje drugi podzbiór, który musi wyglądać tak samo
+		 * drugi indeks - 1/2 iości podzbiorów, dla których istnieje drugi podzbiór, który musi być taki sam
 		 * treci indeks - ...
 		 * 
 		 * set - informacja o zbiorze
 		 * każdy element podaje ilość elementów które są te same. Czyli suma elementów tego List<nteger> to długość zbioru
 		 * 
+		 * algorytm zaczyna dopasowywanie od podzbiorów których kopii jest najwięcej ( których indeks w subsets jes największy )
+		 * 
 		 * lastToConsider - [int, int] : opisuje dla których z 'subSets' nie znaleziono jeszcze odpowiadającego im podzbioru 'set'
 		 * pierwszy int - indeks tego subset(ilość tych samych elementów które trzeba do niego dopasować )
-		 * drugi int - jączna ilość podzbiorów przed nim ( nie licząc dwoch podzbiorów które muszą być te same osobno )
+		 * drugi int - jączna ilość podzbiorów przed nim ( dwa lub więcej podzbiorów które muszą być te same nie są liczone parokrotnie )
 		 * 
 		 * lenOfSet - ilość elementów set, keśli
 		 * 
@@ -108,62 +175,7 @@ class MatcherMethods{
 		 * 
 		 * zwraca wartość przez stage.intoSubSets 
   		 */
-		if(coveredPortionOfSet == null) {
-			coveredPortionOfSet = new LinkedList<Integer>();
-			for(int i = 0 ;i<set.size();i++) {
-				coveredPortionOfSet.add(0);
-			}
-		}
-		if(lenOfSet == null) {
-			lenOfSet = 0;
-			for(Integer sameSub : set) {
-			lenOfSet += sameSub;
-			}
-		}
-		if(lastToConsider == null) {
-			int lastNum = 0;
-			for(Integer i : subSets) {
-				lastNum += i;
-			}
-			lastToConsider = new int[] {subSets.size(), lastNum};
-		}
-		if(stage.intoSubSets == null) {
-			for(Integer i : subSets) {
-				for(int j = 0;j<i;j++) {
-					stage.intoSubSets.add(null);
-				}
-			}
-		}
 		
-		if(stage.intoSubSets.get(lastToConsider[1]) == null) {
-			int indeks = -1;
-			for(int i = 0;i<set.size();i++) {
-				if(set.get(i) - coveredPortionOfSet.get(i) >= lastToConsider[0]) {
-					indeks = i;
-					break;
-				}
-			}
-			if(indeks == -1) {
-				return false;
-			}
-			coveredPortionOfSet.set(indeks,  coveredPortionOfSet.get(indeks) + lastToConsider[0]);
-			stage.intoSubSets.set(lastToConsider[1], new LinkedList<Integer>(List.of(indeks)));
-			lastToConsider[1]--;
-			if(lastToConsider[1] == 0) {
-				return true;
-			}
-			while(subSets.get( lastToConsider[0] - 1) == 0) {
-				lastToConsider[0]--;
-			}
-			boolean didSth = subsetsWtExclusionsPom(subSets, set, stage, coveredPortionOfSet, lastToConsider, lenOfSet-1);
-			
-			if(didSth) {
-				return true;
-			}
-			coveredPortionOfSet.set(indeks,  0);
-			stage.intoSubSets.set(lastToConsider[1]+1, new LinkedList<Integer>(List.of(indeks)));
-			return false;
-		}
 		
 		int[] lastToConsiderCopy = lastToConsider.clone(); 
 		lastToConsiderCopy[1]--;
@@ -177,7 +189,7 @@ class MatcherMethods{
 		}
 		stage.intoSubSets.get(lastToConsider[1])*/
 	}
-	
+
 	static private void przygotowaniaMatchers2(Function[] args, RememberStageMS stage, FunctionInfo[] matcherInfo) {
 		List<Integer> matchers2 = stage.matchers2;
 		List<Integer> matcherToArgsMap = stage.matcherToArgMap;
@@ -185,6 +197,7 @@ class MatcherMethods{
 		List<Integer> markersOfMatchers = stage.markersOfMatchersAtMatching;
 
 		stage.intoSubSets = null;
+		stage.lastStageSet = null;
 		stage.directMatchedMatchers = new LinkedList<Integer>();
 		stage.argsMatched = stage.argsMatchedBefore;
 		stage.argsMatchedBefore = new LinkedList<Integer>();
@@ -358,6 +371,7 @@ class MatcherMethods{
 			przygotowaniaMatchers2(args, stage, matcherInfo);
 			return match(args, matchers, stage, mr, startMarker, sORm);
 		}
+		
 		
 		
 		przygotowaniaMatchers2(args, stage, matcherInfo);
