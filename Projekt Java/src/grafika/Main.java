@@ -3,12 +3,15 @@ package grafika;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.LayoutManager;
+import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -159,14 +162,20 @@ public class Main extends JFrame {
 		});
 		przyciski.add(uprosc);
 		przyciski.add(rzeczIUroj);
+		/*
 		legenda.gbc.gridy = 1;
 		legenda.gbc.gridx = 0;
 		legenda.layout.setConstraints(legenda.obraz, legenda.gbc);
+		
 		JPanel nadLegenda = new JPanel();
 		nadLegenda.setLayout(new GridLayout(0,1));
+		*/
 		JComponent opcja;
 		JComponent wybor;
 		JPanel calaOpcja;
+		
+		JPanel lewStr = new JPanel();
+		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
 		/*
 		calaOpcja = new JPanel();
 		opcja = new JTextArea("Przedstawić obszar wokół nieskończoności?");
@@ -238,38 +247,41 @@ public class Main extends JFrame {
 		});
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
-		nadLegenda.add(calaOpcja);
+		lewStr.add(calaOpcja);
+		//nadLegenda.add(calaOpcja);
 
-		legenda.gbc.gridy = 0;
+		/*
+		 * legenda.gbc.gridy = 0;
 		legenda.gbc.gridx = 0;
 		//legenda.gbc.fill = GridBagConstraints.HORIZONTAL;
 		legenda.add(nadLegenda, legenda.gbc);
+		*/
 		left.add(Box.createRigidArea(new Dimension(0,30)));
 		left.add(przyciski);
 		left.add(Box.createRigidArea(new Dimension(0,30)));
-		left.add(legenda);
+		left.add(lewStr);
+		lewStr.add(legenda);
 		add(zawieraTextFunckcji, BorderLayout.NORTH);
 		add(left, BorderLayout.WEST);
 		add(wykres, BorderLayout.CENTER);
 		
-		JPanel podLegenda = new JPanel();
-		podLegenda.setLayout(new BoxLayout(podLegenda, BoxLayout.Y_AXIS));
 		JLabel argumentLabel = new JLabel("Argument:");
 		JLabel wartoscLabel = new JLabel("Wartość:");
 		argument = new JTextField("-");
 		wartosc = new JTextField("-");
-		podLegenda.add(argumentLabel);
-		podLegenda.add(argument);
-		podLegenda.add(wartoscLabel);
-		podLegenda.add(wartosc);
-		addMouseMotionListener(new MouseMotionListener() {
+		lewStr.add(argumentLabel);
+		lewStr.add(argument);
+		lewStr.add(wartoscLabel);
+		lewStr.add(wartosc);
+		legenda.obraz.addMouseMotionListener(new MouseMotionListener() {
 			
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				Complex arg = wykres.wspolrzedneMyszy();
-				Complex val = legenda.wspolrzedneMyszy();
-				argument.setText(arg == null ? "-" : ""+arg.x+" + i"+arg.y);
-				wartosc.setText(val== null ? "-" : ""+val.x+" + i"+val.y);
+				Rectangle rec = legenda.obraz.getBounds();
+				Complex val = Complex.add(legenda.lewyDolny, new Complex (e.getX()/rec.getWidth()*(legenda.prawyGorny.x-legenda.lewyDolny.x), (1-e.getY()/rec.getHeight())*(legenda.prawyGorny.y-legenda.lewyDolny.y)));
+				argument.setText("---");
+				wartosc.setText(String.format("%.2f + i%.2f", val.x, val.y));
+
 			}
 			
 			@Override
@@ -278,9 +290,24 @@ public class Main extends JFrame {
 				
 			}
 		});
-		legenda.gbc.gridx = 0;
-		legenda.gbc.gridy = 2;
-		legenda.add(podLegenda, legenda.gbc);
+		wykres.obraz.addMouseMotionListener(new MouseMotionListener() {
+			
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				Rectangle rec = wykres.obraz.getBounds();
+				Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
+				Complex val = wykres.values[e.getX()][e.getY()];
+				argument.setText(String.format("%.2f + i%.2f", arg.x, arg.y));
+				wartosc.setText(String.format("%.2f + i%.2f", val.x, val.y));
+
+			}
+			
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 	
 	private void changeFunc(FunctionPowloka f) {

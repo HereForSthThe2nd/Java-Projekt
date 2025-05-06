@@ -6,6 +6,8 @@
 package grafika;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -16,6 +18,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Toolkit;
@@ -28,6 +31,7 @@ import java.util.LinkedList;
 import java.util.Random;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
+import javax.swing.SwingUtilities;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
 import javax.swing.event.ChangeEvent;
@@ -63,9 +67,9 @@ public class Graph extends JPanel {
 	long begginingOfLastChange = System.nanoTime();
 	double colorSpeedChange;
 	static int noOfRep = 0;
-	GridBagConstraints gbc;
+	GridBagConstraints gbc = new GridBagConstraints();
 	GridBagLayout layout = new GridBagLayout();
-	JLabel obraz;
+	JPanel obraz;
 	//TODO: usunac zmienna ponizej
 	static int usunac = 0;
 	public void setPadx(int padx) {
@@ -79,29 +83,38 @@ public class Graph extends JPanel {
 		gbc.ipady = pady;
 		layout.setConstraints(obraz, gbc);
 	}
-
-	public Complex wspolrzedneMyszy() {
-		int x = obraz.getBounds().x;
-		int y = obraz.getBounds().y;
-		Rectangle rec = obraz.getBounds();
-		int xM = MouseInfo.getPointerInfo().getLocation().x;
-		int yM = MouseInfo.getPointerInfo().getLocation().y;
-		if(getMousePosition() != null && !rec.contains(getMousePosition())) {
-			return null;
-		}
-		return Complex.add(lewyDolny, new Complex ((xM-x)/rec.getWidth()*(prawyGorny.x-lewyDolny.x), (y-yM)/rec.getHeight()*(prawyGorny.y-lewyDolny.y)));
-	}
 	
 	static LinkedList<threadAndItsBegg> currentlyChanging = new LinkedList<threadAndItsBegg>();
+	
+	@Override
+	public void doLayout() {
+		super.doLayout();
+		if(getComponentCount() != 1)
+			throw new IllegalStateException();
+		Component child = getComponent(0);
+		child.setBounds((int) ( getWidth() / 2  - child.getPreferredSize().width / 2) , (int) ( getHeight() / 2  - child.getPreferredSize().height / 2), child.getPreferredSize().width, child.getPreferredSize().height);
+	}
+	
 	public Graph(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange, int bok) {
 		this.colorSpeedChange = colorSpeedChange;
 		this.lewyDolny = lewyDolny;
 		this.prawyGorny = prawyGorny;
 		img = new BufferedImage(bok,bok,BufferedImage.TYPE_INT_RGB);
-		obraz = new JLabel(new ImageIcon(img));
-		setLayout(layout);
-		gbc = new GridBagConstraints();
-		gbc.anchor = GridBagConstraints.CENTER;
+		obraz = new JPanel() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void paint(Graphics g) {
+				super.paintComponent(g);
+				g.drawImage(img, 0, 0, this);
+            }
+		};
+		obraz.setSize(bok, bok);
+		obraz.setPreferredSize(new Dimension(bok,bok));
+		//setLayout(layout);
+		//gbc = new GridBagConstraints();
+		//gbc.anchor = GridBagConstraints.CENTER;
+		//gbc.gridx = 0;
+		//gbc.gridy = 0;
 		add(obraz, gbc);
 		setBackground(new Color(usunac,255-usunac,0));
 		usunac += 55;
@@ -227,7 +240,7 @@ public class Graph extends JPanel {
 	static int rgbToHex(int [] rgb) {
 		return rgb[2] + 256*rgb[1]+ 256*256*rgb[0];
 	}
-
+/*
 	public static void main(String[] args) throws Exception {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -267,4 +280,5 @@ public class Graph extends JPanel {
 		});
 
 	}
+*/
 }
