@@ -15,6 +15,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.MouseInfo;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Toolkit;
@@ -79,6 +80,18 @@ public class Graph extends JPanel {
 		layout.setConstraints(obraz, gbc);
 	}
 
+	public Complex wspolrzedneMyszy() {
+		int x = obraz.getBounds().x;
+		int y = obraz.getBounds().y;
+		Rectangle rec = obraz.getBounds();
+		int xM = MouseInfo.getPointerInfo().getLocation().x;
+		int yM = MouseInfo.getPointerInfo().getLocation().y;
+		if(getMousePosition() != null && !rec.contains(getMousePosition())) {
+			return null;
+		}
+		return Complex.add(lewyDolny, new Complex ((xM-x)/rec.getWidth()*(prawyGorny.x-lewyDolny.x), (y-yM)/rec.getHeight()*(prawyGorny.y-lewyDolny.y)));
+	}
+	
 	static LinkedList<threadAndItsBegg> currentlyChanging = new LinkedList<threadAndItsBegg>();
 	public Graph(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange, int bok) {
 		this.colorSpeedChange = colorSpeedChange;
@@ -108,9 +121,7 @@ public class Graph extends JPanel {
 		changeColor(colorSpeedChange);
 	}
 	
-	public void save(String str) throws IOException {
-
-		File imgfile = new File(str+".png");
+	public void save(File imgfile) throws IOException {
 		ImageIO.write(img, "png", imgfile);
 	}
 	public void change(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange) {

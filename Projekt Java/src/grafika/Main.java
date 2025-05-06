@@ -12,6 +12,9 @@ import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.io.File;
 import java.io.IOException;
 
 import javax.swing.BorderFactory;
@@ -21,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -33,6 +37,7 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileFilter;
 
 import funkcja.Complex;
 import funkcja.Function;
@@ -48,6 +53,8 @@ public class Main extends JFrame {
 	JLabel nadFunkcja;
 	Complex lDolnyWykres = new Complex(-3,-3);
 	Complex pGornyWykres = new Complex(3,3);
+	JTextField argument;
+	JTextField wartosc;
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -156,10 +163,11 @@ public class Main extends JFrame {
 		legenda.gbc.gridx = 0;
 		legenda.layout.setConstraints(legenda.obraz, legenda.gbc);
 		JPanel nadLegenda = new JPanel();
-		nadLegenda.setLayout(new GridLayout(5,1));
+		nadLegenda.setLayout(new GridLayout(0,1));
 		JComponent opcja;
 		JComponent wybor;
 		JPanel calaOpcja;
+		/*
 		calaOpcja = new JPanel();
 		opcja = new JTextArea("Przedstawić obszar wokół nieskończoności?");
 		wybor = new JCheckBox();
@@ -193,25 +201,41 @@ public class Main extends JFrame {
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
 		nadLegenda.add(calaOpcja);
-		
+		*/
 		calaOpcja = new JPanel();
 		wybor= new JButton("Zapisz");
-		JTextField zapisFld = new JTextField(10);
 		((JButton)wybor).addActionListener(new ActionListener() {
-			static int ilosc = 0;
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					wykres.save(zapisFld.getText());
-					zapisFld.setText(zapisFld.getText() + ilosc);
-					ilosc++;
+					JFileChooser ch = new JFileChooser();
+					/*
+					ch.setFileFilter(new FileFilter() {
+
+						   public String getDescription() {
+						       return "JPG Images (*.jpg)";
+						   }
+
+						   public boolean accept(File f) {
+						       if (f.isDirectory()) {
+						           return true;
+						       } else {
+						           String filename = f.getName().toLowerCase();
+						           return filename.endsWith(".jpg") || filename.endsWith(".jpeg") ;
+						       }
+						   }
+						});
+					*/
+					int pot = ch.showSaveDialog(null);
+					if(pot == JFileChooser.APPROVE_OPTION) {
+						wykres.save(ch.getSelectedFile());
+					}
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
 		});
-		calaOpcja.add(zapisFld);
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
 		nadLegenda.add(calaOpcja);
@@ -227,6 +251,36 @@ public class Main extends JFrame {
 		add(zawieraTextFunckcji, BorderLayout.NORTH);
 		add(left, BorderLayout.WEST);
 		add(wykres, BorderLayout.CENTER);
+		
+		JPanel podLegenda = new JPanel();
+		podLegenda.setLayout(new BoxLayout(podLegenda, BoxLayout.Y_AXIS));
+		JLabel argumentLabel = new JLabel("Argument:");
+		JLabel wartoscLabel = new JLabel("Wartość:");
+		argument = new JTextField("-");
+		wartosc = new JTextField("-");
+		podLegenda.add(argumentLabel);
+		podLegenda.add(argument);
+		podLegenda.add(wartoscLabel);
+		podLegenda.add(wartosc);
+		addMouseMotionListener(new MouseMotionListener() {
+			
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				Complex arg = wykres.wspolrzedneMyszy();
+				Complex val = legenda.wspolrzedneMyszy();
+				argument.setText(arg == null ? "-" : ""+arg.x+" + i"+arg.y);
+				wartosc.setText(val== null ? "-" : ""+val.x+" + i"+val.y);
+			}
+			
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		legenda.gbc.gridx = 0;
+		legenda.gbc.gridy = 2;
+		legenda.add(podLegenda, legenda.gbc);
 	}
 	
 	private void changeFunc(FunctionPowloka f) {
@@ -275,7 +329,6 @@ public class Main extends JFrame {
 		};
 		timer.start();
 		narysuj.execute();
-
 	}
 	
 	abstract class ActionListenerWthStop implements ActionListener{
