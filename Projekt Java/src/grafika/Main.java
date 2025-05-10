@@ -10,16 +10,27 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.LayoutManager;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -36,6 +47,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.Border;
@@ -54,10 +66,9 @@ public class Main extends JFrame {
 	JPanel containsWykres;
 	Graph legenda;
 	JLabel nadFunkcja;
-	Complex lDolnyWykres = new Complex(-3,-3);
-	Complex pGornyWykres = new Complex(3,3);
 	JTextField argument;
 	JTextField wartosc;
+	FunctionPowloka currentFunction ;
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600,500));
@@ -70,8 +81,13 @@ public class Main extends JFrame {
 		menuBar.add(Ustawienia);
 		setJMenuBar(menuBar);
 		try {
+			currentFunction = new FunctionPowloka("z^2", new Settings());
+		} catch (WrongSyntaxException e) {
+			throw new IllegalStateException();
+		}
+		try {
 			legenda = new Graph(new FunctionPowloka("z", new Settings()), new Complex(-10,-10), new Complex(10,10), 0.5, 300);
-			wykres = new Graph(new FunctionPowloka("z^2", new Settings()), lDolnyWykres, pGornyWykres, 0.5, 600);
+			wykres = new Graph(currentFunction, new Complex(-3,-3), new Complex(3,3), 0.5, 600);
 		} catch (WrongSyntaxException e) {
 			throw new WewnetzrnaFunkcjaZleZapisana(e);
 		}
@@ -92,10 +108,9 @@ public class Main extends JFrame {
 		funkcjaTextField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				FunctionPowloka f;
 				try {
-					f = new FunctionPowloka(e.getActionCommand(), new Settings());
-					changeFunc(f);
+					currentFunction = new FunctionPowloka(e.getActionCommand(), new Settings());
+					changeFunc(currentFunction);
 				} catch (WrongSyntaxException e1) {
 					nadFunkcja.setForeground(Color.red);
 					nadFunkcja.setText(e1.messageForUser);
@@ -108,16 +123,15 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				FunctionPowloka f;
 				try {
-					f = new FunctionPowloka(funkcjaTextField.getText(), new Settings());
+					currentFunction = new FunctionPowloka(funkcjaTextField.getText(), new Settings());
 					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
-							FunctionPowloka fch = f.simplify(new Settings());
+							FunctionPowloka fch = currentFunction.simplify(new Settings());
 							funkcjaTextField.setText(fch.write(new Settings()));
-							changeFunc(f.simplify(new Settings()));
+							changeFunc(fch);
 							return null;
 						}
 						
@@ -199,7 +213,10 @@ public class Main extends JFrame {
 		lewStr.add(calaOpcja);
 		
 		calaOpcja = new JPanel();
-		wybor= new JButton("Zapisz");
+		calaOpcja.add(new JLabel("Rysowanie:"));
+		JCheckBox rysowanie = new JCheckBox();
+		calaOpcja.add(rysowanie);
+		wybor= new JButton("Zapisz wykres");
 		((JButton)wybor).addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -235,7 +252,9 @@ public class Main extends JFrame {
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
 		lewStr.add(calaOpcja);
-
+		
+		lewStr.add(new JLabel("Legenda:"));
+		
 		left.add(Box.createRigidArea(new Dimension(0,30)));
 		left.add(przyciski);
 		left.add(Box.createRigidArea(new Dimension(0,30)));
@@ -253,15 +272,17 @@ public class Main extends JFrame {
 		lewStr.add(argument);
 		lewStr.add(wartoscLabel);
 		lewStr.add(wartosc);
+		
+		
 		legenda.obraz.addMouseMotionListener(new MouseMotionListener() {
 			
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Rectangle rec = legenda.obraz.getBounds();
 				Complex val = Complex.add(legenda.lewyDolny, new Complex (e.getX()/rec.getWidth()*(legenda.prawyGorny.x-legenda.lewyDolny.x), (1-e.getY()/rec.getHeight())*(legenda.prawyGorny.y-legenda.lewyDolny.y)));
-				argument.setText("---");
 				wartosc.setText(val.printE(2, 2));
-
+				legenda.foreGround.marker = val;
+				legenda.repaint();
 			}
 			
 			@Override
@@ -269,6 +290,16 @@ public class Main extends JFrame {
 				// TODO Auto-generated method stub
 				
 			}
+		});
+		legenda.obraz.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseExited(MouseEvent e) {
+				super.mouseExited(e);
+				wartosc.setText("---");
+				legenda.foreGround.marker = null;
+				legenda.repaint();
+
+			};
 		});
 		wykres.obraz.addMouseMotionListener(new MouseMotionListener() {
 			
@@ -276,21 +307,133 @@ public class Main extends JFrame {
 			public void mouseMoved(MouseEvent e) {
 				Rectangle rec = wykres.obraz.getBounds();
 				Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
-				Complex val = wykres.values[e.getX()][e.getY()];
+				Complex val = wykres.getValueAt(e.getX(), e.getY());
 				argument.setText(arg.printE(2, 2));
 				wartosc.setText(val.printE(2, 2));
-
+				wykres.foreGround.marker = arg;
+				legenda.foreGround.marker = val;
+				legenda.repaint();
+				wykres.repaint();
 			}
 			
 			@Override
 			public void mouseDragged(MouseEvent e) {
+				Rectangle rec = wykres.obraz.getBounds();
+				if(0<=e.getX() && e.getX()<rec.getWidth() && 0<=e.getY() && e.getY()<rec.getHeight()) {
+					Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
+					Complex val = wykres.getValueAt(e.getX(), e.getY());
+					argument.setText(arg.printE(2, 2));
+					wartosc.setText(val.printE(2, 2));
+					wykres.foreGround.marker = arg;
+					legenda.foreGround.marker = val;
+					if(rysowanie.isSelected()) {
+							wykres.foreGround.addPointToCurve(arg);
+							legenda.foreGround.addPointToCurve(val);
+							legenda.repaint();
+							wykres.repaint();
+					}
+					else {
+						wykres.foreGround.rect[1] = e.getPoint();
+						legenda.repaint();
+						wykres.repaint();
+					}
+				}
+			}
+		});
+		wykres.obraz.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if(!rysowanie.isSelected()) {
+					wykres.lewyDolny = wykres.pointToCmplx(new Point((int)Math.min(wykres.foreGround.rect[0].getX(), wykres.foreGround.rect[1].getX()), 
+							(int)Math.max(wykres.foreGround.rect[0].getY(), wykres.foreGround.rect[1].getY())));
+					wykres.prawyGorny = wykres.pointToCmplx(new Point((int)Math.max(wykres.foreGround.rect[0].getX(), wykres.foreGround.rect[1].getX()), 
+							(int)Math.min(wykres.foreGround.rect[0].getY(), wykres.foreGround.rect[1].getY())));
+					System.out.println(wykres.lewyDolny.print(2) + "  " + wykres.prawyGorny.print(2));
+					wykres.foreGround.rect = null;
+					wykres.foreGround.szyba = new Color(0,0,0,50);
+					wykres.foreGround.repaint();
+					SwingWorker<Void,Void> work = changeFunc(currentFunction);
+					work.addPropertyChangeListener(new PropertyChangeListener() {
+						@Override
+						public void propertyChange(PropertyChangeEvent evt) {
+						    if (evt.getPropertyName().equals("state") &&
+						        evt.getNewValue() == SwingWorker.StateValue.DONE) {
+								wykres.foreGround.szyba = new Color(0,0,0,0);
+								wykres.foreGround.repaint();
+						    }
+						}
+					});
+				}
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if(rysowanie.isSelected()) {
+					wykres.foreGround.addNewCurve();
+					legenda.foreGround.addNewCurve();
+				}
+				else {
+					wykres.foreGround.rect = new Point[] {e.getPoint(), e.getPoint()};
+					wykres.foreGround.rect[1] = e.getPoint();
+				}
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				argument.setText("---");
+				wartosc.setText("---");
+				wykres.foreGround.marker = null;
+				legenda.foreGround.marker = null;
+				legenda.repaint();
+				wykres.repaint();
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
 				// TODO Auto-generated method stub
 				
 			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+			}
 		});
+		JComponent rootPane = getRootPane();
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl R"), "usunKrzywe");
+		rootPane.getActionMap().put("usunKrzywe", new AbstractAction() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	wykres.foreGround.resetCurve();
+		    	legenda.foreGround.resetCurve();
+		    	repaint();
+		    }
+		});
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SLASH"), "przejdz do pola tekstowego");
+		rootPane.getActionMap().put("przejdz do pola tekstowego", new AbstractAction() {
+		    @Override
+		    public void actionPerformed(ActionEvent e) {
+		    	if(funkcjaTextField.isFocusOwner())
+		    		return;
+		    	Timer timer = new Timer(0, new ActionListener() {
+					
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						funkcjaTextField.setEnabled(true);
+					}
+				});
+		    	timer.setRepeats(false);
+				funkcjaTextField.setEnabled(false);
+		    	timer.start();
+		    	funkcjaTextField.requestFocus();
+		    	funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
+		    }
+		});
+
 	}
 	
-	private void changeFunc(FunctionPowloka f) {
+	private SwingWorker<Void,Void> changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setText("W trakcie obliczania funkcji");
 		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
@@ -326,7 +469,19 @@ public class Main extends JFrame {
 
 			@Override
 			protected Void doInBackground() throws Exception {
-				wykres.change(f, lDolnyWykres, pGornyWykres, 0.5);
+				wykres.change(f, wykres.lewyDolny, wykres.prawyGorny, 0.5);
+				
+				legenda.foreGround.resetCurve();
+				for(LinkedList<Point> krzywa : wykres.foreGround.krzywa) {
+					legenda.foreGround.addNewCurve();
+					for(Point p : krzywa) {
+						//System.out.println(p);
+						//System.out.println(wykres.getValueAt(p));
+						legenda.foreGround.addPointToCurve(wykres.getValueAt(p));
+					}
+				}
+				legenda.repaint();
+				
 				timerListener.stop = true;
 				nadFunkcja.setForeground(Color.black);
 				nadFunkcja.setText("Obliczono i pokazano funkcję.");
@@ -336,6 +491,7 @@ public class Main extends JFrame {
 		};
 		timer.start();
 		narysuj.execute();
+		return narysuj;
 	}
 	
 	abstract class ActionListenerWthStop implements ActionListener{

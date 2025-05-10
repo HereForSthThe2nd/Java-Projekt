@@ -37,17 +37,11 @@ public class Complex {
 	public String printE(int doubleAcc, int whenToShorten) {
 		if(equals(new Complex(0)))
 			return "0";
-		if(y==1.0)
-			return x==0 ? "i" : toStr(x, doubleAcc, whenToShorten)+"+i";
-		if(x!=0 && y > 0)
+		if(y >= 0)
 			return toStr(x, doubleAcc, whenToShorten)+" + i"+toStr(y, doubleAcc, whenToShorten);
-		if(x!=0 && y < 0)
+		if(y < 0)
 			return toStr(x, doubleAcc, whenToShorten)+" - i"+toStr(-y, doubleAcc, whenToShorten);
-		if(y == 0)
-			return toStr(x, doubleAcc, whenToShorten);
-		return "i"+toStr(y, doubleAcc, whenToShorten);
-		
-
+		return x + ", i" + y;
 	}
 
 	
