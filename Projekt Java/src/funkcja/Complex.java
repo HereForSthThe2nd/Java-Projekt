@@ -11,6 +11,13 @@ public class Complex {
 		System.out.println(x + " + i" + y);
 	}
 	
+	private String toStr(double a, int doubleAcc, int whenToShorten) {
+		if(Math.abs(a) < Math.pow(10, whenToShorten) && Math.abs(a) >= Math.pow(10, -whenToShorten)) {
+			return String.format("%.2f", a);
+		}
+		return String.format("%.2e", a);
+	}
+	
 	public String print(int doubleAcc) {
 		DecimalFormat noplus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"));
 		DecimalFormat plus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"));
@@ -25,9 +32,24 @@ public class Complex {
 		if(y==0)
 			return noplus.format(x);
 		return noplus.format(y)+"i";
-
-		
 	}
+	
+	public String printE(int doubleAcc, int whenToShorten) {
+		if(equals(new Complex(0)))
+			return "0";
+		if(y==1.0)
+			return x==0 ? "i" : toStr(x, doubleAcc, whenToShorten)+"+i";
+		if(x!=0 && y > 0)
+			return toStr(x, doubleAcc, whenToShorten)+" + i"+toStr(y, doubleAcc, whenToShorten);
+		if(x!=0 && y < 0)
+			return toStr(x, doubleAcc, whenToShorten)+" - i"+toStr(-y, doubleAcc, whenToShorten);
+		if(y == 0)
+			return toStr(x, doubleAcc, whenToShorten);
+		return "i"+toStr(y, doubleAcc, whenToShorten);
+		
+
+	}
+
 	
 	public Complex(double x, double y){
 

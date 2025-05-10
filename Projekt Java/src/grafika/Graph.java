@@ -67,22 +67,9 @@ public class Graph extends JPanel {
 	long begginingOfLastChange = System.nanoTime();
 	double colorSpeedChange;
 	static int noOfRep = 0;
-	GridBagConstraints gbc = new GridBagConstraints();
-	GridBagLayout layout = new GridBagLayout();
 	JPanel obraz;
 	//TODO: usunac zmienna ponizej
 	static int usunac = 0;
-	public void setPadx(int padx) {
-		gbc.ipadx = padx;
-		//if(label == null || gbc == null)
-		//	System.out.println("null" +"  " + gbc + "  " + label);
-		layout.setConstraints(obraz, gbc);
-	}
-
-	public void setPady(int pady) {
-		gbc.ipady = pady;
-		layout.setConstraints(obraz, gbc);
-	}
 	
 	static LinkedList<threadAndItsBegg> currentlyChanging = new LinkedList<threadAndItsBegg>();
 	
@@ -92,7 +79,8 @@ public class Graph extends JPanel {
 		if(getComponentCount() != 1)
 			throw new IllegalStateException();
 		Component child = getComponent(0);
-		child.setBounds((int) ( getWidth() / 2  - child.getPreferredSize().width / 2) , (int) ( getHeight() / 2  - child.getPreferredSize().height / 2), child.getPreferredSize().width, child.getPreferredSize().height);
+		child.setBounds((int) ( getWidth() / 2  - child.getPreferredSize().width / 2) , (int) ( getHeight() / 2  - child.getPreferredSize().height / 2),
+				child.getPreferredSize().width, child.getPreferredSize().height);
 	}
 	
 	public Graph(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange, int bok) {
@@ -110,12 +98,7 @@ public class Graph extends JPanel {
 		};
 		obraz.setSize(bok, bok);
 		obraz.setPreferredSize(new Dimension(bok,bok));
-		//setLayout(layout);
-		//gbc = new GridBagConstraints();
-		//gbc.anchor = GridBagConstraints.CENTER;
-		//gbc.gridx = 0;
-		//gbc.gridy = 0;
-		add(obraz, gbc);
+		add(obraz);
 		setBackground(new Color(usunac,255-usunac,0));
 		usunac += 55;
 		usunac %= 226;
@@ -156,6 +139,7 @@ public class Graph extends JPanel {
 	}
 	public void changeColor(double cSC) {
 		//to jeszcze musi byc dopracowane
+		//i to bardzo, istnieją thread managery, tego trzeba by użyć
 		colorSpeedChange = cSC;
 		long beggining = System.nanoTime();
 		HasFinishBoolean draw = new HasFinishBoolean(){
@@ -240,7 +224,7 @@ public class Graph extends JPanel {
 	static int rgbToHex(int [] rgb) {
 		return rgb[2] + 256*rgb[1]+ 256*256*rgb[0];
 	}
-/*
+/*zakomentowane, ponieważ nie chcę za każdm razem zmieniać pliku aby włączać Main
 	public static void main(String[] args) throws Exception {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			@Override

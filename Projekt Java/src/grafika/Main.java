@@ -60,6 +60,7 @@ public class Main extends JFrame {
 	JTextField wartosc;
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setMinimumSize(new Dimension(600,500));
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setLayout(new BorderLayout());
 		JMenuBar menuBar = new JMenuBar();
@@ -74,26 +75,21 @@ public class Main extends JFrame {
 		} catch (WrongSyntaxException e) {
 			throw new WewnetzrnaFunkcjaZleZapisana(e);
 		}
-		legenda.setPadx(100);
 		JPanel zawieraTextFunckcji = new JPanel();
-		JTextField funkcja = new JTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
-		funkcja.setFont(new Font(funkcja.getFont().getName(), Font.ITALIC, 20));
+		JTextField funkcjaTextField = new JTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
+		funkcjaTextField.setFont(new Font(funkcjaTextField.getFont().getName(), Font.ITALIC, 20));
 		zawieraTextFunckcji.setLayout(new BoxLayout(zawieraTextFunckcji, BoxLayout.X_AXIS));
 		JPanel panelMaly = new JPanel();
 		nadFunkcja = new JLabel("Wpisz funkcję poniżej:");
 		panelMaly.setLayout(new GridLayout(2,1));
 		panelMaly.add(nadFunkcja,0);
-		panelMaly.add(funkcja);
+		panelMaly.add(funkcjaTextField);
 		zawieraTextFunckcji.add(Box.createRigidArea(new Dimension(5,0)));
 		zawieraTextFunckcji.add(panelMaly);
 
 		JPanel left = new JPanel();
 		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-	    Border border = BorderFactory.createLineBorder(Color.ORANGE);
-		//funkcja.setMaximumSize(new Dimension(legenda.getWidth(), /*funkcja.getFontMetrics(funkcja.getFont()).getHeight() + */100000000));
-		//funkcja.setBorder(new EmptyBorder(10, 5, 10, 0));
-		//funkcja.setMinimumSize(new Dimension(10, funkcja.getFontMetrics(funkcja.getFont()).getHeight() + 10000));
-		funkcja.addActionListener(new ActionListener() {
+		funkcjaTextField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				FunctionPowloka f;
@@ -106,8 +102,6 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		//zawieraTextFunckcji.add(Box.createRigidArea(new Dimension(0,0)));
-		//zawieraTextFunckcji.setBackground(Color.red);
 		JPanel przyciski = new JPanel();
 		JButton uprosc = new JButton("Uprość");
 		uprosc.addActionListener(new ActionListener() {
@@ -116,13 +110,13 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				FunctionPowloka f;
 				try {
-					f = new FunctionPowloka(funkcja.getText(), new Settings());
+					f = new FunctionPowloka(funkcjaTextField.getText(), new Settings());
 					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
 							FunctionPowloka fch = f.simplify(new Settings());
-							funkcja.setText(fch.write(new Settings()));
+							funkcjaTextField.setText(fch.write(new Settings()));
 							changeFunc(f.simplify(new Settings()));
 							return null;
 						}
@@ -142,13 +136,13 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				FunctionPowloka f;
 				try {
-					f = new FunctionPowloka(funkcja.getText(), new Settings());
+					f = new FunctionPowloka(funkcjaTextField.getText(), new Settings());
 					SwingWorker<Void,Void> rozbijFunc = new SwingWorker<Void,Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
 							FunctionPowloka fch = f.splitByRealAndImaginery(new Settings());
-							funkcja.setText(fch.write(new Settings()));
+							funkcjaTextField.setText(fch.write(new Settings()));
 							changeFunc(fch);
 							return null;
 						}
@@ -162,28 +156,21 @@ public class Main extends JFrame {
 		});
 		przyciski.add(uprosc);
 		przyciski.add(rzeczIUroj);
-		/*
-		legenda.gbc.gridy = 1;
-		legenda.gbc.gridx = 0;
-		legenda.layout.setConstraints(legenda.obraz, legenda.gbc);
-		
-		JPanel nadLegenda = new JPanel();
-		nadLegenda.setLayout(new GridLayout(0,1));
-		*/
 		JComponent opcja;
 		JComponent wybor;
 		JPanel calaOpcja;
-		
+		Border border = BorderFactory.createLineBorder(Color.orange);
 		JPanel lewStr = new JPanel();
 		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
-		/*
+		lewStr.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
+		
 		calaOpcja = new JPanel();
 		opcja = new JTextArea("Przedstawić obszar wokół nieskończoności?");
 		wybor = new JCheckBox();
 		calaOpcja.add(opcja);
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
-		nadLegenda.add(calaOpcja);
+		lewStr.add(calaOpcja);
 		
 		calaOpcja = new JPanel();
 		opcja = new JTextArea("Pokazać oznaczenia legendy?");
@@ -191,7 +178,7 @@ public class Main extends JFrame {
 		calaOpcja.add(opcja);
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
-		nadLegenda.add(calaOpcja);
+		lewStr.add(calaOpcja);
 		
 		calaOpcja = new JPanel();
 		opcja = new JTextArea("Pokazać oznaczenia wykresu?");
@@ -199,7 +186,7 @@ public class Main extends JFrame {
 		calaOpcja.add(opcja);
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
-		nadLegenda.add(calaOpcja);
+		lewStr.add(calaOpcja);
 		
 		calaOpcja = new JPanel();
 		opcja = new JPanel ();
@@ -209,8 +196,8 @@ public class Main extends JFrame {
 		calaOpcja.add(opcja);
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
-		nadLegenda.add(calaOpcja);
-		*/
+		lewStr.add(calaOpcja);
+		
 		calaOpcja = new JPanel();
 		wybor= new JButton("Zapisz");
 		((JButton)wybor).addActionListener(new ActionListener() {
@@ -246,16 +233,9 @@ public class Main extends JFrame {
 			}
 		});
 		calaOpcja.add(wybor);
-		calaOpcja.setBorder(border);
+		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
 		lewStr.add(calaOpcja);
-		//nadLegenda.add(calaOpcja);
 
-		/*
-		 * legenda.gbc.gridy = 0;
-		legenda.gbc.gridx = 0;
-		//legenda.gbc.fill = GridBagConstraints.HORIZONTAL;
-		legenda.add(nadLegenda, legenda.gbc);
-		*/
 		left.add(Box.createRigidArea(new Dimension(0,30)));
 		left.add(przyciski);
 		left.add(Box.createRigidArea(new Dimension(0,30)));
@@ -267,8 +247,8 @@ public class Main extends JFrame {
 		
 		JLabel argumentLabel = new JLabel("Argument:");
 		JLabel wartoscLabel = new JLabel("Wartość:");
-		argument = new JTextField("-");
-		wartosc = new JTextField("-");
+		argument = new JTextField("---");
+		wartosc = new JTextField("---");
 		lewStr.add(argumentLabel);
 		lewStr.add(argument);
 		lewStr.add(wartoscLabel);
@@ -280,7 +260,7 @@ public class Main extends JFrame {
 				Rectangle rec = legenda.obraz.getBounds();
 				Complex val = Complex.add(legenda.lewyDolny, new Complex (e.getX()/rec.getWidth()*(legenda.prawyGorny.x-legenda.lewyDolny.x), (1-e.getY()/rec.getHeight())*(legenda.prawyGorny.y-legenda.lewyDolny.y)));
 				argument.setText("---");
-				wartosc.setText(String.format("%.2f + i%.2f", val.x, val.y));
+				wartosc.setText(val.printE(2, 2));
 
 			}
 			
@@ -297,8 +277,8 @@ public class Main extends JFrame {
 				Rectangle rec = wykres.obraz.getBounds();
 				Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
 				Complex val = wykres.values[e.getX()][e.getY()];
-				argument.setText(String.format("%.2f + i%.2f", arg.x, arg.y));
-				wartosc.setText(String.format("%.2f + i%.2f", val.x, val.y));
+				argument.setText(arg.printE(2, 2));
+				wartosc.setText(val.printE(2, 2));
 
 			}
 			
