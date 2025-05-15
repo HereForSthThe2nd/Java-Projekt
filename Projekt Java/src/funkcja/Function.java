@@ -9,6 +9,8 @@ package funkcja;
 
 import java.util.ArrayList;
 
+import Inne.Complex;
+
 /*
  * ta klasa zazwyczj używana kiedy z metody chcemy też zwrócić informację czy coś się udało zrobić
  */
@@ -61,8 +63,12 @@ abstract public class Function implements FuncChecker
 			throw new WrongSyntaxException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
 		return str;
 	}
+
+	//arg - względem którego argumentu brana jest pochodna
+	protected abstract Function diffX(int arg, Settings set);
+	protected abstract Function diffY(int arg, Settings set);
 	
-	private static BlokList removeParenthases(BlokList bloki) throws WrongSyntaxException {
+ 	private static BlokList removeParenthases(BlokList bloki) throws WrongSyntaxException {
 		if(bloki.arr.size() == 1 && bloki.arr.get(0).type != Blok.FUNCTION) {
 			BlokList newBloki = new BlokList(BlokList.configureStr(bloki.arr.get(0).str));
 			//System.out.println("usuwanie nawiasów na co zmienilo:");
@@ -137,24 +143,13 @@ abstract public class Function implements FuncChecker
 			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
 		}
 		
-		splitIndex = bloki.find("^",-1);
+		splitIndex = bloki.find("^",1);
 		if(splitIndex != -1) {
-			readEmptyStringAsZero = false;
-			int leftPowIndex = splitIndex;
-			while(leftPowIndex>=2 && bloki.arr.get(leftPowIndex-2).str.equals("^")) {
-				leftPowIndex -= 2;
-			}
-			BlokList lBlok = bloki.subList(0, leftPowIndex-1);
-			BlokList rBlok = bloki.subList(splitIndex+2, bloki.arr.size());
-			Function lFunc = read(lBlok, settings);
-			Function rFunc = read(rBlok, settings);
-			return new FuncMult(new Function[] {lFunc, rFunc,
-					new FuncComp(Functions.pow,
-							new Function[] {read(bloki.subList(leftPowIndex-1, splitIndex), settings), read(bloki.subList(splitIndex+1, bloki.arr.size()), settings)})});
+			BlokList lBlok = bloki.subList(0, splitIndex);
+			BlokList rBlok = bloki.subList(splitIndex+1, bloki.arr.size());
+			return new FuncComp(Functions.pow,	new Function[] {read(lBlok, settings), read(rBlok, settings)});
 		}
 		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Ppodany argument: " + bloki.write());
 	}
 	
-	public static void main(String[] args) throws WrongSyntaxException {
-	}
 }

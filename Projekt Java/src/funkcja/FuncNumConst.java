@@ -4,6 +4,8 @@
 
 package funkcja;
 
+import Inne.Complex;
+
 //publiczne tymczasowo na cele testow
 public class FuncNumConst extends Function {
 	//chodzi o to czy trzeba dodawać nawiasy przy wypisywaniu.
@@ -76,5 +78,15 @@ public class FuncNumConst extends Function {
 	@Override
 	protected Function im() {
 		return new FuncNumConst(new Complex(a.y));
+	}
+
+	@Override
+	protected Function diffX(int arg, Settings set) {
+		return new FuncNumConst(new Complex(0));
+	}
+
+	@Override
+	protected Function diffY(int arg, Settings set) {
+		return new FuncNumConst(new Complex(0));
 	}	
 }

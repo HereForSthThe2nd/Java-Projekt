@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import Inne.Complex;
 import funkcja.Function;
 
 /*
@@ -43,19 +44,32 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re() {
 			FunctionPowloka r;
 			try {
 				r = new FunctionPowloka("(x^2+y^2)^(1/2)", new Settings());
 				return new FuncComp(ln, new Function[] {r.f});
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalArgumentException(e);
 			}
 		}
-
+		
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return pow.putArguments(new Function[] {new FuncNumConst(new Complex(1)), idChecker.returnFunc("z")});
+		};
+		
 		@Override
 		protected Function im() {
 			return new FuncComp(arg, new Function[] {idChecker.returnFunc("z")});
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return pow.putArguments(new Function[] {new FuncNumConst(Complex.i), idChecker.returnFunc("z")});
 		}
 	};
 	final static FuncNamed ln = new FuncDefault(1,"ln") {
@@ -80,6 +94,20 @@ public class Functions {
 		protected Function im() {
 			return new FuncComp(arg, new Function[] {idChecker.returnFunc("z")});
 		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return pow.putArguments(new Function[] {new FuncNumConst(new Complex(1)), idChecker.returnFunc("z")});
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return pow.putArguments(new Function[] {new FuncNumConst(Complex.i), idChecker.returnFunc("z")});
+		}
 	};
 	final protected static FuncNamed arg = new FuncDefault(1, "arg") {
 
@@ -96,6 +124,28 @@ public class Functions {
 		@Override
 		protected Function im() {
 			return new FuncNumConst(new Complex(0));
+		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			try {
+				return (new FunctionPowloka("-y/(x^2+y^2)", new Settings())).f;
+			} catch (WrongSyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			try {
+				return (new FunctionPowloka("x/(x^2+y^2)", new Settings())).f;
+			} catch (WrongSyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
 		}
 	};
 	final protected static FuncNamed exp = new FuncDefault(1, "exp") {
@@ -125,6 +175,20 @@ public class Functions {
 			}
 			return pom.f;
 		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return this;
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncMult(new FuncNumConst(Complex.i), this);
+		}
 	};
 	final protected static FuncNamed sin = new FuncDefault(1, "sin") {
 
@@ -151,6 +215,20 @@ public class Functions {
 			} catch (WrongSyntaxException e) {
 				throw new WewnetzrnaFunkcjaZleZapisana(e);
 			}
+		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncComp(cos, new Function [] {idChecker.returnFunc("z")});
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncMult(new FuncNumConst(Complex.i), new FuncComp(cos, new Function [] {idChecker.returnFunc("z")}));
 		}
 		
 	};
@@ -180,6 +258,21 @@ public class Functions {
 				throw new WewnetzrnaFunkcjaZleZapisana(e);
 			}
 		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncMult(new FuncNumConst(new Complex(-1)), new FuncComp(sin, new Function [] {idChecker.returnFunc("z")}));
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncMult(new FuncNumConst(new Complex(0,-1)), new FuncComp(cos, new Function [] {idChecker.returnFunc("z")}));
+		}
+		
 		
 	};
 	final protected static FuncNamed sinh = new FuncDefault(1, "sinh") {
@@ -207,6 +300,21 @@ public class Functions {
 			} catch (WrongSyntaxException e) {
 				throw new WewnetzrnaFunkcjaZleZapisana(e);
 			}
+		}
+
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncComp(cosh, new Function [] {idChecker.returnFunc("z")});
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncMult(new FuncNumConst(Complex.i), new FuncComp(cosh, new Function [] {idChecker.returnFunc("z")}));
 		}
 		
 	};
@@ -236,6 +344,20 @@ public class Functions {
 				throw new WewnetzrnaFunkcjaZleZapisana(e);
 			}
 		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncComp(sinh, new Function [] {idChecker.returnFunc("z")});
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncMult(new FuncNumConst(Complex.i), new FuncComp(sinh, new Function [] {idChecker.returnFunc("z")}));
+		}
 		
 	};
 	final protected static FuncNamed Re = new FuncDefault(1, "Re") {
@@ -251,6 +373,20 @@ public class Functions {
 
 		@Override
 		protected Function im() {
+			return new FuncNumConst(new Complex(0));
+		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncNumConst(new Complex(1));
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
 			return new FuncNumConst(new Complex(0));
 		}
 	};
@@ -269,6 +405,20 @@ public class Functions {
 		@Override
 		protected Function im() {
 			return new FuncNumConst(new Complex(0));
+		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncNumConst(new Complex(0));
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 1)
+				return new FuncNumConst(new Complex(0));
+			return new FuncNumConst(new Complex(1));
 		}
 	};
 	final protected static FuncNamed pow = new FuncDefault(2,"pow") {
@@ -304,7 +454,97 @@ public class Functions {
 				throw new WewnetzrnaFunkcjaZleZapisana(e);
 			}
 		}
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			if(arg > 2)
+				return new FuncNumConst(new Complex(0));
+			try {
+				if(arg==1) {
+					return (new FunctionPowloka("z[1]*pow(z[0], z[1]-1)", new Settings())).f;
+				}
+				if(arg==2) {
+					return (new FunctionPowloka("pow(z[0],z[1])*ln(z[0])", new Settings())).f;
+				}
+				throw new IllegalArgumentException("??? arg == " + arg);
+			} catch (WrongSyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			if(arg > 2)
+				return new FuncNumConst(new Complex(0));
+			try {
+				if(arg==1) {
+					return (new FunctionPowloka("i*z[1]*pow(z[0], z[1]-1)", new Settings())).f;
+				}
+				if(arg==2) {
+					return (new FunctionPowloka("i*pow(z[0],z[1])*ln(z[0])", new Settings())).f;
+				}
+				throw new IllegalArgumentException("??? arg == " + arg);
+			} catch (WrongSyntaxException e) {
+				throw new IllegalArgumentException(e);
+			}
+		}
 	};
+	
+	final protected static FuncNamed diffX = new FuncDefault(1, "diffX") {
+		//zapewne w inny sposób powinno byc zaimplementowane, najlepiej zmienić całys sposób działania funkcji bazowych
+		@Override
+		protected Complex evaluate(Complex[] arg) {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			throw new IllegalArgumentException("pochodna");
+		}
+	};
+	
+	final protected static FuncNamed diffY = new FuncDefault(1, "diffY") {
+		//zapewne w inny sposób powinno byc zaimplementowane, najlepiej zmienić całys sposób działania funkcji bazowych
+		@Override
+		protected Complex evaluate(Complex[] arg) {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function diffX(int arg, Settings set) {
+			throw new IllegalArgumentException("pochodna");
+		}
+
+		@Override
+		protected Function diffY(int arg, Settings set) {
+			throw new IllegalArgumentException("pochodna");
+		}
+	};
+
+	
 	final protected static FuncNamed e = new FuncConstDefault("e") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -320,6 +560,7 @@ public class Functions {
 		protected Function im() {
 			return new FuncNumConst(new Complex(0));
 		}
+
 	};
 	final protected static FuncNamed pi = new FuncConstDefault("pi") {
 		@Override
@@ -336,6 +577,7 @@ public class Functions {
 		protected Function im() {
 			return new FuncNumConst(new Complex(0));
 		}
+
 	};
 	final protected static FuncNamed phi = new FuncConstDefault("phi") {
 		@Override
@@ -352,14 +594,15 @@ public class Functions {
 		protected Function im() {
 			return new FuncNumConst(new Complex(0));
 		}
+
 	};	
 	final protected static Function i = new FuncNumConst(Complex.i);
 		
 	protected final static nameAndValue<Function> defaultVar = new nameAndValue<Function>(new ArrayList<String>(List.of("e", "pi", "phi", "i")),
 			new ArrayList<Function>(List.of(e ,pi, phi, i)));
 	protected final static nameAndValue<FuncNamed> defaultFunctions = new nameAndValue<FuncNamed>(
-			new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg")),
-			new ArrayList<FuncNamed>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg)));
+			new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg", "diffX", "diffY")),
+			new ArrayList<FuncNamed>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg, diffX, diffY)));
 	protected static nameAndValue<FuncNamed> userFunctions = new nameAndValue<FuncNamed>();
 	protected static nameAndValue<FuncNamed> userVar = new nameAndValue<FuncNamed>();
 	
@@ -518,6 +761,20 @@ public class Functions {
 					protected Function im() {
 						return new FuncComp(arg, new Function[] {idChecker.returnFunc("z")});
 					}
+
+					@Override
+					protected Function diffX(int arg, Settings set) {
+						if(arg > 1)
+							return new FuncNumConst(new Complex(0));
+						return pow.putArguments(new Function[] {new FuncNumConst(new Complex(1)), idChecker.returnFunc("z")});
+					}
+
+					@Override
+					protected Function diffY(int arg, Settings set) {
+						if(arg > 1)
+							return new FuncNumConst(new Complex(0));
+						return pow.putArguments(new Function[] {new FuncNumConst(Complex.i), idChecker.returnFunc("z")});
+					}
 				};
 			}
 			catch(WrongSyntaxException e){
@@ -562,6 +819,39 @@ public class Functions {
 							return innyZapis.f.im();
 						} catch (WrongSyntaxException e) {
 							throw new WewnetzrnaFunkcjaZleZapisana(e);
+						}
+					}
+
+					@Override
+					protected Function diffX(int arg, Settings set) {
+						if(arg > 2)
+							return new FuncNumConst(new Complex(0));
+						try {
+							if(arg==1) {
+								return (new FunctionPowloka("z[1]*pow(z[0], z[1]-1)", new Settings())).f;
+							}
+							if(arg==2) {
+								return (new FunctionPowloka("pow(z[0],z[1])*ln(z[0])", new Settings())).f;
+							}
+							throw new IllegalArgumentException("??? arg == " + arg);
+						} catch (WrongSyntaxException e) {
+							throw new IllegalArgumentException(e);
+						}
+					}
+					@Override
+					protected Function diffY(int arg, Settings set) {
+						if(arg > 2)
+							return new FuncNumConst(new Complex(0));
+						try {
+							if(arg==1) {
+								return (new FunctionPowloka("i*z[1]*pow(z[0], z[1]-1)", new Settings())).f;
+							}
+							if(arg==2) {
+								return (new FunctionPowloka("i*pow(z[0],z[1])*ln(z[0])", new Settings())).f;
+							}
+							throw new IllegalArgumentException("??? arg == " + arg);
+						} catch (WrongSyntaxException e) {
+							throw new IllegalArgumentException(e);
 						}
 					}
 				};
@@ -618,6 +908,18 @@ public class Functions {
 					protected Function im() {
 						return new FuncComp(Im, new Function[] {this});
 					}
+					@Override
+					protected Function diffX(int arg, Settings set) {
+						if(arg != 1)
+							return new FuncNumConst(new Complex(0));
+						return new FuncNumConst(new Complex(1));
+					}
+					@Override
+					protected Function diffY(int arg, Settings set) {
+						if(arg != 1)
+							return new FuncNumConst(new Complex(0));
+						return new FuncNumConst(Complex.i);					
+					}
 				};
 			if(str.equals("w")) {
 				return new FuncNamed(2, "z[1]") { 
@@ -646,6 +948,18 @@ public class Functions {
 					protected Function im() {
 						return new FuncComp(Im, new Function[] {this});
 					}
+
+					@Override
+					protected Function diffX(int arg, Settings set) {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					protected Function diffY(int arg, Settings set) {
+						// TODO Auto-generated method stub
+						return null;
+					}
 				};
 			}
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
@@ -666,13 +980,26 @@ public class Functions {
 				}
 
 				@Override
-				protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+				protected Function re() {
 					return new FuncComp(Re, new Function[] {this});
 				}
 
 				@Override
 				protected Function im() {
 					return new FuncComp(Im, new Function[] {this});
+				}
+
+				@Override
+				protected Function diffX(int arg, Settings set) {
+					if(arg != k)
+						return new FuncNumConst(new Complex(0));
+					return new FuncNumConst(new Complex(1));
+				}
+				@Override
+				protected Function diffY(int arg, Settings set) {
+					if(arg != k)
+						return new FuncNumConst(new Complex(0));
+					return new FuncNumConst(Complex.i);					
 				}
 			};
 

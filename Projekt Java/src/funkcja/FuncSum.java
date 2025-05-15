@@ -7,6 +7,9 @@ package funkcja;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import Inne.Complex;
+import Inne.Pair;
+
 class FuncSum extends Function {
 	final Function[] summands;
 	protected FuncSum(Function[] f) {
@@ -205,4 +208,22 @@ class FuncSum extends Function {
 			return new FuncNumConst(new Complex(0));
 		return new FuncSum((organisedSummands.toArray(new Function[organisedSummands.size()])));
 	}
+
+	@Override
+	protected Function diffX(int arg, Settings set) {
+		Function[] summandsMod = new Function[summands.length];
+		for(int i=0;i<summands.length;i++) {
+			summandsMod[i] = summands[i].diffX(arg, set);
+		}
+		return new FuncSum(summandsMod);
+	}
+	@Override
+	protected Function diffY(int arg, Settings set) {
+		Function[] summandsMod = new Function[summands.length];
+		for(int i=0;i<summands.length;i++) {
+			summandsMod[i] = summands[i].diffY(arg, set);
+		}
+		return new FuncSum(summandsMod);
+	}
+
 }

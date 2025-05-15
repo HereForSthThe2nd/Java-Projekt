@@ -9,6 +9,8 @@ package funkcja;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import Inne.Complex;
+
 class FuncMult extends Function {
 	final Function[] f;
 	public FuncMult(Function[] f) {
@@ -376,5 +378,31 @@ class FuncMult extends Function {
 		organisedMult.addAll(multPutTogether2);
 
 		return new FuncMult((Function[])(organisedMult.toArray(new Function[organisedMult.size()])));
+	}
+	@Override
+	protected Function diffX(int arg, Settings set) {
+		if(f.length == 1)
+			return f[0].diffX(arg, set);
+		if(f.length == 2) 
+			return new FuncSum(new Function[] {new FuncMult(f[0].diffX(arg, set), f[1]), new FuncMult(f[1].diffX(arg, set), f[0])});
+		Function[] fMod = new Function[f.length-1];
+		for(int i=1;i<f.length;i++) {
+			fMod[i] = f[i-1];
+		}
+		Function fP = new FuncMult(f[0], new FuncMult(fMod));
+		return fP.diffX(arg, set);
+	}
+	@Override
+	protected Function diffY(int arg, Settings set) {
+		if(f.length == 1)
+			return f[0].diffY(arg, set);
+		if(f.length == 2) 
+			return new FuncSum(new Function[] {new FuncMult(f[0].diffY(arg, set), f[1]), new FuncMult(f[1].diffY(arg, set), f[0])});
+		Function[] fMod = new Function[f.length-1];
+		for(int i=1;i<f.length;i++) {
+			fMod[i] = f[i-1];
+		}
+		Function fP = new FuncMult(f[0], new FuncMult(fMod));
+		return fP.diffY(arg, set);
 	}
 }

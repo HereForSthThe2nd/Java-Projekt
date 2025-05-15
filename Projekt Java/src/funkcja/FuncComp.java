@@ -7,6 +7,8 @@
 
 package funkcja;
 
+import Inne.Complex;
+
 class FuncComp extends Function {
 	private FuncNamed f;
 	private Function[] g;
@@ -34,14 +36,26 @@ class FuncComp extends Function {
 	}
 	@Override
 	protected Complex evaluate(Complex[] arg) {
+		if(f == Functions.diffX) {
+			return g[0].diffX(1, new Settings()).evaluate(arg);
+		}
+		if(f == Functions.diffY) {
+			return g[0].diffY(1, new Settings()).evaluate(arg);
+		}
 		return f.evaluate(FuncMethods.evaluate(g, arg));
 	}
 	@Override
 	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		if(f == Functions.diffX || f == Functions.diffY) {
+			return new FuncComp(f, new Function[] {new FuncComp(Functions.Re, g)});
+		}
 		return f.re().putArguments(g);
 	}
 	@Override
 	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		if(f == Functions.diffX || f == Functions.diffY) {
+			return new FuncComp(f, new Function[] {new FuncComp(Functions.Im, g)});
+		}
 		return f.im().putArguments(g);
 	}
 	private String wypiszPotege(Settings settings) {
@@ -296,6 +310,15 @@ class FuncComp extends Function {
 	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
 		calledSimp++;
 		//System.out.println("w funccomp początek.  " + this.write(setting) + "   " + calledSimp);
+		System.out.println("fueufufeu");
+		System.out.println(f.write(new Settings()) + "  " + g[0].write(new Settings()));
+		if(f == Functions.diffX) {
+			System.out.println(g[0].write(new Settings()));
+			return g[0].diffX(1, new Settings());
+		}
+		if(f == Functions.diffY) {
+			return g[0].diffY(1, new Settings());
+		}
 		Bool<Function> fb;
 		fb = simplifyPow(setting);
 		if(fb.bool) {
@@ -322,5 +345,32 @@ class FuncComp extends Function {
 		//if(checkComponents(null, f))
 		Function[] newArg = FuncMethods.simplifyAll(g, setting);
 		return new FuncComp(f, newArg);
+	}
+	@Override
+	protected Function diffX(int arg, Settings set) {
+		if(f.nofArg == 0)
+			return new FuncNumConst(new Complex(0));
+		Function[] ret = new Function[2*f.nofArg];
+		for(int i=0;i<f.nofArg;i++) {
+			System.out.println("w funccomp.diffX " + i + "  " + f.write(new Settings()));
+			ret[2*i] = new FuncMult((f.diffX(i, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffX(arg, set)}));
+			System.out.println("2w funccomp.diffX " + i + "  " + f.write(new Settings()));
+			ret[2*i+1] = new FuncMult((f.diffY(i, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffX(arg, set)}));
+			System.out.println("3w funccomp.diffX " + i + "  " + f.write(new Settings()));
+		}
+		return new FuncSum(ret);
+	}
+	@Override
+	protected Function diffY(int arg, Settings set) {
+		if(f.nofArg == 0)
+			return new FuncNumConst(new Complex(0));
+		
+		Function[] ret = new Function[2*f.nofArg];
+		for(int i=0;i<f.nofArg;i++) {
+			ret[2*i] = new FuncMult((f.diffX(i, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffY(arg, set)}));
+			ret[2*i+1] = new FuncMult((f.diffY(i, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffY(arg, set)}));
+		}
+		
+		return new FuncSum(ret);
 	}
 }

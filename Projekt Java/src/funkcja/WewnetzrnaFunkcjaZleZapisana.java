@@ -4,7 +4,7 @@
  */
 
 package funkcja;
-
+@Deprecated
 public class WewnetzrnaFunkcjaZleZapisana extends Exception {
 
 	public WewnetzrnaFunkcjaZleZapisana() {

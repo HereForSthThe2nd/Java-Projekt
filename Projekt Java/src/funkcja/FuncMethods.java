@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import Inne.Complex;
+
 class FuncMethods {
 
 	static final FuncChecker isNumConst = new FuncChecker() {

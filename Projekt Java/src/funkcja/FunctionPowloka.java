@@ -4,6 +4,8 @@
 
 package funkcja;
 
+import Inne.Complex;
+
 public class FunctionPowloka {
 	Function f;
 	//String canonicForm; gólne by było równe f.write, chyba że użytkownik dopiero przed chwilą wpisał funkcję i jeszcze jej w żaden sposób nie zmodyfikował... 

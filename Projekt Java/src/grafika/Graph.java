@@ -43,6 +43,7 @@ import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import Inne.Complex;
 import funkcja.*;
 
 import javax.swing.JComponent;

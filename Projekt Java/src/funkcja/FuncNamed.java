@@ -5,6 +5,8 @@
 
 package funkcja;
 
+import Inne.Complex;
+
 /*
  * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
  */
@@ -40,7 +42,6 @@ abstract class FuncNamed extends Function{
 abstract class FuncDefault extends FuncNamed{
 
 	protected FuncDefault(int nofArg, String name) {
-
 		super(nofArg, name);
 	}
 
@@ -59,7 +60,14 @@ abstract class FuncConstDefault extends FuncNamed{
 	protected FuncConstDefault(String name) {
 		super(0, name);
 	}
-
+	@Override
+	final protected Function diffX(int arg, Settings set) {
+		return new FuncNumConst(new Complex(0));
+	}
+	@Override
+	final protected Function diffY(int arg, Settings set) {
+		return new FuncNumConst(new Complex(0));
+	}
 	@Override
 	protected Function putArguments(Function[] args) {
 		return this;
@@ -70,28 +78,33 @@ abstract class FuncConstDefault extends FuncNamed{
 	}
 }
 
-class FuncGivenName extends FuncNamed{
+abstract class UserFunction extends FuncNamed{
 	final Function f;
-	protected FuncGivenName(Function f, String name) {
-		super(f.nofArg, name);
-		this.f=f;
-	}
 
+	public UserFunction(String name, Function f) {
+		super(f.nofArg, name);
+		this.f = f;
+	}
 	@Override
 	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(arg);
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
-		return new FuncComp(this, args);
-	}
-	
-	@Override
 	protected Function expand() {
 		return f;
 	}
 
+	@Override
+	protected Function diffX(int arg, Settings set) {
+		return f.diffX(arg, set);
+	}
+	
+	@Override
+	protected Function diffY(int arg, Settings set) {
+		return f.diffY(arg, set);
+	}
+	
 	@Override
 	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
 		return f.re();
@@ -101,18 +114,26 @@ class FuncGivenName extends FuncNamed{
 	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
 		return f.im();
 	}
+	
 }
 
-class VarGivenName extends FuncNamed{
-	final Function f;
-	protected VarGivenName(String name, Function f) {
-		super(f.nofArg, name);
-		this.f=f;
+class FuncGivenName extends UserFunction{
+	protected FuncGivenName(Function f, String name) {
+		super(name, f);
 	}
 
 	@Override
-	protected Complex evaluate(Complex[] arg) {
-		return f.evaluate(arg);
+	protected Function putArguments(Function[] args) {
+		return new FuncComp(this, args);
+	}
+	
+
+	
+}
+
+class VarGivenName extends UserFunction{
+	protected VarGivenName(String name, Function f) {
+		super(name, f);
 	}
 
 	@Override
@@ -139,19 +160,12 @@ class VarGivenName extends FuncNamed{
 
 }
 
-final class FuncConstGivenName extends FuncNamed{
-	final Function f;
+final class FuncConstGivenName extends UserFunction{
 	protected FuncConstGivenName(String name, Function f) {
-		super(0, name);
+		super(name, f);
 		if(f.nofArg != 0) {
 			throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Podana funkxja: " + f.write(new Settings()));
 		}
-		this.f=f;
-	}
-
-	@Override
-	protected Complex evaluate(Complex[] arg) {
-		return f.evaluate(new Complex[] {});
 	}
 
 	@Override
@@ -159,10 +173,6 @@ final class FuncConstGivenName extends FuncNamed{
 		return this;
 	}
 	
-	@Override
-	final protected Function expand() {
-		return f;
-	}
 
 	@Override
 	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
@@ -177,4 +187,5 @@ final class FuncConstGivenName extends FuncNamed{
 			return this;
 		return f.im();
 	}
+	
 }

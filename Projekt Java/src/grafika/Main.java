@@ -54,7 +54,7 @@ import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 
-import funkcja.Complex;
+import Inne.Complex;
 import funkcja.Function;
 import funkcja.FunctionPowloka;
 import funkcja.Settings;
@@ -132,6 +132,7 @@ public class Main extends JFrame {
 							FunctionPowloka fch = currentFunction.simplify(new Settings());
 							funkcjaTextField.setText(fch.write(new Settings()));
 							changeFunc(fch);
+							nadFunkcja.setText("Wypisano nową funkcję.");
 							return null;
 						}
 						
