@@ -81,6 +81,14 @@ class FuncMethods {
 		return g2;
 	}
 	
+	static Function[] removeDiffInAll(Function[] f) {
+		Function[] ret = new Function[f.length];
+		for(int i=0;i<f.length;i++) {
+			ret[i] = f[i].removeDiff();
+		}
+		return ret;
+	}
+	
 	protected static boolean equals(Function[] f, Function g[]) {//zwraca prawdę, nawet jeśli drugie jest permutacją pierwszego
 		if(f.length != g.length)
 			return false;

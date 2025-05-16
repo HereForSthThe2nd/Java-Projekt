@@ -110,7 +110,7 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					currentFunction = new FunctionPowloka(e.getActionCommand(), new Settings());
-					changeFunc(currentFunction);
+					changeFunc(currentFunction.removeDiff());
 				} catch (WrongSyntaxException e1) {
 					nadFunkcja.setForeground(Color.red);
 					nadFunkcja.setText(e1.messageForUser);
@@ -129,11 +129,16 @@ public class Main extends JFrame {
 
 						@Override
 						protected Void doInBackground() throws Exception {
-							FunctionPowloka fch = currentFunction.simplify(new Settings());
-							funkcjaTextField.setText(fch.write(new Settings()));
-							changeFunc(fch);
-							nadFunkcja.setText("Wypisano nową funkcję.");
-							return null;
+							try {
+								FunctionPowloka fch = currentFunction.simplify(new Settings());
+								funkcjaTextField.setText(fch.write(new Settings()));
+								changeFunc(fch);
+								nadFunkcja.setText("Wypisano nową funkcję.");
+								return null;
+							} catch (Exception e) {
+								e.printStackTrace();
+								throw new IllegalArgumentException(e);
+							}
 						}
 						
 					};
@@ -350,7 +355,6 @@ public class Main extends JFrame {
 							(int)Math.max(wykres.foreGround.rect[0].getY(), wykres.foreGround.rect[1].getY())));
 					wykres.prawyGorny = wykres.pointToCmplx(new Point((int)Math.max(wykres.foreGround.rect[0].getX(), wykres.foreGround.rect[1].getX()), 
 							(int)Math.min(wykres.foreGround.rect[0].getY(), wykres.foreGround.rect[1].getY())));
-					System.out.println(wykres.lewyDolny.print(2) + "  " + wykres.prawyGorny.print(2));
 					wykres.foreGround.rect = null;
 					wykres.foreGround.szyba = new Color(0,0,0,50);
 					wykres.foreGround.repaint();

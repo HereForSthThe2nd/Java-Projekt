@@ -920,47 +920,13 @@ public class Functions {
 							return new FuncNumConst(new Complex(0));
 						return new FuncNumConst(Complex.i);					
 					}
-				};
-			if(str.equals("w")) {
-				return new FuncNamed(2, "z[1]") { 
-					
 					@Override
-					protected Complex evaluate(Complex[] arg) {
-						return arg[1];
-					}
-
-					@Override
-					protected Function putArguments(Function[] args) {
-						return args[1];
-					}
-
-					@Override
-					protected Function expand() {
+					Function removeDiff() {
 						return this;
-					}
-
-					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
-						return new FuncComp(Re, new Function[] {this});
-					}
-
-					@Override
-					protected Function im() {
-						return new FuncComp(Im, new Function[] {this});
-					}
-
-					@Override
-					protected Function diffX(int arg, Settings set) {
-						// TODO Auto-generated method stub
-						return null;
-					}
-
-					@Override
-					protected Function diffY(int arg, Settings set) {
-						// TODO Auto-generated method stub
-						return null;
-					}
-				};
+					}	
+			};
+			if(str.equals("w")) {
+				return returnFunc("z[1]");
 			}
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
 			return new FuncNamed(k+1, k == 0 ? "z" : str) {
@@ -1000,6 +966,10 @@ public class Functions {
 					if(arg != k)
 						return new FuncNumConst(new Complex(0));
 					return new FuncNumConst(Complex.i);					
+				}
+				@Override
+				Function removeDiff() {
+					return this;
 				}
 			};
 

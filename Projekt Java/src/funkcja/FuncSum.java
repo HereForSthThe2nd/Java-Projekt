@@ -225,5 +225,8 @@ class FuncSum extends Function {
 		}
 		return new FuncSum(summandsMod);
 	}
-
+	@Override
+	Function removeDiff() {
+		return new FuncSum(FuncMethods.removeDiffInAll(summands));
+	}
 }

@@ -405,4 +405,8 @@ class FuncMult extends Function {
 		Function fP = new FuncMult(f[0], new FuncMult(fMod));
 		return fP.diffY(arg, set);
 	}
+	@Override
+	Function removeDiff() {
+		return new FuncMult(FuncMethods.removeDiffInAll(f));
+	}
 }

@@ -310,10 +310,10 @@ class FuncComp extends Function {
 	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
 		calledSimp++;
 		//System.out.println("w funccomp początek.  " + this.write(setting) + "   " + calledSimp);
-		System.out.println("fueufufeu");
-		System.out.println(f.write(new Settings()) + "  " + g[0].write(new Settings()));
+		//System.out.println("fueufufeu w  funccomp.simplify");
+		//System.out.println(f.write(new Settings()) + "  " + g[0].write(new Settings()));
 		if(f == Functions.diffX) {
-			System.out.println(g[0].write(new Settings()));
+			//System.out.println(g[0].write(new Settings()));
 			return g[0].diffX(1, new Settings());
 		}
 		if(f == Functions.diffY) {
@@ -352,11 +352,11 @@ class FuncComp extends Function {
 			return new FuncNumConst(new Complex(0));
 		Function[] ret = new Function[2*f.nofArg];
 		for(int i=0;i<f.nofArg;i++) {
-			System.out.println("w funccomp.diffX " + i + "  " + f.write(new Settings()));
-			ret[2*i] = new FuncMult((f.diffX(i, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffX(arg, set)}));
-			System.out.println("2w funccomp.diffX " + i + "  " + f.write(new Settings()));
-			ret[2*i+1] = new FuncMult((f.diffY(i, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffX(arg, set)}));
-			System.out.println("3w funccomp.diffX " + i + "  " + f.write(new Settings()));
+			//System.out.println("w funccomp.diffX " + i + "  " + f.write(new Settings()) + "  " + g[i].write(new Settings()) + "  arg: " +arg);
+			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffX(arg, set)}));
+			//System.out.println("2w funccomp.diffX " + i + "  " + f.write(new Settings()));
+			ret[2*i+1] = new FuncMult((f.diffY(i+1, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffX(arg, set)}));
+			//System.out.println("3w funccomp.diffX " + i + "  " + f.write(new Settings()));
 		}
 		return new FuncSum(ret);
 	}
@@ -367,10 +367,20 @@ class FuncComp extends Function {
 		
 		Function[] ret = new Function[2*f.nofArg];
 		for(int i=0;i<f.nofArg;i++) {
-			ret[2*i] = new FuncMult((f.diffX(i, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffY(arg, set)}));
-			ret[2*i+1] = new FuncMult((f.diffY(i, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffY(arg, set)}));
+			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffY(arg, set)}));
+			ret[2*i+1] = new FuncMult((f.diffY(i+1, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffY(arg, set)}));
 		}
 		
 		return new FuncSum(ret);
+	}
+	@Override
+	Function removeDiff() {
+		if(f == Functions.diffX) {
+			return g[0].diffX(1, new Settings());
+		}
+		if(f == Functions.diffY) {
+			return g[0].diffY(1, new Settings());
+		}
+		return new FuncComp(f, FuncMethods.removeDiffInAll(g));
 	}
 }

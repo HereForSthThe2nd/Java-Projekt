@@ -35,7 +35,11 @@ public class FunctionPowloka {
 	public Complex evaluate(Complex[] z) {
 		return f.evaluate(z);
 	}
-		
+	
+	public FunctionPowloka removeDiff() {
+		return new FunctionPowloka(f.removeDiff());
+	}
+	
 	public FunctionPowloka changeToNamed(String str) throws IncorrectNameException {
 		return new FunctionPowloka(Functions.addNmdFunc(f, str));
 	}

@@ -36,7 +36,10 @@ abstract class FuncNamed extends Function{
 			return new FuncNumConst( evaluate(new Complex[] {}) );
 		return this;
 	}
-
+	@Override
+	Function removeDiff() {
+		throw new IllegalArgumentException("Nie powinno do tegodojść");
+	}
 }
 
 abstract class FuncDefault extends FuncNamed{

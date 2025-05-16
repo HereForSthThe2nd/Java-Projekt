@@ -68,7 +68,9 @@ abstract public class Function implements FuncChecker
 	protected abstract Function diffX(int arg, Settings set);
 	protected abstract Function diffY(int arg, Settings set);
 	
- 	private static BlokList removeParenthases(BlokList bloki) throws WrongSyntaxException {
+	abstract Function removeDiff();
+	
+  	private static BlokList removeParenthases(BlokList bloki) throws WrongSyntaxException {
 		if(bloki.arr.size() == 1 && bloki.arr.get(0).type != Blok.FUNCTION) {
 			BlokList newBloki = new BlokList(BlokList.configureStr(bloki.arr.get(0).str));
 			//System.out.println("usuwanie nawiasów na co zmienilo:");
@@ -77,7 +79,7 @@ abstract public class Function implements FuncChecker
 		}
 		return bloki;
 	}
-	
+	 	
 	static boolean readEmptyStringAsZero; //prawda: "" --> func(z->0), fałsz: "" --> func(z->1)
 	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
 		bloki = removeParenthases(bloki);

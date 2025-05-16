@@ -88,5 +88,10 @@ public class FuncNumConst extends Function {
 	@Override
 	protected Function diffY(int arg, Settings set) {
 		return new FuncNumConst(new Complex(0));
+	}
+
+	@Override
+	Function removeDiff() {
+		return this;
 	}	
 }
