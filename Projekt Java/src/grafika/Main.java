@@ -36,6 +36,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -74,22 +75,13 @@ public class Main extends JFrame {
 		setMinimumSize(new Dimension(600,500));
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setLayout(new BorderLayout());
-		JMenuBar menuBar = new JMenuBar();
-		JMenu Ustawienia = new JMenu("Ustawienia");
-		JTextField doUsunieca = new JTextField("nie ma jeszcze rzadnych ustawień");
-		Ustawienia.add(doUsunieca);
-		menuBar.add(Ustawienia);
-		setJMenuBar(menuBar);
+		doTheMenu();
 		try {
 			currentFunction = new FunctionPowloka("z^2", new Settings());
+			legenda = new Graph(300, new FunctionPowloka("z", new Settings()), new Complex(-10,-10), new Complex(10,10), Graph.basic ,0.5);
+			wykres = new Graph(600, currentFunction, new Complex(-3,-3), new Complex(3,3), Graph.basic, 0.5);
 		} catch (WrongSyntaxException e) {
-			throw new IllegalStateException();
-		}
-		try {
-			legenda = new Graph(new FunctionPowloka("z", new Settings()), new Complex(-10,-10), new Complex(10,10), 0.5, 300);
-			wykres = new Graph(currentFunction, new Complex(-3,-3), new Complex(3,3), 0.5, 600);
-		} catch (WrongSyntaxException e) {
-			throw new WewnetzrnaFunkcjaZleZapisana(e);
+			throw new IllegalStateException(e);
 		}
 		JPanel zawieraTextFunckcji = new JPanel();
 		JTextField funkcjaTextField = new JTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
@@ -176,43 +168,21 @@ public class Main extends JFrame {
 		});
 		przyciski.add(uprosc);
 		przyciski.add(rzeczIUroj);
-		JComponent opcja;
-		JComponent wybor;
-		JPanel calaOpcja;
+		
 		Border border = BorderFactory.createLineBorder(Color.orange);
 		JPanel lewStr = new JPanel();
 		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
 		lewStr.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 		
+		JComponent opcja;
+		JComponent wybor;
+		JPanel calaOpcja;
+
 		calaOpcja = new JPanel();
-		opcja = new JTextArea("Przedstawić obszar wokół nieskończoności?");
-		wybor = new JCheckBox();
-		calaOpcja.add(opcja);
-		calaOpcja.add(wybor);
-		calaOpcja.setBorder(border);
-		lewStr.add(calaOpcja);
-		
-		calaOpcja = new JPanel();
-		opcja = new JTextArea("Pokazać oznaczenia legendy?");
-		wybor= new JCheckBox();
-		calaOpcja.add(opcja);
-		calaOpcja.add(wybor);
-		calaOpcja.setBorder(border);
-		lewStr.add(calaOpcja);
-		
-		calaOpcja = new JPanel();
-		opcja = new JTextArea("Pokazać oznaczenia wykresu?");
-		wybor= new JCheckBox();
-		calaOpcja.add(opcja);
-		calaOpcja.add(wybor);
-		calaOpcja.setBorder(border);
-		lewStr.add(calaOpcja);
-		
-		calaOpcja = new JPanel();
-		opcja = new JPanel ();
-		opcja.add(new JTextArea("Sposób pokolorowania legendy"));
-		wybor= new JComboBox<String>();
 		calaOpcja.setLayout(new GridLayout(2,1));
+		opcja = new JPanel ();
+		opcja.add(new JLabel("Sposób pokolorowania legendy"));
+		wybor= new JComboBox<String>();
 		calaOpcja.add(opcja);
 		calaOpcja.add(wybor);
 		calaOpcja.setBorder(border);
@@ -259,6 +229,15 @@ public class Main extends JFrame {
 		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
 		lewStr.add(calaOpcja);
 		
+		calaOpcja = new JPanel();
+		opcja = new JLabel("Całka po krzywej: ");
+		wybor = new JTextArea("---");
+		((JTextArea)wybor).setEditable(false);
+		calaOpcja.add(opcja);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		lewStr.add(calaOpcja);
+		
 		lewStr.add(new JLabel("Legenda:"));
 		
 		left.add(Box.createRigidArea(new Dimension(0,30)));
@@ -274,11 +253,12 @@ public class Main extends JFrame {
 		JLabel wartoscLabel = new JLabel("Wartość:");
 		argument = new JTextField("---");
 		wartosc = new JTextField("---");
+		argument.setEditable(false);
+		wartosc.setEditable(false);
 		lewStr.add(argumentLabel);
 		lewStr.add(argument);
 		lewStr.add(wartoscLabel);
 		lewStr.add(wartosc);
-		
 		
 		legenda.obraz.addMouseMotionListener(new MouseMotionListener() {
 			
@@ -438,6 +418,34 @@ public class Main extends JFrame {
 
 	}
 	
+	private void doTheMenu() {
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		JMenu Ustawienia = new JMenu("Ustawienia");
+		menuBar.add(Ustawienia);
+		JTextField doUsunieca = new JTextField("nie ma jeszcze rzadnych ustawień");
+		doUsunieca.setEnabled(false);
+		Ustawienia.add(doUsunieca);
+		JMenu wykresMenu = new JMenu("Wykres");
+		JCheckBoxMenuItem osieLegendy = new JCheckBoxMenuItem("Osie legendy");
+		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie wykresu");
+		JCheckBoxMenuItem legendaLogSkala = new JCheckBoxMenuItem("Moduł legendy w skali logarytmicznej");
+		JCheckBoxMenuItem wykresLogSkala = new JCheckBoxMenuItem("Moduł dziedziny(wyresu) w skali logarytmicznej");
+		JCheckBoxMenuItem legndaInf = new JCheckBoxMenuItem("Legenda wokół nieksończoności");
+		JCheckBoxMenuItem wykresInf = new JCheckBoxMenuItem("Dziedzina(wykres) wokół nieksończoności");
+		JCheckBoxMenuItem legendaKwadrat = new JCheckBoxMenuItem("Obszar legendy musi byc kwadratem");
+		JCheckBoxMenuItem wykresKwadrat = new JCheckBoxMenuItem("Obszar wykresu musi byc kwadratem");
+		wykresMenu.add(osieLegendy);
+		wykresMenu.add(osieWykresu);
+		wykresMenu.add(legendaLogSkala);
+		wykresMenu.add(wykresLogSkala);
+		wykresMenu.add(legndaInf);
+		wykresMenu.add(wykresInf);
+		wykresMenu.add(legendaKwadrat);
+		wykresMenu.add(wykresKwadrat);
+		menuBar.add(wykresMenu);
+	}
+	
 	private SwingWorker<Void,Void> changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setText("W trakcie obliczania funkcji");
@@ -474,7 +482,7 @@ public class Main extends JFrame {
 
 			@Override
 			protected Void doInBackground() throws Exception {
-				wykres.change(f, wykres.lewyDolny, wykres.prawyGorny, 0.5);
+				wykres.change(f, wykres.lewyDolny, wykres.prawyGorny, Graph.basic, 0.5);
 				
 				legenda.foreGround.resetCurve();
 				for(LinkedList<Point> krzywa : wykres.foreGround.krzywa) {

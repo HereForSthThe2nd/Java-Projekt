@@ -52,19 +52,6 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import java.awt.image.BufferedImage;
 
-class threadAndItsBegg{
-	final HasFinishBoolean thr;
-	final long beggTime;
-	public threadAndItsBegg(HasFinishBoolean worker, long time) {
-		thr = worker;
-		beggTime = time;
-	}
-}
-
-abstract class HasFinishBoolean extends SwingWorker<Void,Void>{//bardzo prowizoryczne ale co tam
-	boolean finish = false; 
-}
-
 public class Graph extends JPanel{
 	BufferedImage img;
 	private Complex[][] values; //może trochę overkill, zajmuje z 5 razy więcej miejsca niż obraz, może np. zrobić by co 3 - 10 ^ 2 pikseli obliczało wartości po funkcji (i je tylko wtedy zapisywało) a reszę jakoś interpolowało
@@ -72,16 +59,56 @@ public class Graph extends JPanel{
 	Complex lewyDolny;
 	long lastChange = System.nanoTime();
 	long begginingOfLastChange = System.nanoTime();
-	double colorSpeedChange;
 	static int noOfRep = 0;
 	JPanel obraz;
 	Foreground foreGround;
 	//TODO: usunac zmienna ponizej
 	static int usunac = 0;
+	static CmplxToColor basic;
 	
-	static LinkedList<threadAndItsBegg> currentlyChanging = new LinkedList<threadAndItsBegg>();
-	
+	static {
+		basic = new CmplxToColor() {
+			
+			private static double przedNorm(double r) {
+				if(r<-0.00001) {
+					throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
+				}
+				r = r>0 ? r : 0;
+				//return 2/Math.PI * (Math.atan(r));
+				return 2/Math.PI * (Math.atan(Math.log(r+1)));
+			}
+			
+			private static double[] pointToHSL(Complex z, double lSpeedChange) {
+				if(z == null || Double.isNaN(z.x) || Double.isNaN(z.y)) {
+					return null;
+				}
+				double[] HSL = new double[4];
+				HSL[3] = 255;
+				HSL[0] = z.arg() + 2.0/3*Math.PI;
+				HSL[1] = 1;
+				//HSL[2] = 2/Math.PI*Math.atan( Math.log(Math.pow(z.mod(), 1/lSpeedChange)+1) );
+				HSL[2] = przedNorm( Math.pow(z.mod(), lSpeedChange ));
+				if(HSL[2]>1 || HSL[2]<0) {
+				}
+				return HSL;
+			}
+			
+			@Override
+			public Integer colorOf(Complex z, double... parameters) {
+				if(parameters.length != 1) {
+					throw new IllegalArgumentException("Ta funkcja przyjmuje tylko jeden parametr.");
+				}
+				int[] rgb = HSLToRGB(pointToHSL(z, parameters[0]));
+				if(rgb == null) {
+					return null;
+				}
+				return rgbToHex(rgb);
+			}
+		};
+	}
+		
 	public Complex getValueAt(int x, int y) {
+		//x oraz y to współrzędne piksela
 		return values[x][y];
 	}
 	
@@ -99,10 +126,7 @@ public class Graph extends JPanel{
 		}
 	}
 	
-	public Graph(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange, int bok) {
-		this.colorSpeedChange = colorSpeedChange;
-		this.lewyDolny = lewyDolny;
-		this.prawyGorny = prawyGorny;
+	public Graph(int bok) {
 		img = new BufferedImage(bok,bok,BufferedImage.TYPE_INT_ARGB);
 		obraz = new JPanel() {
 			private static final long serialVersionUID = 1L;
@@ -124,30 +148,10 @@ public class Graph extends JPanel{
 		usunac %= 226;
 		setPreferredSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
 		setSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
-
-		values = new Complex[img.getWidth()][img.getHeight()];
-		for(int xI=0; xI<img.getWidth();xI++) {
-			for(int yI=0;yI<img.getHeight();yI++) {
-				Complex z = pointToCmplx(new Point(xI,yI));
-				values[xI][yI] = f.evaluate(new Complex[] {z});
-			}
-		}
-		changeColor(colorSpeedChange);
-		/*-------kod dla zabawy-----------*/
-		
-		Timer timer = new Timer(30, new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color k = foreGround.szyba;
-				k = new Color((k.getRed()+1)%256, (k.getGreen()+2)%256, (k.getBlue()+3)%256, 100 + (k.getAlpha()-99)%50);
-				foreGround.szyba = k;
-				repaint();
-			}
-		});
-		//timer.start();
-		/*-------koniec kodu dla zabawy----*/
-		
+	}
+	public Graph(int bok, FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, CmplxToColor colorMap, double...parameters) {
+		this(bok);
+		change(f, lewyDolny, prawyGorny, colorMap, parameters);
 	}
 	
 	public void save(File imgfile) throws IOException {
@@ -163,8 +167,7 @@ public class Graph extends JPanel{
 		return ret;
 	}
 	
-	public void change(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, double colorSpeedChange) {
-		this.colorSpeedChange = colorSpeedChange;
+	public void change(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, CmplxToColor colorMap, double...parameters) {
 		this.lewyDolny = lewyDolny;
 		this.prawyGorny = prawyGorny;
 		values = new Complex[img.getWidth()][img.getHeight()];
@@ -174,15 +177,11 @@ public class Graph extends JPanel{
 				values[xI][yI] = f.evaluate(new Complex[] {z});
 			}
 		}
-		changeColor(colorSpeedChange);
+		setColor(basic, parameters);
 	}
-	public void changeColor(double cSC) {
-		//to jeszcze musi byc dopracowane
-		//i to bardzo, istnieją thread managery, tego trzeba by użyć
-		colorSpeedChange = cSC;
-		long beggining = System.nanoTime();
-		HasFinishBoolean draw = new HasFinishBoolean(){
-			//boolean finish;
+	public void setColor(CmplxToColor colorMap, double... parameters) {
+		SwingWorker<Void,Void> draw = new SwingWorker<Void, Void>() {
+			boolean finish = false;
 			@Override
 			protected Void doInBackground() throws Exception {
 
@@ -190,13 +189,12 @@ public class Graph extends JPanel{
 					for(int xI=0; xI<img.getWidth();xI++) {
 						if(!finish)
 							for(int yI=0;yI<img.getHeight();yI++) {
-								int[] RGBColor = HSLToRGB(pointToHSL(values[xI][yI],colorSpeedChange));
-								if(RGBColor == null) {
-									img.setRGB(0, 255, 255);
+								Integer color = colorMap.colorOf(values[xI][yI], parameters);
+								if(color == null) {
 									img.setRGB(xI, yI, rgbToHex((xI+yI)%40<20 ? Color.MAGENTA : new Color(230,230,230)));
 									continue;
 								}
-								img.setRGB(xI, yI, rgbToHex(RGBColor));
+								img.setRGB(xI, yI, color);
 							}
 					}
 					return null;
@@ -208,55 +206,14 @@ public class Graph extends JPanel{
 			
 			@Override
 			protected void done() {
-				if(true) {repaint();return;}
-				if(beggining > begginingOfLastChange && !finish) {
-					//potencjalnie moze tutaj sie innt thread zrobic i pokazac old news ale nawet jesli do tego dojdzie nie powinno byc to duzym problemem\
-					begginingOfLastChange = beggining;
-					while(currentlyChanging.size() > 0 && currentlyChanging.getFirst().beggTime <= begginingOfLastChange) {
-						currentlyChanging.get(0).thr.finish = true;
-						currentlyChanging.removeFirst();
-					}
-					repaint();
-				}
+				repaint();
 			}
 		};
-		currentlyChanging.add(new threadAndItsBegg(draw, beggining));
-		long thisTime = System.nanoTime();
-		for(int i = 1; i<currentlyChanging.size();i++) {
-			if(thisTime - currentlyChanging.get(i).beggTime < 1) {
-				currentlyChanging.get(i).thr.finish = true;
-				currentlyChanging.remove(i);
-			}
-		}
 		draw.execute();
 
 	}
 	
-	static double przedNorm(double r) {
-		if(r<-0.00001) {
-			throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
-		}
-		r = r>0 ? r : 0;
-		//return 2/Math.PI * (Math.atan(r));
-		return 2/Math.PI * (Math.atan(Math.log(r+1)));
-	}
 	
-	static double[] pointToHSL(Complex z, double lSpeedChange) {
-		//TODO: abyładnie wyglądało, zapewne dać użytkownikowi parę opcji
-		//HSL[3] = przezroczystość
-		if(z == null || Double.isNaN(z.x) || Double.isNaN(z.y)) {
-			return null;
-		}
-		double[] HSL = new double[4];
-		HSL[3] = 255;
-		HSL[0] = z.arg() + 2.0/3*Math.PI;
-		HSL[1] = 1;
-		//HSL[2] = 2/Math.PI*Math.atan( Math.log(Math.pow(z.mod(), 1/lSpeedChange)+1) );
-		HSL[2] = przedNorm( Math.pow(z.mod(), lSpeedChange ));
-		if(HSL[2]>1 || HSL[2]<0) {
-		}
-		return HSL;
-	}
 	static int[] HSLToRGB(double[] HSL) {
 		if(HSL == null) {
 			return null;
@@ -279,6 +236,7 @@ public class Graph extends JPanel{
 		int[] rgb = {(int) (nrgb[0]*255),(int) (nrgb[1]*255),(int) (nrgb[2]*255), (int)HSL[3]};
 		return rgb;
 	}
+	
 	static int rgbToHex(int [] rgb) {
 		return (rgb[3] << 24) | (rgb[2] << 16) | (rgb[1] << 8) | rgb[0];
 	}
@@ -423,5 +381,9 @@ public class Graph extends JPanel{
 			}
 		}
 		
+	}
+
+	interface CmplxToColor{
+		Integer colorOf(Complex z, double... parameters);
 	}
 }

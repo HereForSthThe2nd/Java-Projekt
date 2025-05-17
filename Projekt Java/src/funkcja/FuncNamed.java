@@ -36,10 +36,6 @@ abstract class FuncNamed extends Function{
 			return new FuncNumConst( evaluate(new Complex[] {}) );
 		return this;
 	}
-	@Override
-	Function removeDiff() {
-		throw new IllegalArgumentException("Nie powinno do tegodojść");
-	}
 }
 
 abstract class FuncDefault extends FuncNamed{
@@ -56,6 +52,11 @@ abstract class FuncDefault extends FuncNamed{
 	@Override
 	protected Function expand() {
 		return this;
+	}
+
+	@Override
+	Function removeDiff() {
+		throw new IllegalArgumentException("Nie powinno do tegodojść " + name);
 	}
 }
 
@@ -77,6 +78,10 @@ abstract class FuncConstDefault extends FuncNamed{
 	}
 	@Override
 	protected Function expand() {
+		return this;
+	}
+	@Override
+	Function removeDiff() {
 		return this;
 	}
 }
@@ -130,8 +135,10 @@ class FuncGivenName extends UserFunction{
 		return new FuncComp(this, args);
 	}
 	
-
-	
+	@Override
+	Function removeDiff() {
+		throw new IllegalArgumentException("Nie powinno do tegodojść " + name);
+	}
 }
 
 class VarGivenName extends UserFunction{
@@ -161,6 +168,10 @@ class VarGivenName extends UserFunction{
 		return f.im();
 	}
 
+	@Override
+	Function removeDiff() {
+		return this;
+	}
 }
 
 final class FuncConstGivenName extends UserFunction{
@@ -191,4 +202,8 @@ final class FuncConstGivenName extends UserFunction{
 		return f.im();
 	}
 	
+	@Override
+	Function removeDiff() {
+		return this;
+	}
 }
