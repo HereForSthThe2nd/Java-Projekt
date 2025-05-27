@@ -61,6 +61,7 @@ import funkcja.FunctionPowloka;
 import funkcja.Settings;
 import funkcja.WewnetzrnaFunkcjaZleZapisana;
 import funkcja.WrongSyntaxException;
+import grafika.Graph.Coordinates;
 
 public class Main extends JFrame {
 	Graph wykres;
@@ -69,6 +70,8 @@ public class Main extends JFrame {
 	JLabel nadFunkcja;
 	JTextField argument;
 	JTextField wartosc;
+	@Deprecated
+	//zamiast tego można użyć wykres.function
 	FunctionPowloka currentFunction ;
 	public Main() throws WewnetzrnaFunkcjaZleZapisana {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -78,8 +81,10 @@ public class Main extends JFrame {
 		doTheMenu();
 		try {
 			currentFunction = new FunctionPowloka("z^2", new Settings());
-			legenda = new Graph(300, new FunctionPowloka("z", new Settings()), new Complex(-10,-10), new Complex(10,10), Graph.basic ,0.5);
-			wykres = new Graph(600, currentFunction, new Complex(-3,-3), new Complex(3,3), Graph.basic, 0.5);
+			legenda = new Graph(300);
+			wykres = new Graph(600);
+			legenda.change(new FunctionPowloka("z", new Settings()), new Complex(-10,-10), new Complex(10,10), legenda.rectangle,Graph.basic ,0.5);
+			wykres.change(currentFunction, new Complex(-3,-3), new Complex(3,3), wykres.rectangle,Graph.basic, 0.5);
 		} catch (WrongSyntaxException e) {
 			throw new IllegalStateException(e);
 		}
@@ -265,7 +270,8 @@ public class Main extends JFrame {
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Rectangle rec = legenda.obraz.getBounds();
-				Complex val = Complex.add(legenda.lewyDolny, new Complex (e.getX()/rec.getWidth()*(legenda.prawyGorny.x-legenda.lewyDolny.x), (1-e.getY()/rec.getHeight())*(legenda.prawyGorny.y-legenda.lewyDolny.y)));
+				//Complex val = Complex.add(legenda.lewyDolny, new Complex (e.getX()/rec.getWidth()*(legenda.prawyGorny.x-legenda.lewyDolny.x), (1-e.getY()/rec.getHeight())*(legenda.prawyGorny.y-legenda.lewyDolny.y)));
+				Complex val = legenda.coords.pointToCmplx(e.getPoint());
 				wartosc.setText(val.printE(2, 2));
 				legenda.foreGround.marker = val;
 				legenda.repaint();
@@ -292,7 +298,8 @@ public class Main extends JFrame {
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				Rectangle rec = wykres.obraz.getBounds();
-				Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
+				//Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
+				Complex arg = wykres.coords.pointToCmplx(e.getPoint());
 				Complex val = wykres.getValueAt(e.getX(), e.getY());
 				argument.setText(arg.printE(2, 2));
 				wartosc.setText(val.printE(2, 2));
@@ -306,7 +313,8 @@ public class Main extends JFrame {
 			public void mouseDragged(MouseEvent e) {
 				Rectangle rec = wykres.obraz.getBounds();
 				if(0<=e.getX() && e.getX()<rec.getWidth() && 0<=e.getY() && e.getY()<rec.getHeight()) {
-					Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
+					//Complex arg = Complex.add(wykres.lewyDolny, new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.lewyDolny.x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.lewyDolny.y)));
+					Complex arg = wykres.coords.pointToCmplx(e.getPoint());
 					Complex val = wykres.getValueAt(e.getX(), e.getY());
 					argument.setText(arg.printE(2, 2));
 					wartosc.setText(val.printE(2, 2));
@@ -319,7 +327,7 @@ public class Main extends JFrame {
 							wykres.repaint();
 					}
 					else {
-						wykres.foreGround.rect[1] = e.getPoint();
+						wykres.foreGround.rect[1] = wykres.coords.pointToCmplx( e.getPoint() );
 						legenda.repaint();
 						wykres.repaint();
 					}
@@ -331,14 +339,19 @@ public class Main extends JFrame {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				if(!rysowanie.isSelected()) {
-					wykres.lewyDolny = wykres.pointToCmplx(new Point((int)Math.min(wykres.foreGround.rect[0].getX(), wykres.foreGround.rect[1].getX()), 
-							(int)Math.max(wykres.foreGround.rect[0].getY(), wykres.foreGround.rect[1].getY())));
-					wykres.prawyGorny = wykres.pointToCmplx(new Point((int)Math.max(wykres.foreGround.rect[0].getX(), wykres.foreGround.rect[1].getX()), 
-							(int)Math.min(wykres.foreGround.rect[0].getY(), wykres.foreGround.rect[1].getY())));
+					wykres.lewyDolny = new Complex(wykres.foreGround.rect[0].x < wykres.foreGround.rect[1].x ? 
+						wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
+						wykres.foreGround.rect[0].y < wykres.foreGround.rect[1].y ? 
+						wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y);
+					wykres.prawyGorny = new Complex(wykres.foreGround.rect[0].x > wykres.foreGround.rect[1].x ? 
+							wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
+							wykres.foreGround.rect[0].y > wykres.foreGround.rect[1].y ? 
+							wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y);
+					System.out.println(wykres.lewyDolny.print(2) + "  " + wykres.prawyGorny.print(2));
 					wykres.foreGround.rect = null;
 					wykres.foreGround.szyba = new Color(0,0,0,50);
 					wykres.foreGround.repaint();
-					SwingWorker<Void,Void> work = changeFunc(currentFunction);
+					SwingWorker<Void,Void> work = changeFunc(wykres.function);
 					work.addPropertyChangeListener(new PropertyChangeListener() {
 						@Override
 						public void propertyChange(PropertyChangeEvent evt) {
@@ -359,8 +372,7 @@ public class Main extends JFrame {
 					legenda.foreGround.addNewCurve();
 				}
 				else {
-					wykres.foreGround.rect = new Point[] {e.getPoint(), e.getPoint()};
-					wykres.foreGround.rect[1] = e.getPoint();
+					wykres.foreGround.rect = new Complex[] {wykres.coords.pointToCmplx( e.getPoint()), wykres.coords.pointToCmplx( e.getPoint() )};
 				}
 			}
 			
@@ -431,8 +443,8 @@ public class Main extends JFrame {
 		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie wykresu");
 		JCheckBoxMenuItem legendaLogSkala = new JCheckBoxMenuItem("Moduł legendy w skali logarytmicznej");
 		JCheckBoxMenuItem wykresLogSkala = new JCheckBoxMenuItem("Moduł dziedziny(wyresu) w skali logarytmicznej");
-		JCheckBoxMenuItem legndaInf = new JCheckBoxMenuItem("Legenda wokół nieksończoności");
-		JCheckBoxMenuItem wykresInf = new JCheckBoxMenuItem("Dziedzina(wykres) wokół nieksończoności");
+		JCheckBoxMenuItem legndaInf = new JCheckBoxMenuItem("Legenda na zewnętrzu obszaru");
+		JCheckBoxMenuItem wykresInf = new JCheckBoxMenuItem("Dziedzina(wykres) na zewnątrzu obszaru");
 		JCheckBoxMenuItem legendaKwadrat = new JCheckBoxMenuItem("Obszar legendy musi byc kwadratem");
 		JCheckBoxMenuItem wykresKwadrat = new JCheckBoxMenuItem("Obszar wykresu musi byc kwadratem");
 		wykresMenu.add(osieLegendy);
@@ -444,6 +456,60 @@ public class Main extends JFrame {
 		wykresMenu.add(legendaKwadrat);
 		wykresMenu.add(wykresKwadrat);
 		menuBar.add(wykresMenu);
+		
+		legndaInf.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(legndaInf.isSelected()) {
+					legenda.coords = new Coordinates() {
+						
+						@Override
+						public Complex pointToCmplx(Point p) {
+							return Complex.div(new Complex(1), legenda.rectangle.pointToCmplx(p));
+						}
+						
+						@Override
+						public Point cmplxToPoint(Complex z) {
+							return legenda.rectangle.cmplxToPoint(Complex.div(new Complex(1), z));
+						}
+					};
+					legenda.change();
+				}
+				else {
+					legenda.coords = legenda.rectangle;
+					legenda.change();
+
+				}
+			}
+		});
+		
+		wykresInf.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(wykresInf.isSelected()) {
+					wykres.coords = new Coordinates() {
+						
+						@Override
+						public Complex pointToCmplx(Point p) {
+							return Complex.div(new Complex(1), wykres.rectangle.pointToCmplx(p));
+						}
+						
+						@Override
+						public Point cmplxToPoint(Complex z) {
+							return wykres.rectangle.cmplxToPoint(Complex.div(new Complex(1), z));
+						}
+					};
+					changeFunc(wykres.function);
+				}
+				else {
+					wykres.coords = wykres.rectangle;
+					changeFunc(wykres.function);
+				}
+			}
+		});
+
 	}
 	
 	private SwingWorker<Void,Void> changeFunc(FunctionPowloka f) {
@@ -482,23 +548,29 @@ public class Main extends JFrame {
 
 			@Override
 			protected Void doInBackground() throws Exception {
-				wykres.change(f, wykres.lewyDolny, wykres.prawyGorny, Graph.basic, 0.5);
-				
-				legenda.foreGround.resetCurve();
-				for(LinkedList<Point> krzywa : wykres.foreGround.krzywa) {
-					legenda.foreGround.addNewCurve();
-					for(Point p : krzywa) {
-						//System.out.println(p);
-						//System.out.println(wykres.getValueAt(p));
-						legenda.foreGround.addPointToCurve(wykres.getValueAt(p));
+				try {
+					wykres.change(f, wykres.lewyDolny, wykres.prawyGorny, wykres.coords ,Graph.basic, 0.5);
+					
+					legenda.foreGround.resetCurve();
+					for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
+						legenda.foreGround.addNewCurve();
+						for(Complex z : krzywa) {
+							//System.out.println(p);
+							//System.out.println(wykres.getValueAt(p));
+							Point p = wykres.coords.cmplxToPoint( z );
+							if(p.x >= 0 && p.y >= 0 && p.x < wykres.img.getWidth() && p.y < wykres.img.getHeight())
+								legenda.foreGround.addPointToCurve(wykres.getValueAt(p));
+						}
 					}
+					legenda.repaint();
+					
+					timerListener.stop = true;
+					nadFunkcja.setForeground(Color.black);
+					nadFunkcja.setText("Obliczono i pokazano funkcję.");
+				}catch(Exception e) {
+					e.printStackTrace();
 				}
-				legenda.repaint();
-				
-				timerListener.stop = true;
-				nadFunkcja.setForeground(Color.black);
-				nadFunkcja.setText("Obliczono i pokazano funkcję.");
-				return null;
+					return null;
 			}
 			
 		};
