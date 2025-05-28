@@ -55,8 +55,6 @@ import java.awt.image.BufferedImage;
 public class Graph extends JPanel{
 	BufferedImage img;
 	private Complex[][] values; //może trochę overkill, zajmuje z 5 razy więcej miejsca niż obraz, może np. zrobić by co 3 - 10 ^ 2 pikseli obliczało wartości po funkcji (i je tylko wtedy zapisywało) a reszę jakoś interpolowało
-	Complex prawyGorny;
-	Complex lewyDolny;
 	Coordinates coords;
 	FunctionPowloka function;
 	CmplxToColor colorMap;
@@ -69,7 +67,6 @@ public class Graph extends JPanel{
 	//TODO: usunac zmienna ponizej
 	static int usunac = 0;
 	static CmplxToColor basic;
-	Coordinates rectangle;
 	static {
 		basic = new CmplxToColor() {
 			
@@ -155,45 +152,116 @@ public class Graph extends JPanel{
 		setPreferredSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
 		setSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
 		
-		rectangle = new Coordinates() {
-			
-			@Override
-			public Complex pointToCmplx(Point p) {
-				Complex diag = Complex.subt(prawyGorny, lewyDolny);
-				Complex ret = Complex.add(lewyDolny, new Complex(	diag.x * p.x/img.getWidth(), diag.y * (img.getHeight()-p.y)/img.getHeight()));
-				//System.out.println(p + "  " + ret.print(2) + " " + prawyGorny.print(2) + " " + lewyDolny.print(2) + " " + width);
-				return ret;
-			}
-			
-			@Override
-			public Point cmplxToPoint(Complex z) {
-				Complex diag = Complex.subt(prawyGorny, lewyDolny);
-				Complex zWzgl = Complex.subt(z, lewyDolny);
-				Point ret = new Point((int)(img.getWidth()*zWzgl.x/diag.x), (int)(img.getHeight() - img.getHeight()*zWzgl.y/diag.y));
-				return ret;
-			}
-		};
-
-		
 	}
 	
-	public Graph(int bok, FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, Coordinates coords,CmplxToColor colorMap, double...parameters) {
+	public Graph(int bok, FunctionPowloka f, Coordinates coords,CmplxToColor colorMap, double...parameters) {
 		this(bok);
-		int width = img.getWidth();
-		int height = img.getHeight();
-
-		change(f, lewyDolny, prawyGorny, coords, colorMap, parameters);
+		change(f, coords, colorMap, parameters);
 	}
 	
 	public void save(File imgfile) throws IOException {
 		ImageIO.write(img, "png", imgfile);
 	}
 	
+	public Coordinates rect(Complex lewyDolny, Complex prawyGorny) {
+		return new Coordinates() {
+			private Complex lewDolny = lewyDolny;
+			private Complex prawDolny = prawyGorny;
+			@Override
+			public Complex pointToCmplx(Point p, Complex argLewDolny, Complex argPrawGorny) {
+				if(usunac++ < 1) {
+					System.out.println(argLewDolny.print(2) + "  " + prawDolny.print(2) + " "+usunac);
+					System.out.println(argLewDolny + "  " + prawDolny+" "+usunac);
+				}
+				Complex diag = Complex.subt(prawDolny, argLewDolny);
+				Complex ret = Complex.add(argLewDolny, new Complex(	diag.x * p.x/img.getWidth(), diag.y * (img.getHeight()-p.y)/img.getHeight()));
+				//System.out.println(p + "  " + ret.print(2) + " " + prawyGorny.print(2) + " " + lewyDolny.print(2) + " " + width);
+				return ret;
+			}
+			
+			@Override
+			public Point cmplxToPoint(Complex z, Complex argLewDolny, Complex argPrawGorny) {
+				Complex diag = Complex.subt(prawDolny, argLewDolny);
+				Complex zWzgl = Complex.subt(z, argLewDolny);
+				Point ret = new Point((int)(img.getWidth()*zWzgl.x/diag.x), (int)(img.getHeight() - img.getHeight()*zWzgl.y/diag.y));
+				return ret;
+			}
+
+			@Override
+			public Complex getPG() {
+				return prawDolny;
+			}
+
+			@Override
+			public Complex getLD() {
+				return lewDolny;
+			}
+
+			@Override
+			public void setPG(Complex PG) {
+				prawDolny = PG;
+			}
+
+			@Override
+			public void setLD(Complex LD) {
+				lewDolny = LD;
+			}
+		};
+
+ 
+	}
 	
-	public void change(FunctionPowloka f, Complex lewyDolny, Complex prawyGorny, Coordinates coords ,CmplxToColor colorMap, double...parameters) {
+	public Coordinates aroundInf(Complex lewyDolny, Complex prawyGorny) {
+		//tworzy koordynaty w których środku znajduje się nieskończoność
+		return new Coordinates() {
+			private Complex lewDolny = lewyDolny;
+			private Complex prawGorny = prawyGorny;		
+			private Complex a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(lewDolny, prawGorny));
+			private Complex b = Complex.mult(new Complex(1.0/2), Complex.add(lewDolny, prawGorny));
+			@Override
+			public Complex pointToCmplx(Point p, Complex argLewDol, Complex argPrawGorny) {
+				Complex arga = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argLewDol, argPrawGorny));
+				Complex argb = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
+				Complex zeta = rect(new Complex(-1,-1), new Complex(1,1)).pointToCmplx(p);
+				return Complex.div(Complex.add(arga, Complex.mult(argb, zeta)), zeta);
+			}
+			
+			@Override
+			public Point cmplxToPoint(Complex z, Complex argLewDol, Complex argPrawGorny) {
+				Complex arga = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argLewDol, argPrawGorny));
+				Complex argb = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
+				Complex zeta = Complex.div(arga, Complex.subt(z, argb));
+				return rect(new Complex(-1,-1), new Complex(1,1)).cmplxToPoint(zeta);
+			}
+			
+			@Override
+			public Complex getPG() {
+				return prawGorny;
+			}
+			
+			@Override
+			public Complex getLD() {
+				return lewDolny;
+			}
+			@Override
+			public void setPG(Complex PG) {
+				prawGorny = PG;
+				a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(lewDolny, prawGorny));
+				b = Complex.mult(new Complex(1.0/2), Complex.add(lewDolny, prawGorny));
+			}
+			
+			@Override
+			public void setLD(Complex LD) {
+				lewDolny = LD;
+				a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(lewDolny, prawGorny));
+				b = Complex.mult(new Complex(1.0/2), Complex.add(lewDolny, prawGorny));
+			}
+
+		};
+	}
+	
+	public void change(FunctionPowloka f, Coordinates coords ,CmplxToColor colorMap, double...parameters) {
 		this.function = f;
-		this.lewyDolny = lewyDolny;
-		this.prawyGorny = prawyGorny;
 		this.coords = coords;
 		this.colorMap = colorMap;
 		this.colorMapParams = parameters;
@@ -208,7 +276,7 @@ public class Graph extends JPanel{
 	}
 	
 	public void change() {
-		change(function, lewyDolny, prawyGorny, coords, colorMap, colorMapParams);
+		change(function, coords, colorMap, colorMapParams);
 	}
 	
 	private void setColor(CmplxToColor colorMap, double... parameters) {
@@ -401,13 +469,33 @@ public class Graph extends JPanel{
 				g2D.setColor(Color.BLACK);
 				g2D.setStroke(new BasicStroke(2));
 				Point[] rectP = new Point[] {coords.cmplxToPoint(rect[0]), coords.cmplxToPoint(rect[1])};
-				g2D.drawLine(rectP[0].x,rectP[0].y, rectP[0].x, rectP[1].y);
+				/*g2D.drawLine(rectP[0].x,rectP[0].y, rectP[0].x, rectP[1].y);
 				g2D.drawLine(rectP[0].x, rectP[1].y, rectP[1].x, rectP[1].y);
 				g2D.drawLine(rectP[1].x, rectP[1].y, rectP[1].x, rectP[0].y);
-				g2D.drawLine(rectP[1].x, rectP[0].y, rectP[0].x, rectP[0].y);
+				g2D.drawLine(rectP[1].x, rectP[0].y, rectP[0].x, rectP[0].y);*/
+				drawWillBeLine(g2D, rect[0], new Complex(rect[0].x, rect[1].y), 100);
+				drawWillBeLine(g2D, rect[0], new Complex(rect[1].x, rect[0].y), 100);
+				drawWillBeLine(g2D, rect[1], new Complex(rect[1].x, rect[0].y), 100);
+				drawWillBeLine(g2D, rect[1], new Complex(rect[0].x, rect[1].y), 100);
 			}
 		}
-		
+		private void drawWillBeLine(Graphics2D g2D, Complex begginig, Complex end, int dok) {
+			//rysuje coś co po zmienieniu granic wykresu przez przeciągnięcie będzie odcinkiem
+			Complex[] krzyw = new Complex[dok+1];
+			Point beggAf = coords.cmplxToPoint(begginig, rect[0], rect[1]);
+			Point endAf = coords.cmplxToPoint(end, rect[0], rect[1]);
+			for(int i = 0;i<dok+1;i++) {
+				int onLinex = (int)(beggAf.x + ((double)i)/dok * (endAf.x - beggAf.x));
+				int onLiney = (int)(beggAf.y + ((double)i)/dok * (endAf.y - beggAf.y));
+				krzyw[i] = coords.pointToCmplx(new Point(onLinex, onLiney), rect[0], rect[1]);
+			}
+			Point pLast = coords.cmplxToPoint( krzyw[0] );
+			for(Complex z : krzyw) {
+				Point p = coords.cmplxToPoint(z);
+				g2D.drawLine(pLast.x, pLast.y, p.x, p.y);
+				pLast = p;
+			}
+		}
 	}
 
 	interface CmplxToColor{
@@ -415,7 +503,17 @@ public class Graph extends JPanel{
 	}
 	 
 	interface Coordinates{
-		Complex pointToCmplx(Point p);
-		Point cmplxToPoint(Complex z);
+		Complex pointToCmplx(Point p, Complex lewyDolny, Complex prawyGorny);
+		Point cmplxToPoint(Complex z, Complex lewyDolny, Complex prawyGorny);
+		Complex getPG();
+		Complex getLD();
+		void setPG(Complex PG);
+		void setLD(Complex LD);
+		default Complex pointToCmplx(Point p) {
+			return pointToCmplx(p, getLD(), getPG());
+		};
+		default Point cmplxToPoint(Complex z) {
+			return cmplxToPoint(z, getLD(), getPG());
+		};
 	}
 }
