@@ -70,6 +70,7 @@ public class Main extends JFrame {
 	JLabel nadFunkcja;
 	JTextField argument;
 	JTextField wartosc;
+	JCheckBox rysowanie;
 	@Deprecated
 	//zamiast tego można użyć wykres.function
 	FunctionPowloka currentFunction ;
@@ -195,7 +196,7 @@ public class Main extends JFrame {
 		
 		calaOpcja = new JPanel();
 		calaOpcja.add(new JLabel("Rysowanie:"));
-		JCheckBox rysowanie = new JCheckBox();
+		rysowanie = new JCheckBox();
 		calaOpcja.add(rysowanie);
 		wybor= new JButton("Zapisz wykres");
 		((JButton)wybor).addActionListener(new ActionListener() {
@@ -327,9 +328,11 @@ public class Main extends JFrame {
 							wykres.repaint();
 					}
 					else {
-						wykres.foreGround.rect[1] = wykres.coords.pointToCmplx( e.getPoint() );
-						legenda.repaint();
-						wykres.repaint();
+						if(wykres.foreGround.rect != null) {
+							wykres.foreGround.rect[1] = wykres.coords.pointToCmplx( e.getPoint() );
+							legenda.repaint();
+							wykres.repaint();
+						}
 					}
 				}
 			}
@@ -338,7 +341,7 @@ public class Main extends JFrame {
 			
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				if(!rysowanie.isSelected()) {
+				if(!rysowanie.isSelected() && wykres.foreGround.rect != null) {
 					wykres.coords.setLD( new Complex(wykres.foreGround.rect[0].x < wykres.foreGround.rect[1].x ? 
 						wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
 						wykres.foreGround.rect[0].y < wykres.foreGround.rect[1].y ? 
@@ -398,7 +401,17 @@ public class Main extends JFrame {
 			}
 		});
 		JComponent rootPane = getRootPane();
-		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl R"), "usunKrzywe");
+		Object rysowanieToggleKey = 0;
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl R"), rysowanieToggleKey);
+		rootPane.getActionMap().put(rysowanieToggleKey, new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rysowanie.setSelected(!rysowanie.isSelected());
+			}
+			
+		});
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl W"), "usunKrzywe");
 		rootPane.getActionMap().put("usunKrzywe", new AbstractAction() {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
@@ -426,6 +439,19 @@ public class Main extends JFrame {
 		    	funkcjaTextField.requestFocus();
 		    	funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
 		    }
+		});
+		Object wyjdzZziekszeniaKey = 3;
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), wyjdzZziekszeniaKey);
+		rootPane.getActionMap().put(wyjdzZziekszeniaKey, new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(wykres.foreGround.rect != null) {
+					wykres.foreGround.rect = null;
+					wykres.repaint();
+				}
+				
+			}
 		});
 
 	}
