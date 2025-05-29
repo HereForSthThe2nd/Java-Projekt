@@ -429,8 +429,6 @@ public class Functions {
 		}
 		@Override
 		protected String write(Settings settings) {
-			if(settings.strictPow)
-				return "Pow";
 			return "pow";
 		}
 		@Override
@@ -578,6 +576,17 @@ public class Functions {
 			return new FuncNumConst(new Complex(0));
 		}
 
+		@Override
+		boolean check(String str) {
+			return super.check(str) || str.equals("π");
+		}
+		@Override
+		protected String write(Settings settings) {
+			if(!settings.writeNeatVar)
+				return super.write(settings);
+			return "π";
+		};
+		
 	};
 	final protected static FuncNamed phi = new FuncConstDefault("phi") {
 		@Override
@@ -594,17 +603,27 @@ public class Functions {
 		protected Function im() {
 			return new FuncNumConst(new Complex(0));
 		}
+		@Override
+		boolean check(String str) {
+			return super.check(str) || str.equals("φ");
+		};
+		@Override
+		protected String write(Settings settings) {
+			if(!settings.writeNeatVar)
+				return super.write(settings);
+			return "φ";
+		};
 
 	};	
 	final protected static Function i = new FuncNumConst(Complex.i);
 		
-	protected final static nameAndValue<Function> defaultVar = new nameAndValue<Function>(new ArrayList<String>(List.of("e", "pi", "phi", "i")),
-			new ArrayList<Function>(List.of(e ,pi, phi, i)));
-	protected final static nameAndValue<FuncNamed> defaultFunctions = new nameAndValue<FuncNamed>(
+	protected final static nameAndValue defaultVar = new nameAndValue(new ArrayList<String>(List.of("e", "pi", "phi")),
+			new ArrayList<FuncNamed>(List.of(e ,pi, phi)));
+	protected final static nameAndValue defaultFunctions = new nameAndValue(
 			new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg", "diffX", "diffY")),
 			new ArrayList<FuncNamed>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg, diffX, diffY)));
-	protected static nameAndValue<FuncNamed> userFunctions = new nameAndValue<FuncNamed>();
-	protected static nameAndValue<FuncNamed> userVar = new nameAndValue<FuncNamed>();
+	protected static nameAndValue userFunctions = new nameAndValue();
+	protected static nameAndValue userVar = new nameAndValue();
 	
 	static private void checkNameRequirements(String str) throws IncorrectNameException{
 		if(ckeckIfVar(str) || checkIfNmdFunc(str))
@@ -667,10 +686,13 @@ public class Functions {
 	}
 	
 	static boolean ckeckIfVar(String str) {
-		return userVar.checkIfContained(str) || defaultVar.checkIfContained(str) || varChecker.check(str) || idChecker.check(str);
+		return userVar.checkIfContained(str) || defaultVar.checkIfContained(str) || varChecker.check(str) || idChecker.check(str) || "i".equals(str);
 	}
 	
 	static Function returnVar(String str) {
+		if(str.equals("i")) {
+			return i;
+		}
 		if(defaultVar.checkIfContained(str))
 			return defaultVar.functionOf(str);
 		if(userVar.checkIfContained(str))
@@ -682,12 +704,12 @@ public class Functions {
 		throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej zmiennej");
 	}
 
-	static class nameAndValue<rFunc>{
+	static class nameAndValue{
 
 		ArrayList<String> names = new ArrayList<String>();
-		ArrayList<rFunc> values = new ArrayList<rFunc>();
+		ArrayList<FuncNamed> values = new ArrayList<FuncNamed>();
 		nameAndValue(){};
-		nameAndValue(ArrayList<String> names,ArrayList<rFunc> val){
+		nameAndValue(ArrayList<String> names,ArrayList<FuncNamed> val){
 			if(names.size() != val.size())
 				throw new IllegalArgumentException("names oraz val muszą mieć taką samą wielkość.\nPodane names: " + names + "podane val: " + val);
 			this.names = names;
@@ -695,7 +717,7 @@ public class Functions {
 		}
 		int indexOf(String str) {
 			for(int i=0;i<names.size();i++) {
-				if(names.get(i).equals(str))
+				if(values.get(i).check(str))
 					return i;
 			}
 			return -1;
@@ -703,10 +725,10 @@ public class Functions {
 		boolean checkIfContained(String str) {
 			return indexOf(str)!=-1;
 		}
-		rFunc functionOf(String str){
+		FuncNamed functionOf(String str){
 			return values.get(indexOf(str));
 		}
-		void add(rFunc val, String str) {
+		void add(FuncNamed val, String str) {
 			names.add(str);
 			values.add(val);
 		}

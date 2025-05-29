@@ -36,6 +36,9 @@ abstract class FuncNamed extends Function{
 			return new FuncNumConst( evaluate(new Complex[] {}) );
 		return this;
 	}
+	boolean check(String str) {
+		return str.equals(name);
+	}
 }
 
 abstract class FuncDefault extends FuncNamed{

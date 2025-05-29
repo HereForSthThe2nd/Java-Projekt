@@ -3,7 +3,8 @@
  * */
 package funkcja;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;
+import java.util.LinkedList; 
 
 class Blok{
 	final static int 
@@ -11,23 +12,24 @@ class Blok{
 		FUNCTION = 2,
 		NUMBER = 3,
 		PARENTHASES = 4,
-		OPERATION = 5;
+		OPERATION = 5,
+		PRZECINEK = 6;
 	final int type;
 	int pocz;
 	int kon;
 	String str;
 	
-	Blok(String wejsc, int pocz, int kon, int type){
+	Blok(String calyStr, int pocz, int kon, int type){
 		this.pocz = pocz;
 		this.kon = kon;
-		this.str = wejsc.substring(pocz, kon);
+		this.str = calyStr.substring(pocz, kon);
 		this.type = type;
 	}
-	Blok(String wejsc, int[] konce, int type){
+	Blok(String calyStr, int[] konce, int type){
 
 		this.pocz = konce[0];
 		this.kon = konce[1];
-		this.str = wejsc.substring(konce[0], konce[1]);
+		this.str = calyStr.substring(konce[0], konce[1]);
 		this.type = type;
 	}
 	public void print() {
@@ -66,6 +68,7 @@ class BlokWthDefFunction extends Blok{
 class BlokList{
 	protected final static String SPECJALNE = "[\\(\\)\\[\\]\\{\\}\\.,]";
 	protected final static String OPERATORY = "[\\^\\*/\\+\\-]";
+	protected final static String GRECKIALFABET = "ςερτυθιοπασδφγηξκλζχψωβνμ";
 	
 	ArrayList<Blok> arr = new ArrayList<Blok>();
 	
@@ -182,6 +185,19 @@ class BlokList{
 	
 	protected static boolean contains(String[] arr, String str) {
 		return indexOf(arr, str) == -1 ? false : true;
+	}
+	
+	LinkedList<BlokList> splitByComma() {
+		LinkedList<BlokList> ret = new LinkedList<BlokList>();
+		ret.add(new BlokList());
+		for(Blok b : arr) {
+			if(b.type == Blok.PRZECINEK) {
+				ret.add(new BlokList());
+				continue;
+			}
+			ret.getLast().arr.add(b);
+		}
+		return ret;
 	}
 	
 	protected static boolean isSpecial(char chr) {
@@ -415,7 +431,7 @@ class BlokList{
 		int[] konce = {index, index};
 		int type;
 		boolean isParenthases = (""+str.charAt(index)).matches("[\\(\\)]");
-		boolean isWord = (""+str.charAt(index)).matches("[a-zA-Z]");
+		boolean isWord = (""+str.charAt(index)).matches("[a-zA-Z" + GRECKIALFABET+ "]");
 		boolean isNum = (""+str.charAt(index)).matches("[0-9.]");
 		boolean isOperation = (str.charAt(index) + "").matches(OPERATORY);
 		boolean hasSquareBrackets = false;
@@ -446,7 +462,7 @@ class BlokList{
 		}
 		if(isWord) {
 			type = Blok.WORD;
-			while(konce[1] < str.length() && !hasSquareBrackets  && !hasKlBrackets && (""+str.charAt(konce[1])).matches("[a-zA-Z\\[\\{]")) {
+			while(konce[1] < str.length() && !hasSquareBrackets  && !hasKlBrackets && (""+str.charAt(konce[1])).matches("[a-zA-Z\\[\\{" + GRECKIALFABET +"]")) {
 				switch(str.charAt(konce[1])) {
 				case '[':
 					checkSquareBrackets(str, konce[1], konce);
@@ -463,9 +479,9 @@ class BlokList{
 					break;
 				}
 			}
-			if(!(""+str.charAt(konce[0])).matches("[a-zA-Z]"))
+			if(!(""+str.charAt(konce[0])).matches("[a-zA-Z" + GRECKIALFABET+"]"))
 				throw new WrongSyntaxException("Przed nawiasem " + str.charAt(konce[0]+1) + " musi stać litera, a stoi znak " + str.charAt(konce[0]) + ".");
-			while(konce[0] > -1 && (""+str.charAt(konce[0])).matches("[a-zA-Z]")) {
+			while(konce[0] > -1 && (""+str.charAt(konce[0])).matches("[a-zA-Z" + GRECKIALFABET + "]")) {
 					konce[0] -= 1;
 			}
 			konce[0]++;
@@ -503,9 +519,11 @@ class BlokList{
 			konce[1] = temp[1]+1;
 			return new Blok(str, konce, type);
 		}
+		if(str.charAt(index) == ',') {
+			//TODO
+			return new Blok(str, new int[] {index, index+1}, Blok.PRZECINEK);
+		}
 		else { //TODO: może nie będzie trzeba robić, ale tutaj chyba powinien być WrongSyntaksException
-			if(str.charAt(index) == ',')
-				throw new WrongSyntaxException("Przecinek może wystąpić tylko wewnątrz nawiasów poprzedzonych nazwą funkcji.", "str: " + str);
 			throw new IllegalArgumentException("Niepoprawne argumenty. Podanemu indeksowi nie można przypisać ani cyfry ani litery (ani [])\nindex:"+
 						index+".  cos na indeksie:"+str.charAt(index) + ".  cały str: " + str+".");
 		}
@@ -542,4 +560,5 @@ class BlokList{
 
 		new BlokList("1.0a{5.90[]}d2.3dsa[32.13243[dsd[]][]]as[]j[]").print();
 	}
+
 }

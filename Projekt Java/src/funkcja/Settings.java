@@ -11,21 +11,12 @@ public class Settings {
 	public boolean strictPow = true; //czy podczas upraszczania potęga zachowuje się ściśle (np. czy zamienia (z^2)^(1/2) na z czy nie)
 	public boolean writeRealVar = true; // czy pisze Re(z) czy x 
 	public boolean evaluateConstants = false; //czy podczas upraszczania zamienia np.exp(3*pi) na stałą numeryczną
-	public Settings() {
-		this.doubleAcc = 3;
-		this.strictPow = true;
-		this.writePow = true;
-		this.writeRealVar = true;
-		this.evaluateConstants = false;
-	}
+	public boolean writeNeatVar = false;
+	public Settings() {}
 	public Settings(int doubleAcc) {
 		this.doubleAcc = doubleAcc;
-		this.strictPow = true;
-		this.writePow = true;
-		this.writeRealVar = true;
-		this.evaluateConstants = false;
 	}
-	public Settings(int doubleAcc, boolean writePow, boolean strictPow, boolean evaluateConstatns, boolean writeRealVar) {
+	public Settings(int doubleAcc, boolean writePow, boolean strictPow, boolean evaluateConstatns, boolean writeRealVar, boolean writeNeatVar) {
 		if(doubleAcc < 1)
 			throw new IllegalArgumentException("doubleAcc musi być równe co najmniej 1, a jest równe " + doubleAcc + ".");
 		this.doubleAcc = doubleAcc;
@@ -33,8 +24,9 @@ public class Settings {
 		this.writePow = writePow;
 		this.evaluateConstants = evaluateConstatns;
 		this.writeRealVar = writeRealVar;
+		this.writeNeatVar = writeNeatVar;
 	}
 	public Settings copy() {
-		return new Settings(doubleAcc, writePow, strictPow, evaluateConstants, writeRealVar);
+		return new Settings(doubleAcc, writePow, strictPow, evaluateConstants, writeRealVar, writeNeatVar);
 	}
 }

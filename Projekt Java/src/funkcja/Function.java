@@ -8,6 +8,7 @@
 package funkcja;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import Inne.Complex;
 
@@ -47,7 +48,7 @@ abstract public class Function implements FuncChecker
 	
 	protected abstract Function expand();
 	//bardzo podstawowe
-	protected abstract Function simplify(Settings setting) ;
+	protected abstract Function simplify(Settings setting);
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.equals("")) 
@@ -55,15 +56,16 @@ abstract public class Function implements FuncChecker
 		str = str.replaceAll("\\s", "");
 		if(str.charAt(0) == '=') str = str.substring(1);
 		str = BlokList.configureStr(str);
-		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" + BlokList.SPECJALNE + "].*")) 
+		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" +BlokList.GRECKIALFABET +"|"+  BlokList.SPECJALNE + "].*")) 
 			throw new WrongSyntaxException(
-					"Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.OPERATORY+"|[a-zA-Z0-9]|"+BlokList.SPECJALNE, ""));
+					"Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.OPERATORY+"|[a-zA-Z0-9]|"+BlokList.GRECKIALFABET +"|"+BlokList.SPECJALNE, ""));
 		if(str.matches(".*["+BlokList.OPERATORY+"|[,.]]["+BlokList.OPERATORY+"|[,.]].*"))
 			//TODO:to wyrzuca błąd jak się wpisze np. (-1)
 			throw new WrongSyntaxException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
 		return str;
 	}
 
+	
 	//arg - względem którego argumentu brana jest pochodna
 	protected abstract Function diffX(int arg, Settings set);
 	protected abstract Function diffY(int arg, Settings set);
@@ -82,6 +84,8 @@ abstract public class Function implements FuncChecker
 	 	
 	static boolean readEmptyStringAsZero; //prawda: "" --> func(z->0), fałsz: "" --> func(z->1)
 	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
+		if(bloki.splitByComma().size()>1)
+			throw new WrongSyntaxException("Przecinek postawony w złym miejscu. Musi występować wewnątrz funkcji.");
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0){//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
 			if(readEmptyStringAsZero)
@@ -94,13 +98,13 @@ abstract public class Function implements FuncChecker
 			case Blok.NUMBER:
 				return new FuncNumConst(new Complex(Double.parseDouble(blok.str)));
 			case Blok.FUNCTION:
-				String[] strArg = blok.str.substring(1, blok.str.length()-1).split(",");
-				if(((BlokWthDefFunction)blok).funkcja.nofArg != strArg.length)
+				LinkedList<BlokList> argsOfFunction = (new BlokList (blok.str.substring(1, blok.str.length()-1))).splitByComma();
+				if(((BlokWthDefFunction)blok).funkcja.nofArg != argsOfFunction.size())
 					throw new WrongSyntaxException("Funckcja " + ((BlokWthDefFunction)blok).funkcja.name
-							+ " przyjmuje " + ((BlokWthDefFunction)blok).funkcja.nofArg + " argumentów, a podano ich "+ strArg.length + ".");
-				Function[] arg = new Function[strArg.length];
-				for(int i=0; i<strArg.length;i++) {
-					arg[i] = read(new BlokList(strArg[i]), settings);
+							+ " przyjmuje " + ((BlokWthDefFunction)blok).funkcja.nofArg + " argumentów, a podano ich "+ argsOfFunction.size() + ".");
+				Function[] arg = new Function[argsOfFunction.size()];
+				for(int i=0; i<argsOfFunction.size();i++) {
+					arg[i] = read(argsOfFunction.get(i), settings);
 
 				}
 				return new FuncComp(((BlokWthDefFunction)blok).funkcja, arg);

@@ -34,6 +34,8 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
@@ -45,7 +47,10 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -53,6 +58,10 @@ import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 
 import Inne.Complex;
@@ -65,11 +74,14 @@ import grafika.Graph.Coordinates;
 public class Main extends JFrame {
 	Graph wykres;
 	JPanel containsWykres;
+	FunctionTextField funkcjaTextField;
+	boolean txtFuncUpToDate = false;
 	Graph legenda;
 	JLabel nadFunkcja;
 	JTextField argument;
 	JTextField wartosc;
 	JCheckBox rysowanie;
+	Settings ustawienia = new Settings();
 	@Deprecated
 	//zamiast tego można użyć wykres.function
 	FunctionPowloka currentFunction ;
@@ -89,7 +101,7 @@ public class Main extends JFrame {
 			throw new IllegalStateException(e);
 		}
 		JPanel zawieraTextFunckcji = new JPanel();
-		JTextField funkcjaTextField = new JTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
+		funkcjaTextField = new FunctionTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
 		funkcjaTextField.setFont(new Font(funkcjaTextField.getFont().getName(), Font.ITALIC, 20));
 		zawieraTextFunckcji.setLayout(new BoxLayout(zawieraTextFunckcji, BoxLayout.X_AXIS));
 		JPanel panelMaly = new JPanel();
@@ -106,8 +118,9 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					currentFunction = new FunctionPowloka(e.getActionCommand(), new Settings());
-					changeFunc(currentFunction.removeDiff());
+					wykres.function = new FunctionPowloka(e.getActionCommand(), ustawienia);
+					changeFunc(wykres.function.removeDiff());
+					funkcjaTextField.setText(wykres.function.write(ustawienia));
 				} catch (WrongSyntaxException e1) {
 					nadFunkcja.setForeground(Color.red);
 					nadFunkcja.setText(e1.messageForUser);
@@ -121,14 +134,14 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					currentFunction = new FunctionPowloka(funkcjaTextField.getText(), new Settings());
+					currentFunction = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
 					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
 							try {
-								FunctionPowloka fch = currentFunction.simplify(new Settings());
-								funkcjaTextField.setText(fch.write(new Settings()));
+								FunctionPowloka fch = currentFunction.simplify(ustawienia);
+								funkcjaTextField.setText(fch.write(ustawienia));
 								changeFunc(fch);
 								nadFunkcja.setText("Wypisano nową funkcję.");
 								return null;
@@ -153,13 +166,13 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				FunctionPowloka f;
 				try {
-					f = new FunctionPowloka(funkcjaTextField.getText(), new Settings());
+					f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
 					SwingWorker<Void,Void> rozbijFunc = new SwingWorker<Void,Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
-							FunctionPowloka fch = f.splitByRealAndImaginery(new Settings());
-							funkcjaTextField.setText(fch.write(new Settings()));
+							FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
+							funkcjaTextField.setText(fch.write(ustawienia));
 							changeFunc(fch);
 							return null;
 						}
@@ -321,7 +334,7 @@ public class Main extends JFrame {
 					wartosc.setText(val.printE(2, 2));
 					wykres.foreGround.marker = arg;
 					legenda.foreGround.marker = val;
-					if(rysowanie.isSelected()) {
+					if(rysowanie.isSelected() && wykres.foreGround.krzywa.size() != 0) {
 							wykres.foreGround.addPointToCurve(arg);
 							legenda.foreGround.addPointToCurve(val);
 							legenda.repaint();
@@ -461,27 +474,93 @@ public class Main extends JFrame {
 		setJMenuBar(menuBar);
 		JMenu Ustawienia = new JMenu("Ustawienia");
 		menuBar.add(Ustawienia);
-		JTextField doUsunieca = new JTextField("nie ma jeszcze rzadnych ustawień");
-		doUsunieca.setEnabled(false);
-		Ustawienia.add(doUsunieca);
+		JCheckBoxMenuItem oblStale = new JCheckBoxMenuItem("Podczas upraszczania oblicza wartości stałych");
+		JCheckBoxMenuItem uprPow = new JCheckBoxMenuItem("Nieścisłe upraszczanie potęg");
+		JCheckBoxMenuItem potWyp = new JCheckBoxMenuItem("Wypisuj potęgi w postaci pow(.,.)");
+		JCheckBoxMenuItem ladneStale = new JCheckBoxMenuItem("Ładnie wypisuje stałe");
+		JPanel dokStalych = new JPanel();
+		JLabel dokStLab = new JLabel("Ilość wyświetlanych miejsc po przecinku : 1");
+		JSlider dokSt = new JSlider(new DefaultBoundedRangeModel(1, 0, 1, 9));
+		dokStalych.add(dokStLab);
+		dokStalych.add(dokSt);
+		Ustawienia.add(oblStale);
+		Ustawienia.add(uprPow);
+		Ustawienia.add(potWyp);
+		Ustawienia.add(ladneStale);
+		Ustawienia.add(dokStalych);
+		oblStale.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ustawienia.evaluateConstants = oblStale.isSelected();
+			}
+		});
+		dokSt.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				ustawienia.doubleAcc = dokSt.getValue();
+				dokStLab.setText("Ilość wyświetlanych miejsc po przecinku : " + dokSt.getValue());
+				if(funkcjaTextField.isUpToDate)
+					funkcjaTextField.setText(wykres.function.write(ustawienia));
+			}
+		});
+		ladneStale.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ustawienia.writeNeatVar = ladneStale.isSelected();
+				if(funkcjaTextField.isUpToDate)
+					funkcjaTextField.setText(wykres.function.write(ustawienia));
+			}
+		});
+		uprPow.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ustawienia.strictPow = !uprPow.isSelected();
+			}
+		});
+
+
+		potWyp.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ustawienia.writePow = potWyp.isSelected();
+				if(funkcjaTextField.isUpToDate)
+					funkcjaTextField.setText(wykres.function.write(ustawienia));
+			}
+		});
+		
+		JMenu wykreLegendaMenu = new JMenu("Wykres");
+		JMenu legendaMenu = new JMenu("Legenda");
 		JMenu wykresMenu = new JMenu("Wykres");
+		wykreLegendaMenu.add(legendaMenu);
+		wykreLegendaMenu.add(wykresMenu);
 		JCheckBoxMenuItem osieLegendy = new JCheckBoxMenuItem("Osie legendy");
 		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie wykresu");
-		JCheckBoxMenuItem legendaLogSkala = new JCheckBoxMenuItem("Moduł legendy w skali logarytmicznej");
-		JCheckBoxMenuItem wykresLogSkala = new JCheckBoxMenuItem("Moduł dziedziny(wyresu) w skali logarytmicznej");
-		JCheckBoxMenuItem legndaInf = new JCheckBoxMenuItem("Legenda wokół nieksończoności");
-		JCheckBoxMenuItem wykresInf = new JCheckBoxMenuItem("Wykres wokół nieskończoności");
+		JRadioButtonMenuItem legendaLogSkala = new JRadioButtonMenuItem("Moduł legendy w skali logarytmicznej");
+		JRadioButtonMenuItem wykresLogSkala = new JRadioButtonMenuItem("Moduł dziedziny(wyresu) w skali logarytmicznej");
+		JRadioButtonMenuItem legndaInf = new JRadioButtonMenuItem("Legenda wokół nieksończoności");
+		JRadioButtonMenuItem wykresInf = new JRadioButtonMenuItem("Wykres wokół nieskończoności");
 		JCheckBoxMenuItem legendaKwadrat = new JCheckBoxMenuItem("Obszar legendy musi byc kwadratem");
 		JCheckBoxMenuItem wykresKwadrat = new JCheckBoxMenuItem("Obszar wykresu musi byc kwadratem");
-		wykresMenu.add(osieLegendy);
+		ButtonGroup legBG = new ButtonGroup();
+		ButtonGroup wykBG = new ButtonGroup();
+		legBG.add(legndaInf);
+		legBG.add(legendaLogSkala);
+		wykBG.add(wykresInf);
+		wykBG.add(wykresLogSkala);
+		legendaMenu.add(osieLegendy);
 		wykresMenu.add(osieWykresu);
-		wykresMenu.add(legendaLogSkala);
+		legendaMenu.add(legendaLogSkala);
 		wykresMenu.add(wykresLogSkala);
-		wykresMenu.add(legndaInf);
+		legendaMenu.add(legndaInf);
 		wykresMenu.add(wykresInf);
-		wykresMenu.add(legendaKwadrat);
+		legendaMenu.add(legendaKwadrat);
 		wykresMenu.add(wykresKwadrat);
-		menuBar.add(wykresMenu);
+		menuBar.add(wykreLegendaMenu);
 		
 		legndaInf.addActionListener(new ActionListener() {
 			
@@ -599,5 +678,54 @@ public class Main extends JFrame {
 				}
 			}
 		});
+	}
+}
+
+class FunctionTextField extends JTextField{
+	private int doneByProgramFlag = 0;
+	public boolean isUpToDate;
+	public FunctionTextField(String string) {
+		super(string);
+		isUpToDate = true;
+		getDocument().addDocumentListener(new DocumentListener() {
+			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				if(doneByProgramFlag>0) {
+					doneByProgramFlag--;
+					return;
+				}
+				isUpToDate = false;
+
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+
+				if(doneByProgramFlag>0) {
+					doneByProgramFlag--;
+					return;
+				}
+				isUpToDate = false;
+
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				if(doneByProgramFlag>0) {
+					doneByProgramFlag--;
+					return;
+				}
+				isUpToDate = false;
+
+			}
+		});
+
+	}
+	@Override
+	public void setText(String t) {
+		doneByProgramFlag += 2;
+		isUpToDate = true;
+		super.setText(t);
 	}
 }
