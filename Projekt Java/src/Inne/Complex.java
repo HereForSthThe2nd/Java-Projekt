@@ -5,6 +5,7 @@ import java.text.DecimalFormat;
 public class Complex {
 	public double x;
 	public double y;
+	public static final Complex NaN = new Complex(Double.NaN, Double.NaN);
 	public static final Complex i = new Complex(0,1);
 	
 	public void print() {
@@ -81,6 +82,9 @@ public class Complex {
 	}
 	static public Complex div(Complex a, Complex b) {
 		//if(b.x == 0 && b.y == 0) return null;
+		if(b.x == 0 && b.y == 0) {
+			return Complex.NaN;
+		}
 		double d = b.x*b.x + b.y*b.y;
 		Complex l = Complex.mult(a, b.conj());
 		return new Complex(l.x/d, l.y/d);
@@ -150,6 +154,9 @@ public class Complex {
 	public static Complex pow(Complex a, Complex b) {
 		if(b.y == 0 && b.x == (int)b.x) {
 			return pow(a, (int)b.x);
+		}
+		if(a.x == 0 && a.y == 0 && (b.x != 0 || b.y != 0)) {
+			return Complex.NaN;
 		}
 		return exp(mult(b, Ln(a)));
 	}

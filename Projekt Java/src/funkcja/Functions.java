@@ -80,13 +80,13 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			FunctionPowloka r;
 			try {
 				r = new FunctionPowloka("(x^2+y^2)^(1/2)", new Settings());
 				return new FuncComp(ln, new Function[] {r.f});
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
@@ -117,7 +117,7 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			return this;
 		}
 
@@ -155,23 +155,23 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			FunctionPowloka pom;
 			try {
 				pom = new FunctionPowloka("exp(x)*cos(y)", new Settings());
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 			return pom.f;
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			FunctionPowloka pom;
 			try {
 				pom = new FunctionPowloka("exp(x)*sin(y)", new Settings());
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 			return pom.f;
 		}
@@ -198,22 +198,22 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("cosh(y)*sin(x)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("sinh(y)*cos(x)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
@@ -240,22 +240,22 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("cosh(y)*cos(x)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("-sinh(y)*sin(x)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
@@ -283,22 +283,22 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("sinh(x)*cos(y)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("cosh(x)*sin(y)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
@@ -326,22 +326,22 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("cosh(x)*cos(y)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			try {
 				FunctionPowloka pom = new FunctionPowloka("sinh(x)*sin(y)", new Settings());
 				return pom.f;
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
@@ -367,7 +367,7 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			return this;
 		}
 
@@ -398,7 +398,7 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			return this;
 		}
 
@@ -434,24 +434,24 @@ public class Functions {
 			return "pow";
 		}
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re() {
 			FunctionPowloka innyZapis;
 			try {
 				innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 				return innyZapis.f.re();
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			FunctionPowloka innyZapis;
 			try {
 				innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 				return innyZapis.f.im();
 			} catch (WrongSyntaxException e) {
-				throw new WewnetzrnaFunkcjaZleZapisana(e);
+				throw new IllegalStateException(e);
 			}
 		}
 		@Override
@@ -496,12 +496,12 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			throw new IllegalArgumentException("pochodna");
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			throw new IllegalArgumentException("pochodna");
 		}
 
@@ -524,12 +524,12 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			throw new IllegalArgumentException("pochodna");
 		}
 
 		@Override
-		protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function im()  {
 			throw new IllegalArgumentException("pochodna");
 		}
 
@@ -552,7 +552,7 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			return this;
 		}
 
@@ -569,7 +569,7 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			return this;
 		}
 
@@ -586,7 +586,7 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+		protected Function re()  {
 			return this;
 		}
 
@@ -747,13 +747,13 @@ public class Functions {
 					}
 
 					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+					protected Function re()  {
 						FunctionPowloka r;
 						try {
 							r = new FunctionPowloka("(x^2+y^2)^(1/2)", new Settings());
 							return new FuncComp(ln, new Function[] {r.f});
 						} catch (WrongSyntaxException e) {
-							throw new WewnetzrnaFunkcjaZleZapisana(e);
+							throw new IllegalStateException(e);
 						}
 					}
 
@@ -801,24 +801,24 @@ public class Functions {
 					}
 
 					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+					protected Function re()  {
 						FunctionPowloka innyZapis;
 						try {
 							innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 							return innyZapis.f.re();
 						} catch (WrongSyntaxException e) {
-							throw new WewnetzrnaFunkcjaZleZapisana(e);
+							throw new IllegalStateException(e);
 						}
 					}
 
 					@Override
-					protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+					protected Function im()  {
 						FunctionPowloka innyZapis;
 						try {
 							innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 							return innyZapis.f.im();
 						} catch (WrongSyntaxException e) {
-							throw new WewnetzrnaFunkcjaZleZapisana(e);
+							throw new IllegalStateException(e);
 						}
 					}
 
@@ -901,7 +901,7 @@ public class Functions {
 						return this;
 					}
 					@Override
-					protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+					protected Function re()  {
 						return new FuncComp(Re, new Function[] {this});
 					}
 					@Override

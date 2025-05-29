@@ -11,7 +11,7 @@ import java.util.List;
 import Inne.Complex;
 
 class FuncMethods {
-
+	
 	static final FuncChecker isNumConst = new FuncChecker() {
 		@Override
 		public boolean check(Function func) {
@@ -25,6 +25,18 @@ class FuncMethods {
 			if(func.type == Functions.NUMCONST) {
 				Complex a = ((FuncNumConst)func).a;
 				if(a.y == 0 && a.x % 1 == 0)
+					return true;
+			}
+			return false;
+		}
+	};
+	
+	static final FuncChecker isNatural = new  FuncChecker() {
+		@Override
+		public boolean check(Function func) {
+			if(func.type == Functions.NUMCONST) {
+				Complex a = ((FuncNumConst)func).a;
+				if(a.y == 0 && a.x % 1 == 0 && a.x > 0)
 					return true;
 			}
 			return false;
@@ -65,7 +77,7 @@ class FuncMethods {
 		return max;
 	}
 	
-	protected static Function[] simplifyAll(Function[] g, Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static Function[] simplifyAll(Function[] g, Settings settings) {
 		Function[] g2 = new Function[g.length];
 		for(int i = 0; i<g.length;i++) {
 			g2[i] = g[i].simplify(settings);
@@ -73,7 +85,7 @@ class FuncMethods {
 		return g2;
 	}
 
-	protected static LinkedList<Function> simplifyAll(List<Function> g, Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static LinkedList<Function> simplifyAll(List<Function> g, Settings settings) {
 		LinkedList<Function> g2 = new LinkedList<Function>();//[g.size()];
 		for(int i = 0; i<g.size();i++) {
 			g2.add(g.get(i).simplify(settings));
@@ -144,7 +156,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] re(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static Function[] re(Function[] functions)  {
 		Function[] ret = new Function[functions.length];
 		for(int i=0;i<functions.length;i++) {
 			ret[i] = functions[i].re();
@@ -152,7 +164,7 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] im(Function[] functions) throws WewnetzrnaFunkcjaZleZapisana {
+	protected static Function[] im(Function[] functions)  {
 		Function[] ret = new Function[functions.length];
 		for(int i=0;i<functions.length;i++) {
 			ret[i] = functions[i].im();

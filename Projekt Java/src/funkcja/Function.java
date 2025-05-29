@@ -35,8 +35,8 @@ abstract public class Function implements FuncChecker
 	}
 	protected abstract Complex evaluate(Complex[] arg);
 	
-	protected abstract Function re() throws WewnetzrnaFunkcjaZleZapisana;
-	protected abstract Function im() throws WewnetzrnaFunkcjaZleZapisana;
+	protected abstract Function re();
+	protected abstract Function im();
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	protected abstract String write(Settings settings);
@@ -47,7 +47,7 @@ abstract public class Function implements FuncChecker
 	
 	protected abstract Function expand();
 	//bardzo podstawowe
-	protected abstract Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana;
+	protected abstract Function simplify(Settings setting) ;
 	
 	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
 		if(str.equals("")) 
@@ -145,7 +145,7 @@ abstract public class Function implements FuncChecker
 			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
 		}
 		
-		splitIndex = bloki.find("^",1);
+		splitIndex = bloki.find("^",-1);
 		if(splitIndex != -1) {
 			BlokList lBlok = bloki.subList(0, splitIndex);
 			BlokList rBlok = bloki.subList(splitIndex+1, bloki.arr.size());

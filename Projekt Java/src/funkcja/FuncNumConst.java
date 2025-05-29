@@ -71,7 +71,7 @@ public class FuncNumConst extends Function {
 	}
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function re() {
 		return new FuncNumConst(new Complex(a.x));
 	}
 

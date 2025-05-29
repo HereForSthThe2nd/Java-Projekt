@@ -56,28 +56,28 @@ public class FunctionPowloka {
 		return new FunctionPowloka(f.expand());
 	}
 	
-	public FunctionPowloka re(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka re(Settings set)  {
 		FunctionPowloka ret = new FunctionPowloka(f.re());
 		ret = ret.simplify(set);
 		return ret;
 	}
 
-	public FunctionPowloka im(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka im(Settings set)  {
 		FunctionPowloka ret = new FunctionPowloka(f.im());
 		ret = ret.simplify(set);
 		return ret;
 	}
 	
 	
-	public FunctionPowloka splitByRealAndImaginery(Settings set) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka splitByRealAndImaginery(Settings set)  {
 		return new FunctionPowloka(new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)}));
 	}
 	
-	public FunctionPowloka simplifyOnce(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka simplifyOnce(Settings settings) {
 		 return new FunctionPowloka(f.simplify(settings));
 	}
 	
-	public FunctionPowloka simplifyPom(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka simplifyPom(Settings settings)  {
 		int i = 0;
 		Function fLast = f;
 		Function fNew = fLast.simplify(settings);
@@ -93,7 +93,7 @@ public class FunctionPowloka {
 		return new FunctionPowloka(fNew);
 	}
 	
-	public FunctionPowloka simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	public FunctionPowloka simplify(Settings settings)  {
 		if(settings.evaluateConstants) {
 			Settings temp = settings.copy();
 			temp.evaluateConstants = false;
@@ -231,6 +231,11 @@ public class FunctionPowloka {
 		System.out.println(f.write(set) + " expand2");
 		f = f.simplify(set);
 		System.out.println(f.write(set) + " jeszcze raz uproszczone: wcześniej tych re nie uprościło bo były ukryte");
+		System.out.println("Teraz testowanie pochodnych:");
+		FunctionPowloka f1 = new FunctionPowloka("z^2", set);
+		FunctionPowloka f2 = new FunctionPowloka("sin(z)", set);
+		FunctionPowloka f3 = new FunctionPowloka("z", set);
+		FunctionPowloka f4 = new FunctionPowloka("z^0.5", set);
 		
 	}
 }

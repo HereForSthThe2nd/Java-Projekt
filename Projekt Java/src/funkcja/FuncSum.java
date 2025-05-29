@@ -122,11 +122,11 @@ class FuncSum extends Function {
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function re() {
 		return new FuncSum(FuncMethods.re(summands));
 	}
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function im() {
 		return new FuncSum(FuncMethods.im(summands));
 	}
 	
@@ -163,7 +163,7 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function simplify(Settings settings) {
 		calledSimp++;
 		//System.out.println("w funcsum zwróci .  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce

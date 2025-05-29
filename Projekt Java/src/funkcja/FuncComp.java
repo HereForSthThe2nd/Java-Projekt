@@ -45,16 +45,73 @@ class FuncComp extends Function {
 		return f.evaluate(FuncMethods.evaluate(g, arg));
 	}
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
-		if(f == Functions.diffX || f == Functions.diffY) {
-			return new FuncComp(f, new Function[] {new FuncComp(Functions.Re, g)});
+	protected Function re() {
+		try {
+			if(f == Functions.diffX || f == Functions.diffY) {
+				return new FuncComp(f, new Function[] {new FuncComp(Functions.Re, g)});
+			}
+			if(checkComponents2(Functions.powChecker, new FuncNumConst( new Complex(0))))
+				return new FuncNumConst(new Complex(1));
+			
+			if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(-1)))) {
+				FunctionPowloka fPom = new FunctionPowloka("x / (x^2 + y^2)", new Settings());
+				return fPom.f.putArguments(g);
+			}
+			if(checkComponents2(Functions.powChecker, FuncMethods.isInt)) {
+				if(FuncMethods.isNatural.check(g[1])) {
+					Function[] pom = new Function[(int)g[1].evaluate(null).x];
+					for(int i=0;i<pom.length;i++) {
+						pom[i] = g[0];
+					}
+					return (new FuncMult(pom)).re();
+				}
+				else {
+					Function[] pom = new Function[(int)g[1].evaluate(null).x];
+					Function pom2 = new FuncComp(f, new Function[] {g[0], new FuncNumConst(new Complex(-1))});
+					for(int i=0;i<pom.length;i++) {
+						pom[i] = pom2;
+					}
+					return (new FuncMult(pom)).re();
+				}
+			}
+		}catch(WrongSyntaxException e) {
+			throw new IllegalStateException(e);
 		}
+			
 		return f.re().putArguments(g);
 	}
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
-		if(f == Functions.diffX || f == Functions.diffY) {
-			return new FuncComp(f, new Function[] {new FuncComp(Functions.Im, g)});
+	protected Function im() {
+		try {
+			if(f == Functions.diffX || f == Functions.diffY) {
+				return new FuncComp(f, new Function[] {new FuncComp(Functions.Im, g)});
+			}
+			if(checkComponents2(Functions.powChecker, new FuncNumConst( new Complex(0))))
+				return new FuncNumConst(new Complex(1));
+			
+			if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(-1)))) {
+				FunctionPowloka fPom = new FunctionPowloka("-y / (x^2 + y^2)", new Settings());
+				return fPom.f.putArguments(g);
+			}
+			if(checkComponents2(Functions.powChecker, FuncMethods.isInt)) {
+				if(FuncMethods.isNatural.check(g[1])) {
+					Function[] pom = new Function[(int)g[1].evaluate(null).x];
+					for(int i=0;i<pom.length;i++) {
+						pom[i] = g[0];
+					}
+					return (new FuncMult(pom)).im();
+				}
+				else {
+					Function[] pom = new Function[(int)g[1].evaluate(null).x];
+					Function pom2 = new FuncComp(f, new Function[] {g[0], new FuncNumConst(new Complex(-1))});
+					for(int i=0;i<pom.length;i++) {
+						pom[i] = pom2;
+					}
+					return (new FuncMult(pom)).im();
+				}
+			}
+		}catch(WrongSyntaxException e) {
+			throw new IllegalStateException(e);
 		}
 		return f.im().putArguments(g);
 	}
@@ -146,8 +203,11 @@ class FuncComp extends Function {
 			return new Bool<Function> (new FuncComp(Functions.exp, new Function[] {g[1]}), true);
 		if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(1))))
 			return new Bool<Function> (g[0], true);
-		if(checkComponents(Functions.powChecker, new FuncNumConst(new Complex(0))))
-			return new Bool<Function> (new FuncNumConst(new Complex(0)),true);
+		if(checkComponents(Functions.powChecker, new FuncNumConst(new Complex(0)))) {
+			if(FuncMethods.isNatural.check(g[1]))
+				return new Bool<Function> (new FuncNumConst(new Complex(0)),true);
+			return new Bool<Function> (this,false);
+		}
 		if(checkComponents(Functions.pow, Functions.pow) && !settings.strictPow)
 			return new Bool<Function> (new FuncComp(Functions.pow, new Function[] { ((FuncComp)g[0]).g[0], new FuncMult( ((FuncComp)g[0]).g[1], g[1] )}), true);
 		if(checkComponents(Functions.pow, Functions.pow) && settings.strictPow) {
@@ -307,7 +367,7 @@ class FuncComp extends Function {
 	}
 	
 	@Override
-	protected Function simplify(Settings setting) throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function simplify(Settings setting) {
 		calledSimp++;
 		//System.out.println("w funccomp początek.  " + this.write(setting) + "   " + calledSimp);
 		//System.out.println("fueufufeu w  funccomp.simplify");

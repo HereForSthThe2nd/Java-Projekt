@@ -225,7 +225,7 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function re() {
 		if(f.length == 1)
 			return f[0].re();
 		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).re()),
@@ -233,7 +233,7 @@ class FuncMult extends Function {
 		});
 	}
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana {
+	protected Function im() {
 		if(f.length == 1)
 			return f[0].im();
 		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).im()),
@@ -333,7 +333,7 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function simplify(Settings settings) throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function simplify(Settings settings) { 
 		calledSimp++;
 		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce

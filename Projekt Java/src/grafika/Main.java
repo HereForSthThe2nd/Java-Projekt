@@ -59,7 +59,6 @@ import Inne.Complex;
 import funkcja.Function;
 import funkcja.FunctionPowloka;
 import funkcja.Settings;
-import funkcja.WewnetzrnaFunkcjaZleZapisana;
 import funkcja.WrongSyntaxException;
 import grafika.Graph.Coordinates;
 
@@ -74,7 +73,7 @@ public class Main extends JFrame {
 	@Deprecated
 	//zamiast tego można użyć wykres.function
 	FunctionPowloka currentFunction ;
-	public Main() throws WewnetzrnaFunkcjaZleZapisana {
+	public Main() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600,500));
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -198,6 +197,7 @@ public class Main extends JFrame {
 		calaOpcja.add(new JLabel("Rysowanie:"));
 		rysowanie = new JCheckBox();
 		calaOpcja.add(rysowanie);
+
 		wybor= new JButton("Zapisz wykres");
 		((JButton)wybor).addActionListener(new ActionListener() {
 			@Override
@@ -594,7 +594,7 @@ public class Main extends JFrame {
 				try {
 					Main main = new Main();
 					main.setVisible(true);
-				} catch (WewnetzrnaFunkcjaZleZapisana e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}

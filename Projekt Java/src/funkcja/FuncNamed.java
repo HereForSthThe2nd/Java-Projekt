@@ -114,12 +114,12 @@ abstract class UserFunction extends FuncNamed{
 	}
 	
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function re() { 
 		return f.re();
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function im() { 
 		return f.im();
 	}
 	
@@ -159,12 +159,12 @@ class VarGivenName extends UserFunction{
 	}
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function re() { 
 		return f.re();
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function im() { 
 		return f.im();
 	}
 
@@ -189,14 +189,14 @@ final class FuncConstGivenName extends UserFunction{
 	
 
 	@Override
-	protected Function re() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function re() { 
 		if(evaluate(new Complex[] {}).y == 0)
 			return this;
 		return f.re();
 	}
 
 	@Override
-	protected Function im() throws WewnetzrnaFunkcjaZleZapisana { 
+	protected Function im() { 
 		if(evaluate(new Complex[] {}).x == 0)
 			return this;
 		return f.im();
