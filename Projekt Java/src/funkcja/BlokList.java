@@ -13,7 +13,8 @@ class Blok{
 		NUMBER = 3,
 		PARENTHASES = 4,
 		OPERATION = 5,
-		PRZECINEK = 6;
+		PRZECINEK = 6,
+		NULL = 7;
 	final int type;
 	int pocz;
 	int kon;
@@ -22,15 +23,20 @@ class Blok{
 	Blok(String calyStr, int pocz, int kon, int type){
 		this.pocz = pocz;
 		this.kon = kon;
-		this.str = calyStr.substring(pocz, kon);
 		this.type = type;
+		if(type == NULL)
+			return;
+		this.str = calyStr.substring(pocz, kon);
 	}
 	Blok(String calyStr, int[] konce, int type){
 
 		this.pocz = konce[0];
 		this.kon = konce[1];
-		this.str = calyStr.substring(konce[0], konce[1]);
 		this.type = type;
+		if(type==NULL)
+			return;
+		this.str = calyStr.substring(konce[0], konce[1]);
+
 	}
 	public void print() {
 		System.out.println(str + " type: " + type);
@@ -427,7 +433,7 @@ class BlokList{
 		if(index < 0)
 			throw new IllegalArgumentException("Niepoprawne argumenty. Indeks musi być >= 0. Indeks: "+index + " str: " + str);
 		if(index >= str.length())
-			throw new IllegalArgumentException("Niepoprawne argumenty.  Indeks musi być <str.length. Indeks: "+index+" str.length: " + str.length() + " str: " + str);
+			return new Blok(str, new int[] {index+1,index+1}, Blok.NULL);
 		int[] konce = {index, index};
 		int type;
 		boolean isParenthases = (""+str.charAt(index)).matches("[\\(\\)]");
@@ -540,7 +546,7 @@ class BlokList{
 					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
 				Blok prawaStrona = znajdzBlokPom(str, blok.kon);
 				if(prawaStrona.type != Blok.PARENTHASES)
-					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
+					throw new WrongSyntaxException("Funkcje muszą mieć po sobie nawias, a funkcja: " + blok.str + " go nie ma.");
 				return new BlokWthDefFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Functions.returnNmdFunc(blok.str));
 			}
 				

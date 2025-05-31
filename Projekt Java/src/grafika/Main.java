@@ -48,6 +48,7 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSlider;
@@ -82,9 +83,6 @@ public class Main extends JFrame {
 	JTextField wartosc;
 	JCheckBox rysowanie;
 	Settings ustawienia = new Settings();
-	@Deprecated
-	//zamiast tego można użyć wykres.function
-	FunctionPowloka currentFunction ;
 	public Main() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600,500));
@@ -92,11 +90,12 @@ public class Main extends JFrame {
 		setLayout(new BorderLayout());
 		doTheMenu();
 		try {
-			currentFunction = new FunctionPowloka("z^2", new Settings());
 			legenda = new Graph(300);
 			wykres = new Graph(600);
+			wykres.setBackground(new Color(55,200,0));
+			wykres.function = new FunctionPowloka("z^2", new Settings());
 			legenda.change(new FunctionPowloka("z", new Settings()), legenda.rect(new Complex(-10,-10), new Complex(10,10)),Graph.basic ,0.5);
-			wykres.change(currentFunction, wykres.rect(new Complex(-3,-3), new Complex(3,3)),Graph.basic, 0.5);
+			wykres.change(wykres.function, wykres.rect(new Complex(-3,-3), new Complex(3,3)),Graph.basic, 0.5);
 		} catch (WrongSyntaxException e) {
 			throw new IllegalStateException(e);
 		}
@@ -134,13 +133,13 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					currentFunction = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
+					wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
 					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
 							try {
-								FunctionPowloka fch = currentFunction.simplify(ustawienia);
+								FunctionPowloka fch = wykres.function.simplify(ustawienia);
 								funkcjaTextField.setText(fch.write(ustawienia));
 								changeFunc(fch);
 								nadFunkcja.setText("Wypisano nową funkcję.");
@@ -211,13 +210,29 @@ public class Main extends JFrame {
 		rysowanie = new JCheckBox();
 		calaOpcja.add(rysowanie);
 
+		JButton wyczysc = new JButton("Wyczyść");
+		wyczysc.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+		    	wykres.foreGround.resetCurve();
+		    	legenda.foreGround.resetCurve();
+		    	repaint();
+			}
+		});
+		
+		calaOpcja.add(wyczysc);
+		
+		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
+		lewStr.add(calaOpcja);
+		
 		wybor= new JButton("Zapisz wykres");
 		((JButton)wybor).addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					JFileChooser ch = new JFileChooser();
-					/*
+					
 					ch.setFileFilter(new FileFilter() {
 
 						   public String getDescription() {
@@ -225,6 +240,7 @@ public class Main extends JFrame {
 						   }
 
 						   public boolean accept(File f) {
+							   System.out.println(f.toString());
 						       if (f.isDirectory()) {
 						           return true;
 						       } else {
@@ -233,20 +249,22 @@ public class Main extends JFrame {
 						       }
 						   }
 						});
-					*/
+					
 					int pot = ch.showSaveDialog(null);
 					if(pot == JFileChooser.APPROVE_OPTION) {
-						wykres.save(ch.getSelectedFile());
+						if(!ch.getSelectedFile().getPath().matches(".*\\.(jpg|jpeg)")){
+							wykres.save(new File(ch.getSelectedFile().getPath() + ".jpg"));
+						}
+						else
+							wykres.save(ch.getSelectedFile());
 					}
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (Exception e1) {
+					JOptionPane.showMessageDialog(null, "Nie udało się zapisać pliku.", "Błąd!", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
-		calaOpcja.add(wybor);
-		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
-		lewStr.add(calaOpcja);
+		
+		lewStr.add(wybor);
 		
 		calaOpcja = new JPanel();
 		opcja = new JLabel("Całka po krzywej: ");
@@ -533,34 +551,57 @@ public class Main extends JFrame {
 			}
 		});
 		
-		JMenu wykreLegendaMenu = new JMenu("Wykres");
+		JMenu wykresILegendaMenu = new JMenu("Wykres");
 		JMenu legendaMenu = new JMenu("Legenda");
 		JMenu wykresMenu = new JMenu("Wykres");
-		wykreLegendaMenu.add(legendaMenu);
-		wykreLegendaMenu.add(wykresMenu);
+		wykresILegendaMenu.add(legendaMenu);
+		wykresILegendaMenu.add(wykresMenu);
 		JCheckBoxMenuItem osieLegendy = new JCheckBoxMenuItem("Osie legendy");
-		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie wykresu");
-		JRadioButtonMenuItem legendaLogSkala = new JRadioButtonMenuItem("Moduł legendy w skali logarytmicznej");
-		JRadioButtonMenuItem wykresLogSkala = new JRadioButtonMenuItem("Moduł dziedziny(wyresu) w skali logarytmicznej");
-		JRadioButtonMenuItem legndaInf = new JRadioButtonMenuItem("Legenda wokół nieksończoności");
-		JRadioButtonMenuItem wykresInf = new JRadioButtonMenuItem("Wykres wokół nieskończoności");
-		JCheckBoxMenuItem legendaKwadrat = new JCheckBoxMenuItem("Obszar legendy musi byc kwadratem");
-		JCheckBoxMenuItem wykresKwadrat = new JCheckBoxMenuItem("Obszar wykresu musi byc kwadratem");
+		JRadioButtonMenuItem legendaTyp = new JRadioButtonMenuItem("Normalna skala");
+		JRadioButtonMenuItem legendaLogSkala = new JRadioButtonMenuItem("Moduł w skali logarytmicznej");
+		JRadioButtonMenuItem legndaInf = new JRadioButtonMenuItem("Wokół nieksończoności");
+		JCheckBoxMenuItem legendaKwadrat = new JCheckBoxMenuItem("Obszar musi byc kwadratem");
 		ButtonGroup legBG = new ButtonGroup();
-		ButtonGroup wykBG = new ButtonGroup();
+		
+		legBG.add(legendaTyp);
 		legBG.add(legndaInf);
 		legBG.add(legendaLogSkala);
+		legendaMenu.add(osieLegendy);
+		legendaTyp.setSelected(true);
+		
+		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie wykresu");
+		JRadioButtonMenuItem wykresTyp = new JRadioButtonMenuItem("Normalna skala");
+		JRadioButtonMenuItem wykresLogSkala = new JRadioButtonMenuItem("Moduł w skali logarytmicznej");
+		JRadioButtonMenuItem wykresInf = new JRadioButtonMenuItem("Wokół nieskończoności");
+		JCheckBoxMenuItem wykresKwadrat = new JCheckBoxMenuItem("Obszar musi byc kwadratem");
+
+		ButtonGroup wykBG = new ButtonGroup();
+		wykBG.add(wykresTyp);
 		wykBG.add(wykresInf);
 		wykBG.add(wykresLogSkala);
-		legendaMenu.add(osieLegendy);
-		wykresMenu.add(osieWykresu);
+		wykresTyp.setSelected(true);
+		
+		legendaMenu.add(legendaTyp);
 		legendaMenu.add(legendaLogSkala);
-		wykresMenu.add(wykresLogSkala);
 		legendaMenu.add(legndaInf);
-		wykresMenu.add(wykresInf);
 		legendaMenu.add(legendaKwadrat);
+
+		wykresMenu.add(osieWykresu);
+		wykresMenu.add(wykresTyp);
+		wykresMenu.add(wykresLogSkala);
+		wykresMenu.add(wykresInf);
 		wykresMenu.add(wykresKwadrat);
-		menuBar.add(wykreLegendaMenu);
+		
+		menuBar.add(wykresILegendaMenu);
+		
+		legendaTyp.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				legenda.coords = legenda.rect(legenda.coords.getLD(), legenda.coords.getPG());
+				legenda.change();
+			}
+		});
 		
 		legndaInf.addActionListener(new ActionListener() {
 			
@@ -574,6 +615,24 @@ public class Main extends JFrame {
 					legenda.coords = legenda.rect(legenda.coords.getLD(), legenda.coords.getPG());
 					legenda.change();
 				}
+			}
+		});
+	
+		legendaLogSkala.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				legenda.coords = legenda.logarithmic(legenda.coords.getLD(), legenda.coords.getPG());
+				legenda.change();
+			}
+		});
+		
+		wykresTyp.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wykres.coords = wykres.rect(wykres.coords.getLD(), wykres.coords.getPG());
+				wykres.change();
 			}
 		});
 		
@@ -592,6 +651,15 @@ public class Main extends JFrame {
 			}
 		});
 
+		wykresLogSkala.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wykres.coords = wykres.logarithmic(wykres.coords.getLD(), wykres.coords.getPG());
+				wykres.change();
+			}
+		});
+		
 	}
 	
 	private SwingWorker<Void,Void> changeFunc(FunctionPowloka f) {
@@ -682,7 +750,9 @@ public class Main extends JFrame {
 }
 
 class FunctionTextField extends JTextField{
+	//opcja dodania listenera wyłapującego tylko zmiany dokonane przez użytkownika
 	private int doneByProgramFlag = 0;
+	//zapamiętuje czy ostatnia zmiana została wykonana przez użytkownika czy przez program
 	public boolean isUpToDate;
 	public FunctionTextField(String string) {
 		super(string);
