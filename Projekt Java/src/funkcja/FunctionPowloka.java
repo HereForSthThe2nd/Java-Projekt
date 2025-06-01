@@ -7,7 +7,7 @@ package funkcja;
 import Inne.Complex;
 
 public class FunctionPowloka {
-	Function f;
+	private Function f;
 	//String canonicForm; gólne by było równe f.write, chyba że użytkownik dopiero przed chwilą wpisał funkcję i jeszcze jej w żaden sposób nie zmodyfikował... 
 		//może jeśli zmieni w ustawieniach znaczenie pow to może to mogłoby mieć sens? 
 		//Poza tym jeśli chce się to gdzieś przepisać bez zmian czy coś
@@ -22,6 +22,10 @@ public class FunctionPowloka {
 	
  	public FunctionPowloka copy() {
  		return new FunctionPowloka(this.f);
+ 	}
+ 	
+ 	public Function getFunction() {
+ 		return f;
  	}
  	
  	public int nofArg() {

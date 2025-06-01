@@ -31,7 +31,7 @@ class FuncComp extends Function {
 	}
 	protected Function getInner(int k) {
 		if(k<0 || k>f.nofArg)
-			throw new IllegalArgumentException("k poza granicami możliwych indeksów. k: " + k + ".");
+			throw new IllegalArgumentException("k poza granicami możliwych indeksów. k: " + k + ", maksymalny indeks(włącznie): " + f.nofArg + ".");
 		return g[k];
 	}
 	@Override
@@ -55,7 +55,7 @@ class FuncComp extends Function {
 			
 			if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(-1)))) {
 				FunctionPowloka fPom = new FunctionPowloka("x / (x^2 + y^2)", new Settings());
-				return fPom.f.putArguments(g);
+				return fPom.getFunction().putArguments(g);
 			}
 			if(checkComponents2(Functions.powChecker, FuncMethods.isInt)) {
 				if(FuncMethods.isNatural.check(g[1])) {
@@ -91,7 +91,7 @@ class FuncComp extends Function {
 			
 			if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(-1)))) {
 				FunctionPowloka fPom = new FunctionPowloka("-y / (x^2 + y^2)", new Settings());
-				return fPom.f.putArguments(g);
+				return fPom.getFunction().putArguments(g);
 			}
 			if(checkComponents2(Functions.powChecker, FuncMethods.isInt)) {
 				if(FuncMethods.isNatural.check(g[1])) {
@@ -116,6 +116,7 @@ class FuncComp extends Function {
 		return f.im().putArguments(g);
 	}
 	private String wypiszPotege(Settings settings) {
+		//zajmuje się poprawny postawieniem nawiasów
 		String str = "";
 		if(g[0].type == Functions.ADD || g[0].type == Functions.MULT) {
 			str += "(" + g[0].write(settings) + ")";
@@ -170,6 +171,7 @@ class FuncComp extends Function {
 			return FuncMethods.equals(this.g, ((FuncComp)f).g) && this.f.check(((FuncComp)f).f);
 		return false;
 	}	
+	
 	protected boolean checkComponents(FuncChecker outer, FuncChecker inner) {
 		if(f.nofArg == 0)
 			return false;
@@ -346,6 +348,7 @@ class FuncComp extends Function {
 			return new Bool<Function>(new FuncNumConst(new Complex(1)), true);
 		//zapomina o tym czy liczba rzeczywista jest dodatnia czy ujemna, ale może warto?
 		//TODO: kiedy wszystko inne bęzie zrobinone sprawdzić czy mogę usunąć poniższe
+		//o co mi chdziło jak pisałem powyższe komentarze?
 		if(checkComponents(Functions.arg, Functions.Re))
 			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
 		if(checkComponents(Functions.arg, Functions.Im))
@@ -353,7 +356,7 @@ class FuncComp extends Function {
 		return new Bool<Function>(this, false);
 	}
 	
-	private Bool<Function> simplifyOpposites(Settings settings){
+	private Bool<Function> simplifyMinusy(Settings settings){
 		if(checkComponents(Functions.sin, FuncMethods.minusOneTimes) || checkComponents(Functions.sinh, FuncMethods.minusOneTimes)) {
 			FuncMult wewIloczyn = new FuncMult (new FuncMult(new FuncNumConst(new Complex(-1)), this.g[0]).removeInnerMult());
 			return new Bool<Function>(new FuncMult(new FuncNumConst(new Complex(-1)), new FuncComp(this.f, new Function[] {wewIloczyn})), true);
@@ -368,7 +371,6 @@ class FuncComp extends Function {
 	
 	@Override
 	protected Function simplify(Settings setting) {
-		calledSimp++;
 		//System.out.println("w funccomp początek.  " + this.write(setting) + "   " + calledSimp);
 		//System.out.println("fueufufeu w  funccomp.simplify");
 		//System.out.println(f.write(new Settings()) + "  " + g[0].write(new Settings()));
@@ -393,7 +395,7 @@ class FuncComp extends Function {
 		fb = simplifyMiscellanious(setting);
 		if(fb.bool)
 			return fb.f;
-		fb = simplifyOpposites(setting);
+		fb = simplifyMinusy(setting);
 		if(fb.bool)
 			return fb.f;
 		if(f.check(Functions.Re))

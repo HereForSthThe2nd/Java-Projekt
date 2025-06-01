@@ -242,6 +242,7 @@ class FuncMult extends Function {
 	}
 
 	private boolean putParenthases(Function f, boolean division) {
+		//na celu sprawdzenia czy trzeba postawić nawiasy podczas wypisywania
 		if(f.type == Functions.ADD)
 			return true;
 		if(f.type == Functions.NUMCONST) {
@@ -334,7 +335,6 @@ class FuncMult extends Function {
 	
 	@Override
 	protected Function simplify(Settings settings) { 
-		calledSimp++;
 		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa

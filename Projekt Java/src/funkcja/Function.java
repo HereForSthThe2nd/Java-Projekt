@@ -7,6 +7,7 @@
 
 package funkcja;
 
+import java.lang.classfile.instruction.ReturnInstruction;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -16,8 +17,8 @@ import Inne.Complex;
  * ta klasa zazwyczj używana kiedy z metody chcemy też zwrócić informację czy coś się udało zrobić
  */
 class Bool<T>{
-	final T f;
-	final boolean bool;
+	T f;
+	boolean bool;
 	Bool(T f, boolean p){
 		this.f = f;
 		this.bool = p;
@@ -28,8 +29,6 @@ abstract public class Function implements FuncChecker
  {	
 	final int type;
 	final int nofArg;
-	//TODO:usunąć tą zmienną
-	public static int calledSimp = 0; 
 	protected Function(int type, int nofArg) {
 		this.type=type;
 		this.nofArg = nofArg;
@@ -59,9 +58,6 @@ abstract public class Function implements FuncChecker
 		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" +BlokList.GRECKIALFABET +"|"+  BlokList.SPECJALNE + "].*")) 
 			throw new WrongSyntaxException(
 					"Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.OPERATORY+"|[a-zA-Z0-9]|"+BlokList.GRECKIALFABET +"|"+BlokList.SPECJALNE, ""));
-		if(str.matches(".*["+BlokList.OPERATORY+"|[,.]]["+BlokList.OPERATORY+"|[,.]].*"))
-			//TODO:to wyrzuca błąd jak się wpisze np. (-1)
-			throw new WrongSyntaxException("Niepoprawny zapis : dwa operatry, przecinki lub kropki obok siebie");
 		return str;
 	}
 
@@ -82,15 +78,12 @@ abstract public class Function implements FuncChecker
 		return bloki;
 	}
 	 	
-	static boolean readEmptyStringAsZero; //prawda: "" --> func(z->0), fałsz: "" --> func(z->1)
 	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
 		if(bloki.splitByComma().size()>1)
 			throw new WrongSyntaxException("Przecinek postawony w złym miejscu. Musi występować wewnątrz funkcji.");
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0){//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
-			if(readEmptyStringAsZero)
-				return new FuncNumConst(new Complex(0));
-			return new FuncNumConst(new Complex(1));
+			return new FuncNumConst(new Complex(0));
 		}
 		if(bloki.arr.size() == 1) {
 			Blok blok = bloki.arr.get(0);
@@ -118,22 +111,38 @@ abstract public class Function implements FuncChecker
 		int splitIndex;
 		splitIndex = bloki.find("+", 1);
 		if(splitIndex != -1) {
-			readEmptyStringAsZero = true;
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			BlokList lStrona = bloki.subList(0, splitIndex);
+			BlokList pStrona = bloki.subList(splitIndex+1, bloki.arr.size());
+			if(pStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"+\" bez elemntu z prawej strony");
+			Function lFunc = read(lStrona, settings);
+			Function rFunc = read(pStrona, settings);
+			if(lStrona.arr.size() == 0)
+				return rFunc;
 			return new FuncSum(new Function[] {lFunc, rFunc});
 		}
 		splitIndex = bloki.find("-",-1);
 		if(splitIndex != -1) {
-			readEmptyStringAsZero = true;
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			BlokList lStrona = bloki.subList(0, splitIndex);
+			BlokList pStrona = bloki.subList(splitIndex+1, bloki.arr.size());
+			Function lFunc = read(lStrona, settings);
+			Function rFunc = read(pStrona, settings);
+			if(pStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"-\" bez elemntu z prawej strony");
+			if(lStrona.arr.size() == 0)
+				return new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc);
 			return new FuncSum(new Function[] {lFunc, new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc)});
 		}
 		splitIndex = bloki.find("*",1);
 		if(splitIndex != -1) {
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			BlokList lStrona = bloki.subList(0, splitIndex);
+			BlokList pStrona = bloki.subList(splitIndex+1, bloki.arr.size());
+			Function lFunc = read(lStrona, settings);
+			Function rFunc = read(pStrona, settings);
+			if(pStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"*\" bez elemntu z prawej strony");
+			if(lStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"*\" bez elemntu z lewej strony");
 			return new FuncMult(lFunc, rFunc);
 		}
 		splitIndex = bloki.findConcatenation(1);
@@ -144,18 +153,32 @@ abstract public class Function implements FuncChecker
 		}
 		splitIndex = bloki.find("/",-1);
 		if(splitIndex != -1) {
-			Function lFunc = read(bloki.subList(0, splitIndex), settings);
-			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			BlokList lStrona = bloki.subList(0, splitIndex);
+			BlokList pStrona = bloki.subList(splitIndex+1, bloki.arr.size());
+			if(pStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"/\" bez elemntu z prawej strony");
+			if(lStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"/\" bez elemntu z lewej strony");
+
+			Function lFunc = read(lStrona, settings);
+			Function rFunc = read(pStrona, settings);
 			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
 		}
 		
 		splitIndex = bloki.find("^",-1);
 		if(splitIndex != -1) {
-			BlokList lBlok = bloki.subList(0, splitIndex);
-			BlokList rBlok = bloki.subList(splitIndex+1, bloki.arr.size());
-			return new FuncComp(Functions.pow,	new Function[] {read(lBlok, settings), read(rBlok, settings)});
+			BlokList lStrona = bloki.subList(0, splitIndex);
+			BlokList pStrona = bloki.subList(splitIndex+1, bloki.arr.size());
+			Function lFunc = read(lStrona, settings);
+			Function rFunc = read(pStrona, settings);
+			if(pStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"^\" bez elemntu z prawej strony");
+			if(lStrona.arr.size() == 0)
+				throw new WrongSyntaxException("Występuje znak \"^\" bez elemntu z lewej strony");
+			return new FuncComp(Functions.pow,	new Function[] {read(lStrona, settings), read(pStrona, settings)});
 		}
-		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Ppodany argument: " + bloki.write());
+		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Podany argument: " + bloki.write());
 	}
+	
 	
 }

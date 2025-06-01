@@ -16,13 +16,12 @@ do zrobienia:
 	ZROBIONE 12.aby było w stanie się skapnąć kiedy występuje skracalny ułamek (z całkowitym licznikiem oraz mianownikiem) i to uprościć
 13(???)aby mogło upraszczać sumy logarytmów / logarytmy iloczynów 
 	ZROBIONE 14.aby upraszczało sin(-z) na -sin(z), sinh(0) na 0 itp.
-15.ładna część rzeczywista i urojona potęg
+	ZROBIONE	15.ładna część rzeczywista i urojona potęg
 16.upraszczanie exp(a*ln(b)) na a^b
-17.zrobienie podobnej przemiany w funcsum.simplify co w funcmult.simplify
+	CHYBA ZROBIONE?17.zrobienie podobnej przemiany w funcsum.simplify co w funcmult.simplify
 18.zmienienie wszystkich Function[] na LinkedList / List<Function>
 	JADNAK NIE19.szybsze / lepsze obliczanie re, im z jednokrotnym uproszczeniem na koniec zamiast cały czas to robić 
-20.opcja w ustawieniach jeśli część rzeczyswista oraz urojona nie mają byc obliczne
+20.opcja w ustawieniach jeśli część rzeczyswista oraz urojona nie mają byc obliczne podczas upraszczania
 21.(?)aby użytkownik był też w stanie użyć {} do wpisania parametru i potem dynamicznie funkcję zmieniać poprzez zmienienie parametru
 21.1(??)aby zezwalało na dyskrente wartości parametru
 22.dodanie komentarzy do funkcji bazowych + metoda łatwego 'wylistowania' dostępnych funkcji
-23.kompletne zmienienie sposobu działania FuncComp

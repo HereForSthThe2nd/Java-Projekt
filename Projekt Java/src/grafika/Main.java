@@ -311,8 +311,7 @@ public class Main extends JFrame {
 			
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				// TODO Auto-generated method stub
-				
+				mouseMoved(e);
 			}
 		});
 		legenda.obraz.addMouseListener(new MouseAdapter() {
@@ -422,13 +421,11 @@ public class Main extends JFrame {
 			
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				// TODO Auto-generated method stub
 				
 			}
 			
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				// TODO Auto-generated method stub
 			}
 		});
 		JComponent rootPane = getRootPane();
@@ -497,8 +494,8 @@ public class Main extends JFrame {
 		JCheckBoxMenuItem potWyp = new JCheckBoxMenuItem("Wypisuj potęgi w postaci pow(.,.)");
 		JCheckBoxMenuItem ladneStale = new JCheckBoxMenuItem("Ładnie wypisuje stałe");
 		JPanel dokStalych = new JPanel();
-		JLabel dokStLab = new JLabel("Ilość wyświetlanych miejsc po przecinku : 1");
-		JSlider dokSt = new JSlider(new DefaultBoundedRangeModel(1, 0, 1, 9));
+		JSlider dokSt = new JSlider(new DefaultBoundedRangeModel(3, 0, 1, 9));
+		JLabel dokStLab = new JLabel("Ilość wyświetlanych miejsc po przecinku : " + dokSt.getValue());
 		dokStalych.add(dokStLab);
 		dokStalych.add(dokSt);
 		Ustawienia.add(oblStale);
@@ -545,7 +542,7 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ustawienia.writePow = potWyp.isSelected();
+				ustawienia.writePow = !potWyp.isSelected();
 				if(funkcjaTextField.isUpToDate)
 					funkcjaTextField.setText(wykres.function.write(ustawienia));
 			}

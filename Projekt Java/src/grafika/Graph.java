@@ -383,10 +383,6 @@ public class Graph extends JPanel{
 		public Color szyba = new Color(0,0,0,0);
 		Complex marker;
 		Complex[] rect;
-		/*--TODO: USUNĄĆ--*/
-		static int tyleMniej;
-		static int tyle;
-		/*----------------*/
 		private static final int MARKERWIDTH = 12;
 		LinkedList<LinkedList<Complex>> krzywa = new LinkedList<LinkedList<Complex>>();
 		public Foreground() {

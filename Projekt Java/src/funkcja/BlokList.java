@@ -171,7 +171,9 @@ class BlokList{
 			sub.arr.add(arr.get(i));
 		return sub;
 	}
-
+	
+	//TODO: poniższe funkcje chyba są zbędne, można usunąć
+	/*
 	protected static int indexOf(String[] arr, String str) {
 		for(int i=0;i<arr.length;i++) {
 			if(arr[i].equals(str))
@@ -192,7 +194,7 @@ class BlokList{
 	protected static boolean contains(String[] arr, String str) {
 		return indexOf(arr, str) == -1 ? false : true;
 	}
-	
+	*/
 	LinkedList<BlokList> splitByComma() {
 		LinkedList<BlokList> ret = new LinkedList<BlokList>();
 		ret.add(new BlokList());
@@ -211,6 +213,7 @@ class BlokList{
 	}		
 	
 	protected static String configureStr(String str) {
+		//usuwa zewnętrzne nawiasy
 		int[] konce = wNawiasach(str, 0);
 		while(konce[0]==0 && konce[1] == str.length()-1) {
 			str = str.substring(1, str.length()-1);
@@ -398,11 +401,12 @@ class BlokList{
 	} 
 	
 	private static boolean checkSquareBrackets(String str, int index, int[] konce) throws WrongSyntaxException {
-		//tylko i wyłącznie dla metody blok
-		//modyfikuje argumenty int[] konce
+		//modyfikuje argumenty int[] konce, zwraca czy je zmieniło
+		//modyfikuje je, tak aby wskazywały na nawiasy kwadratowe wokół indeksu
 		int[] temp = wNawiasachKw(str, index);
 		if((temp[0] == -1 && !(temp[1] == -1)) || (temp[1] == -1 && !(temp[0] == -1))) {
-			throw new WrongSyntaxException("Kwadratowe nawiasy się nie zamykają", String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
+			throw new WrongSyntaxException("Kwadratowe nawiasy się nie zamykają. Występuje nawias " + (temp[0] == -1 ? "]" : "[") + " bez odpowiadającego mu nawiasu " +  (temp[0] == -1 ? "[." : "]."),
+					String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
 		}
 		if(temp[0] > -1 && temp[1] > -1) {
 			konce[0] = temp[0];
@@ -413,11 +417,12 @@ class BlokList{
 	}
 	
 	private static boolean checkKlamBrackets(String str, int index, int[] konce) throws WrongSyntaxException {
-		//tylko i wyłącznie dla metody blok
-		//modyfikuje argumenty int[] konce
+		//modyfikuje argumenty int[] konce, zwraca czy je zmieniło
+		//modyfikuje je tak 
 		int[] temp = wNawiasachKl(str, index);
-		if(temp[0] * temp[1] < 0) {
-			throw new WrongSyntaxException("Klamrowe nawiasy się nie zamykają", String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
+		if((temp[0] == -1 && !(temp[1] == -1)) || (temp[1] == -1 && !(temp[0] == -1))) {
+			throw new WrongSyntaxException("Kwadratowe nawiasy się nie zamykają. Występuje nawias " + (temp[0] == -1 ? "}" : "{") + " bez odpowiadającego mu nawiasu " +  (temp[0] == -1 ? "{." : "}."),
+					String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
 		}
 		if(temp[0] > -1 && temp[1] > -1) {
 			konce[0] = temp[0];
@@ -438,14 +443,14 @@ class BlokList{
 		int type;
 		boolean isParenthases = (""+str.charAt(index)).matches("[\\(\\)]");
 		boolean isWord = (""+str.charAt(index)).matches("[a-zA-Z" + GRECKIALFABET+ "]");
-		boolean isNum = (""+str.charAt(index)).matches("[0-9.]");
+		boolean isNum = (""+str.charAt(index)).matches("[0-9\\.]");
 		boolean isOperation = (str.charAt(index) + "").matches(OPERATORY);
 		boolean hasSquareBrackets = false;
 		boolean hasKlBrackets = false;
 		if(checkSquareBrackets(str, index, konce)) {
 			konce[0] -= 1;
 			if(konce[0] == -1)
-				throw new WrongSyntaxException("Nawiasy kwadratowe nie mogą wystąpić na początku funkcji.");
+				throw new WrongSyntaxException("Nawiasy kwadratowe nie mogą wystąpić na początku podanej funkcji.");
 			isWord = true;
 			isNum = false;
 			isParenthases = false;
@@ -455,7 +460,7 @@ class BlokList{
 			if(checkKlamBrackets(str, index, konce)) {
 				konce[0] -= 1;
 				if(konce[0] == -1)
-					throw new WrongSyntaxException("Nawiasy klamrowe nie mogą wystąpić na początku funkcji.");
+					throw new WrongSyntaxException("Nawiasy klamrowe nie mogą wystąpić na początku podanej funkcji.");
 				isWord = true;
 				isNum = false;
 				isParenthases = false;
@@ -511,7 +516,9 @@ class BlokList{
 					break;
 			}
 			if(countCommas > 1) 
-				throw new IllegalArgumentException("Niepoprawny zapisis (coś z przecinkami(kropkami))");
+				throw new WrongSyntaxException("Liczba \"" + str.substring(konce[0], konce[1]) + "\" zawiera w sobie więcej niż jedną kropkę.");
+			if(countCommas == 1 && str.length() == 1)
+				throw new WrongSyntaxException("Występuje kropka, która nie jest wewnątrz liczby.");
 			return new Blok(str, konce, type);
 		}
 		if(isParenthases) {
@@ -526,10 +533,9 @@ class BlokList{
 			return new Blok(str, konce, type);
 		}
 		if(str.charAt(index) == ',') {
-			//TODO
 			return new Blok(str, new int[] {index, index+1}, Blok.PRZECINEK);
 		}
-		else { //TODO: może nie będzie trzeba robić, ale tutaj chyba powinien być WrongSyntaksException
+		else {
 			throw new IllegalArgumentException("Niepoprawne argumenty. Podanemu indeksowi nie można przypisać ani cyfry ani litery (ani [])\nindex:"+
 						index+".  cos na indeksie:"+str.charAt(index) + ".  cały str: " + str+".");
 		}
@@ -563,7 +569,6 @@ class BlokList{
 	}
 	
 	public static void main(String[] args) throws WrongSyntaxException {
-
 		new BlokList("1.0a{5.90[]}d2.3dsa[32.13243[dsd[]][]]as[]j[]").print();
 	}
 

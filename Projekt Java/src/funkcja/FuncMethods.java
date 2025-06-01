@@ -255,6 +255,7 @@ class FuncMethods {
 
 /*
  * FuncChecker-y sprawdzają czy funkcja spełnia jakieś wymagania
+ * np. każda funkcja jest też funcChecker-em, który sprawdza czy dana funkcja jest taka sama jak ona
  */
 interface FuncChecker{
 	boolean check(Function func);
@@ -282,40 +283,24 @@ interface SimplifyTwo{
 					continue;
 				if(canPutTogether(arr.get(j), arr.get(i))) {
 					if(ret.get(countIndex)  != arr.get(i)) {
-						System.out.println(arr.get(i).write(new Settings()) + "\n" + ret.get(0).write(new Settings()));
-						System.out.println(arr.get(i+1).write(new Settings()));
-						System.out.println("w FuncMethods: SimplTwo.putAllTogether jest problem");
-						System.out.println("" + countIndex + "   " + (ret.size()-1) + "   " + i + "   " + j);
-						System.out.println(canPutTogether(arr.get(j), arr.get(i)));
-						System.out.println(canPutTogether(arr.get(j), ret.get(countIndex)));
-						System.out.println(canPutTogether(arr.get(countIndex), arr.get(i)));
+						String errorMessage = "\n";
+						errorMessage += arr.get(i).write(new Settings()) + "\n" + ret.get(0).write(new Settings());
+						errorMessage += "\n";
+						errorMessage += arr.get(i+1).write(new Settings());
+						errorMessage += "\n";
+						errorMessage += "w FuncMethods: SimplTwo.putAllTogether jest problem";
+						errorMessage += "\n";
+						errorMessage += "" + countIndex + "   " + (ret.size()-1) + "   " + i + "   " + j;
+						errorMessage += "\n";
+						errorMessage += canPutTogether(arr.get(j), arr.get(i));
+						errorMessage += "\n";
+						errorMessage += canPutTogether(arr.get(j), ret.get(countIndex));
+						errorMessage += "\n";
+						errorMessage += canPutTogether(arr.get(countIndex), arr.get(i));
+						throw new IllegalStateException(errorMessage);
 					}
 					ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
 					uzyteIndeksy.add(j);
-				}
-			}
-			countIndex++;
-		}
-		return ret;
-	}
-
-	@Deprecated
-	default ArrayList<Function> putAlltogether(ArrayList<Function> arr){
-		ArrayList<Integer> uzyteIndeksy = new ArrayList<Integer>(); 
-		if(arr.size() == 0)
-			throw new IllegalArgumentException("arr musi mieć w sobie co najmniej jeden element.");
-		ArrayList<Function> ret = new ArrayList<Function>();
-		int countIndex = 0;
-		for(int i=0;i<arr.size();i++) {
-			if(uzyteIndeksy.contains(i))
-				continue;
-			ret.add(arr.get(i));
-			for(int j=i+1;j<arr.size();j++) {
-				if(uzyteIndeksy.contains(j))
-					continue;
-				if(canPutTogether(arr.get(j), arr.get(i))) {
-						ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
-						uzyteIndeksy.add(j);
 				}
 			}
 			countIndex++;
