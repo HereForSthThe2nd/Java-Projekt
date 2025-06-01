@@ -69,6 +69,7 @@ import Inne.Complex;
 import funkcja.Function;
 import funkcja.FunctionPowloka;
 import funkcja.Settings;
+import funkcja.TimeKeeping;
 import funkcja.WrongSyntaxException;
 import grafika.Graph.Coordinates;
 
@@ -78,7 +79,7 @@ public class Main extends JFrame {
 	FunctionTextField funkcjaTextField;
 	boolean txtFuncUpToDate = false;
 	Graph legenda;
-	JLabel nadFunkcja;
+	LabelAboveFunction nadFunkcja;
 	JTextField argument;
 	JTextField wartosc;
 	JCheckBox rysowanie;
@@ -88,6 +89,7 @@ public class Main extends JFrame {
 		setMinimumSize(new Dimension(600,500));
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setLayout(new BorderLayout());
+		doTheShortcuts();
 		doTheMenu();
 		try {
 			legenda = new Graph(300);
@@ -104,15 +106,13 @@ public class Main extends JFrame {
 		funkcjaTextField.setFont(new Font(funkcjaTextField.getFont().getName(), Font.ITALIC, 20));
 		zawieraTextFunckcji.setLayout(new BoxLayout(zawieraTextFunckcji, BoxLayout.X_AXIS));
 		JPanel panelMaly = new JPanel();
-		nadFunkcja = new JLabel("Wpisz funkcję poniżej:");
+		nadFunkcja = new LabelAboveFunction("Wpisz funkcję poniżej:");
 		panelMaly.setLayout(new GridLayout(2,1));
 		panelMaly.add(nadFunkcja,0);
 		panelMaly.add(funkcjaTextField);
 		zawieraTextFunckcji.add(Box.createRigidArea(new Dimension(5,0)));
 		zawieraTextFunckcji.add(panelMaly);
-
-		JPanel left = new JPanel();
-		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+		
 		funkcjaTextField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -126,176 +126,6 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		JPanel przyciski = new JPanel();
-		JButton uprosc = new JButton("Uprość");
-		uprosc.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
-					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
-
-						@Override
-						protected Void doInBackground() throws Exception {
-							try {
-								FunctionPowloka fch = wykres.function.simplify(ustawienia);
-								funkcjaTextField.setText(fch.write(ustawienia));
-								changeFunc(fch);
-								nadFunkcja.setText("Wypisano nową funkcję.");
-								return null;
-							} catch (Exception e) {
-								e.printStackTrace();
-								throw new IllegalArgumentException(e);
-							}
-						}
-						
-					};
-					uprosc.execute();
-				} catch (WrongSyntaxException e1) {
-					nadFunkcja.setForeground(Color.red);
-					nadFunkcja.setText(e1.messageForUser);
-				}
-			}
-		});
-		JButton rzeczIUroj = new JButton("Rozbij na część rzeczywistą i urojoną");
-		rzeczIUroj.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				FunctionPowloka f;
-				try {
-					f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
-					SwingWorker<Void,Void> rozbijFunc = new SwingWorker<Void,Void>(){
-
-						@Override
-						protected Void doInBackground() throws Exception {
-							FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
-							funkcjaTextField.setText(fch.write(ustawienia));
-							changeFunc(fch);
-							return null;
-						}
-					};
-					rozbijFunc.execute();
-				} catch (WrongSyntaxException e1) {
-					nadFunkcja.setForeground(Color.red);
-					nadFunkcja.setText(e1.messageForUser);
-				}
-			}
-		});
-		przyciski.add(uprosc);
-		przyciski.add(rzeczIUroj);
-		
-		Border border = BorderFactory.createLineBorder(Color.orange);
-		JPanel lewStr = new JPanel();
-		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
-		lewStr.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
-		
-		JComponent opcja;
-		JComponent wybor;
-		JPanel calaOpcja;
-
-		calaOpcja = new JPanel();
-		calaOpcja.setLayout(new GridLayout(2,1));
-		opcja = new JPanel ();
-		opcja.add(new JLabel("Sposób pokolorowania legendy"));
-		wybor= new JComboBox<String>();
-		calaOpcja.add(opcja);
-		calaOpcja.add(wybor);
-		calaOpcja.setBorder(border);
-		lewStr.add(calaOpcja);
-		
-		calaOpcja = new JPanel();
-		calaOpcja.add(new JLabel("Rysowanie:"));
-		rysowanie = new JCheckBox();
-		calaOpcja.add(rysowanie);
-
-		JButton wyczysc = new JButton("Wyczyść");
-		wyczysc.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-		    	wykres.foreGround.resetCurve();
-		    	legenda.foreGround.resetCurve();
-		    	repaint();
-			}
-		});
-		
-		calaOpcja.add(wyczysc);
-		
-		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
-		lewStr.add(calaOpcja);
-		
-		wybor= new JButton("Zapisz wykres");
-		((JButton)wybor).addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					JFileChooser ch = new JFileChooser();
-					
-					ch.setFileFilter(new FileFilter() {
-
-						   public String getDescription() {
-						       return "JPG Images (*.jpg)";
-						   }
-
-						   public boolean accept(File f) {
-							   System.out.println(f.toString());
-						       if (f.isDirectory()) {
-						           return true;
-						       } else {
-						           String filename = f.getName().toLowerCase();
-						           return filename.endsWith(".jpg") || filename.endsWith(".jpeg") ;
-						       }
-						   }
-						});
-					
-					int pot = ch.showSaveDialog(null);
-					if(pot == JFileChooser.APPROVE_OPTION) {
-						if(!ch.getSelectedFile().getPath().matches(".*\\.(jpg|jpeg)")){
-							wykres.save(new File(ch.getSelectedFile().getPath() + ".jpg"));
-						}
-						else
-							wykres.save(ch.getSelectedFile());
-					}
-				} catch (Exception e1) {
-					JOptionPane.showMessageDialog(null, "Nie udało się zapisać pliku.", "Błąd!", JOptionPane.ERROR_MESSAGE);
-				}
-			}
-		});
-		
-		lewStr.add(wybor);
-		
-		calaOpcja = new JPanel();
-		opcja = new JLabel("Całka po krzywej: ");
-		wybor = new JTextArea("---");
-		((JTextArea)wybor).setEditable(false);
-		calaOpcja.add(opcja);
-		calaOpcja.add(wybor);
-		calaOpcja.setBorder(border);
-		lewStr.add(calaOpcja);
-		
-		lewStr.add(new JLabel("Legenda:"));
-		
-		left.add(Box.createRigidArea(new Dimension(0,30)));
-		left.add(przyciski);
-		left.add(Box.createRigidArea(new Dimension(0,30)));
-		left.add(lewStr);
-		lewStr.add(legenda);
-		add(zawieraTextFunckcji, BorderLayout.NORTH);
-		add(left, BorderLayout.WEST);
-		add(wykres, BorderLayout.CENTER);
-		
-		JLabel argumentLabel = new JLabel("Argument:");
-		JLabel wartoscLabel = new JLabel("Wartość:");
-		argument = new JTextField("---");
-		wartosc = new JTextField("---");
-		argument.setEditable(false);
-		wartosc.setEditable(false);
-		lewStr.add(argumentLabel);
-		lewStr.add(argument);
-		lewStr.add(wartoscLabel);
-		lewStr.add(wartosc);
 		
 		legenda.obraz.addMouseMotionListener(new MouseMotionListener() {
 			
@@ -428,6 +258,15 @@ public class Main extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 			}
 		});
+		
+		add(zawieraTextFunckcji, BorderLayout.NORTH);
+		add(wykres, BorderLayout.CENTER);
+		
+		doTheLeft();
+
+	}
+	
+	private void doTheShortcuts() {
 		JComponent rootPane = getRootPane();
 		Object rysowanieToggleKey = 0;
 		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl R"), rysowanieToggleKey);
@@ -659,44 +498,213 @@ public class Main extends JFrame {
 		
 	}
 	
-	private SwingWorker<Void,Void> changeFunc(FunctionPowloka f) {
-		nadFunkcja.setForeground(Color.black);
-		nadFunkcja.setText("W trakcie obliczania funkcji");
-		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
-			static int liczKropki = 0;
+	private void doTheLeft() {
+		JPanel left = new JPanel();
+		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+		JPanel przyciski = new JPanel();
+		JButton uprosc = new JButton("Uprość");
+		uprosc.addActionListener(new ActionListener() {
+			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-					if(stop) {
-						return;
-					}
-					String kropki;
-					switch(liczKropki){
-					case 0:
-						kropki = ".";
-						break;
-					case 1:
-						kropki = "..";
-						break;
-					case 2:
-						kropki = "...";
-						break;
-					default:
-						kropki = "";
-						break;
-					}
-					nadFunkcja.setText("W trakcie obliczania funkcji" + kropki);
-					liczKropki++;
-					liczKropki %= 4;
+				try {
+					TimeKeeping.reset();
+					long pocz = System.currentTimeMillis();
+					wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
+					long srodek = System.currentTimeMillis();
+					TimeKeeping.writeAndReset();
+					System.out.println(srodek - pocz + " <--wczytanie");
+					
+					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
+
+						@Override
+						protected Void doInBackground() throws Exception {
+							try {
+								long pocz = System.currentTimeMillis();
+								FunctionPowloka fch = wykres.function.simplify(ustawienia);
+								long pocz2 = System.currentTimeMillis();
+								System.out.println(pocz2 - pocz + "ms  <--czas uproszczenia");
+								funkcjaTextField.setText(fch.write(ustawienia));
+								changeFunc(fch);
+								nadFunkcja.setText("Wypisano nową funkcję.");
+								return null;
+							} catch (Exception e) {
+								e.printStackTrace();
+								throw new IllegalArgumentException(e);
+							}
+						}
+						
+					};
+					uprosc.execute();
+				} catch (WrongSyntaxException e1) {
+					nadFunkcja.setForeground(Color.red);
+					nadFunkcja.setText(e1.messageForUser);
+				}
 			}
-				
-		};
-		Timer timer = new Timer(800, timerListener);
+		});
+		JButton rzeczIUroj = new JButton("Rozbij na część rzeczywistą i urojoną");
+		rzeczIUroj.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FunctionPowloka f;
+				try {
+					TimeKeeping.reset();
+					long pocz = System.currentTimeMillis();
+					f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
+					long srodek = System.currentTimeMillis();
+					TimeKeeping.writeAndReset();
+					System.out.println(srodek - pocz + " <--wczytanie");
+					SwingWorker<Void,Void> rozbijFunc = new SwingWorker<Void,Void>(){
+
+						@Override
+						protected Void doInBackground() throws Exception {
+							long pocz = System.currentTimeMillis();
+							FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
+							long kon = System.currentTimeMillis();
+							System.out.println(kon-pocz + " <-- czas na rozdzielenie");
+							funkcjaTextField.setText(fch.write(ustawienia));
+							pocz = System.currentTimeMillis();
+							changeFunc(fch);
+							kon = System.currentTimeMillis();
+							System.out.println(kon-pocz + " <-- czas na wypisanie");
+							return null;
+						}
+					};
+					rozbijFunc.execute();
+				} catch (WrongSyntaxException e1) {
+					nadFunkcja.setForeground(Color.red);
+					nadFunkcja.setText(e1.messageForUser);
+				}
+			}
+		});
+		przyciski.add(uprosc);
+		przyciski.add(rzeczIUroj);
+		
+		Border border = BorderFactory.createLineBorder(Color.orange);
+		JPanel lewStr = new JPanel();
+		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
+		lewStr.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
+		
+		JComponent opcja;
+		JComponent wybor;
+		JPanel calaOpcja;
+
+		calaOpcja = new JPanel();
+		calaOpcja.setLayout(new GridLayout(2,1));
+		opcja = new JPanel ();
+		opcja.add(new JLabel("Sposób pokolorowania legendy"));
+		wybor= new JComboBox<String>();
+		calaOpcja.add(opcja);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		lewStr.add(calaOpcja);
+		
+		calaOpcja = new JPanel();
+		calaOpcja.add(new JLabel("Rysowanie:"));
+		rysowanie = new JCheckBox();
+		calaOpcja.add(rysowanie);
+
+		JButton wyczysc = new JButton("Wyczyść");
+		wyczysc.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+		    	wykres.foreGround.resetCurve();
+		    	legenda.foreGround.resetCurve();
+		    	repaint();
+			}
+		});
+		
+		calaOpcja.add(wyczysc);
+		
+		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
+		lewStr.add(calaOpcja);
+		
+		wybor= new JButton("Zapisz wykres");
+		((JButton)wybor).addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					JFileChooser ch = new JFileChooser();
+					
+					ch.setFileFilter(new FileFilter() {
+
+						   public String getDescription() {
+						       return "JPG Images (*.jpg)";
+						   }
+
+						   public boolean accept(File f) {
+							   System.out.println(f.toString());
+						       if (f.isDirectory()) {
+						           return true;
+						       } else {
+						           String filename = f.getName().toLowerCase();
+						           return filename.endsWith(".jpg") || filename.endsWith(".jpeg") ;
+						       }
+						   }
+						});
+					
+					int pot = ch.showSaveDialog(null);
+					if(pot == JFileChooser.APPROVE_OPTION) {
+						if(!ch.getSelectedFile().getPath().matches(".*\\.(jpg|jpeg)")){
+							wykres.save(new File(ch.getSelectedFile().getPath() + ".jpg"));
+						}
+						else
+							wykres.save(ch.getSelectedFile());
+					}
+				} catch (Exception e1) {
+					JOptionPane.showMessageDialog(null, "Nie udało się zapisać pliku.", "Błąd!", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		
+		lewStr.add(wybor);
+		
+		calaOpcja = new JPanel();
+		opcja = new JLabel("Całka po krzywej: ");
+		wybor = new JTextArea("---");
+		((JTextArea)wybor).setEditable(false);
+		calaOpcja.add(opcja);
+		calaOpcja.add(wybor);
+		calaOpcja.setBorder(border);
+		lewStr.add(calaOpcja);
+		
+		lewStr.add(new JLabel("Legenda:"));
+		
+		left.add(Box.createRigidArea(new Dimension(0,30)));
+		left.add(przyciski);
+		left.add(Box.createRigidArea(new Dimension(0,30)));
+		left.add(lewStr);
+		lewStr.add(legenda);
+		add(left, BorderLayout.WEST);
+
+		
+		JLabel argumentLabel = new JLabel("Argument:");
+		JLabel wartoscLabel = new JLabel("Wartość:");
+		argument = new JTextField("---");
+		wartosc = new JTextField("---");
+		argument.setEditable(false);
+		wartosc.setEditable(false);
+		lewStr.add(argumentLabel);
+		lewStr.add(argument);
+		lewStr.add(wartoscLabel);
+		lewStr.add(wartosc);
+		
+	}
+	
+	private SwingWorker<Void,Void> changeFunc(FunctionPowloka f) {
+		nadFunkcja.setForeground(Color.black);
+		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
 		SwingWorker<Void,Void> narysuj = new SwingWorker<Void, Void>(){
 
 			@Override
 			protected Void doInBackground() throws Exception {
 				try {
+					long pocz = System.currentTimeMillis();
 					wykres.change(f, wykres.coords ,Graph.basic, 0.5);
+					long kon = System.currentTimeMillis();
+					System.out.println(kon - pocz + "ms  <-- czas obliczenia func we wszytkich pkt i jej pokazania");
 					
 					legenda.foreGround.resetCurve();
 					for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
@@ -711,7 +719,6 @@ public class Main extends JFrame {
 					}
 					legenda.repaint();
 					
-					timerListener.stop = true;
 					nadFunkcja.setForeground(Color.black);
 					nadFunkcja.setText("Obliczono i pokazano funkcję.");
 				}catch(Exception e) {
@@ -721,13 +728,8 @@ public class Main extends JFrame {
 			}
 			
 		};
-		timer.start();
 		narysuj.execute();
 		return narysuj;
-	}
-	
-	abstract class ActionListenerWthStop implements ActionListener{
-		boolean stop = false;
 	}
 	
 	public static void main(String[] args) {
@@ -744,6 +746,10 @@ public class Main extends JFrame {
 			}
 		});
 	}
+}
+
+abstract class ActionListenerWthStop implements ActionListener{
+	boolean stop = false;
 }
 
 class FunctionTextField extends JTextField{
@@ -794,5 +800,57 @@ class FunctionTextField extends JTextField{
 		doneByProgramFlag += 2;
 		isUpToDate = true;
 		super.setText(t);
+	}
+}
+
+class LabelAboveFunction extends JLabel{
+	Timer timer;
+	
+	public LabelAboveFunction(String text) {
+		super(text);
+	}
+	
+	@Override
+	public void setText(String text) {
+		if(timer != null)
+			timer.stop();
+		super.setText(text);
+	}
+	
+	public void setTextAnimated(String text){
+		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
+			static int liczKropki = 0;
+			long timeOld = System.currentTimeMillis();
+			long timeNew = System.currentTimeMillis();
+			@Override
+			public void actionPerformed(ActionEvent e) {
+					if(stop) {
+						return;
+					}
+					String kropki;
+					switch(liczKropki){
+					case 0:
+						kropki = ".";
+						break;
+					case 1:
+						kropki = "..";
+						break;
+					case 2:
+						kropki = "...";
+						break;
+					default:
+						kropki = "";
+						break;
+					}
+					LabelAboveFunction.super.setText(text + kropki);
+					liczKropki++;
+					liczKropki %= 4;
+					timeNew = System.currentTimeMillis();
+					System.out.println(timeNew - timeOld + "  text");
+					timeOld = timeNew; 
+			}
+		};
+		timer = new Timer(800, timerListener);
+		timer.start();
 	}
 }

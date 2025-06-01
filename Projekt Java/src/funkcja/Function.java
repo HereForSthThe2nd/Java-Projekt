@@ -27,6 +27,7 @@ class Bool<T>{
 
 abstract public class Function implements FuncChecker
  {	
+		
 	final int type;
 	final int nofArg;
 	protected Function(int type, int nofArg) {
@@ -79,16 +80,19 @@ abstract public class Function implements FuncChecker
 	}
 	 	
 	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
-		if(bloki.splitByComma().size()>1)
+		TimeKeeping.startTimer("function");
+		if(bloki.splitByComma().size()>1) 
 			throw new WrongSyntaxException("Przecinek postawony w złym miejscu. Musi występować wewnątrz funkcji.");
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0){//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
+			TimeKeeping.endTimer("function");
 			return new FuncNumConst(new Complex(0));
 		}
 		if(bloki.arr.size() == 1) {
 			Blok blok = bloki.arr.get(0);
 			switch(blok.type) {
 			case Blok.NUMBER:
+				TimeKeeping.endTimer("function");
 				return new FuncNumConst(new Complex(Double.parseDouble(blok.str)));
 			case Blok.FUNCTION:
 				LinkedList<BlokList> argsOfFunction = (new BlokList (blok.str.substring(1, blok.str.length()-1))).splitByComma();
@@ -100,9 +104,11 @@ abstract public class Function implements FuncChecker
 					arg[i] = read(argsOfFunction.get(i), settings);
 
 				}
+				TimeKeeping.endTimer("function");
 				return new FuncComp(((BlokWthDefFunction)blok).funkcja, arg);
 			case Blok.WORD:
 				if(Functions.ckeckIfVar(blok.str)) {
+					TimeKeeping.endTimer("function");
 					return Functions.returnVar(blok.str);
 				}
 				throw new WrongSyntaxException(blok.str + " nie jest znaną nazwą ani funkcji ani zmiennej ani stałej.");
@@ -117,6 +123,7 @@ abstract public class Function implements FuncChecker
 				throw new WrongSyntaxException("Występuje znak \"+\" bez elemntu z prawej strony");
 			Function lFunc = read(lStrona, settings);
 			Function rFunc = read(pStrona, settings);
+			TimeKeeping.endTimer("function");
 			if(lStrona.arr.size() == 0)
 				return rFunc;
 			return new FuncSum(new Function[] {lFunc, rFunc});
@@ -129,6 +136,7 @@ abstract public class Function implements FuncChecker
 			Function rFunc = read(pStrona, settings);
 			if(pStrona.arr.size() == 0)
 				throw new WrongSyntaxException("Występuje znak \"-\" bez elemntu z prawej strony");
+			TimeKeeping.endTimer("function");
 			if(lStrona.arr.size() == 0)
 				return new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc);
 			return new FuncSum(new Function[] {lFunc, new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc)});
@@ -143,12 +151,14 @@ abstract public class Function implements FuncChecker
 				throw new WrongSyntaxException("Występuje znak \"*\" bez elemntu z prawej strony");
 			if(lStrona.arr.size() == 0)
 				throw new WrongSyntaxException("Występuje znak \"*\" bez elemntu z lewej strony");
+			TimeKeeping.endTimer("function");
 			return new FuncMult(lFunc, rFunc);
 		}
 		splitIndex = bloki.findConcatenation(1);
 		if(splitIndex != -1) {
 			Function lFunc = read(bloki.subList(0, splitIndex+1), settings);
 			Function rFunc = read(bloki.subList(splitIndex+1, bloki.arr.size()), settings);
+			TimeKeeping.endTimer("function");
 			return new FuncMult(lFunc, rFunc);
 		}
 		splitIndex = bloki.find("/",-1);
@@ -162,6 +172,7 @@ abstract public class Function implements FuncChecker
 
 			Function lFunc = read(lStrona, settings);
 			Function rFunc = read(pStrona, settings);
+			TimeKeeping.endTimer("function");
 			return new FuncMult(new Function[] {lFunc, new FuncComp(Functions.pow, new Function[] {rFunc, new FuncNumConst(new Complex(-1.0))})});
 		}
 		
@@ -175,6 +186,7 @@ abstract public class Function implements FuncChecker
 				throw new WrongSyntaxException("Występuje znak \"^\" bez elemntu z prawej strony");
 			if(lStrona.arr.size() == 0)
 				throw new WrongSyntaxException("Występuje znak \"^\" bez elemntu z lewej strony");
+			TimeKeeping.endTimer("function");
 			return new FuncComp(Functions.pow,	new Function[] {read(lStrona, settings), read(pStrona, settings)});
 		}
 		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Podany argument: " + bloki.write());
