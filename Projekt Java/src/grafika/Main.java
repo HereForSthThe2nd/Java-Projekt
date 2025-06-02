@@ -55,6 +55,7 @@ import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.Border;
@@ -116,14 +117,27 @@ public class Main extends JFrame {
 		funkcjaTextField.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					wykres.function = new FunctionPowloka(e.getActionCommand(), ustawienia);
-					changeFunc(wykres.function.removeDiff());
-					funkcjaTextField.setText(wykres.function.write(ustawienia));
-				} catch (WrongSyntaxException e1) {
-					nadFunkcja.setForeground(Color.red);
-					nadFunkcja.setText(e1.messageForUser);
-				}
+				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>(){
+
+					@Override
+					protected Void doInBackground() throws Exception {
+						try {
+							System.out.println(e.getActionCommand());
+							TimeKeeping.reset();
+							wykres.function = new FunctionPowloka(e.getActionCommand(), ustawienia);
+							TimeKeeping.writeAndReset();
+							changeFunc(wykres.function.removeDiff());
+							funkcjaTextField.setText(wykres.function.write(ustawienia));
+							funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
+						} catch (WrongSyntaxException e1) {
+							nadFunkcja.setForeground(Color.red);
+							nadFunkcja.setText(e1.messageForUser);
+						}
+						return null;
+					}
+					
+				};
+				worker.execute();
 			}
 		});
 		
@@ -214,7 +228,7 @@ public class Main extends JFrame {
 					wykres.foreGround.rect = null;
 					wykres.foreGround.szyba = new Color(0,0,0,50);
 					wykres.foreGround.repaint();
-					SwingWorker<Void,Void> work = changeFunc(wykres.function);
+					SwingWorker<Void,Void> work = changeFunc();
 					work.addPropertyChangeListener(new PropertyChangeListener() {
 						@Override
 						public void propertyChange(PropertyChangeEvent evt) {
@@ -478,11 +492,11 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if(wykresInf.isSelected()) {
 					wykres.coords = wykres.aroundInf(wykres.coords.getLD(), wykres.coords.getPG());
-					changeFunc(wykres.function);
+					changeFunc();
 				}
 				else {
 					wykres.coords = wykres.rect(wykres.coords.getLD(), wykres.coords.getPG());
-					changeFunc(wykres.function);
+					changeFunc();
 				}
 			}
 		});
@@ -507,20 +521,20 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				try {
-					TimeKeeping.reset();
-					long pocz = System.currentTimeMillis();
-					wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
-					long srodek = System.currentTimeMillis();
-					TimeKeeping.writeAndReset();
-					System.out.println(srodek - pocz + " <--wczytanie");
 					
 					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
 							try {
+								TimeKeeping.reset();
 								long pocz = System.currentTimeMillis();
+								wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
+								long srodek = System.currentTimeMillis();
+								TimeKeeping.writeAndReset();
+								System.out.println(srodek - pocz + " <--wczytanie");
+
+								 pocz = System.currentTimeMillis();
 								FunctionPowloka fch = wykres.function.simplify(ustawienia);
 								long pocz2 = System.currentTimeMillis();
 								System.out.println(pocz2 - pocz + "ms  <--czas uproszczenia");
@@ -528,18 +542,15 @@ public class Main extends JFrame {
 								changeFunc(fch);
 								nadFunkcja.setText("Wypisano nową funkcję.");
 								return null;
-							} catch (Exception e) {
-								e.printStackTrace();
-								throw new IllegalArgumentException(e);
+							} catch (WrongSyntaxException e) {
+								nadFunkcja.setForeground(Color.red);
+								nadFunkcja.setText(e.messageForUser);
+								return null;
 							}
 						}
 						
 					};
 					uprosc.execute();
-				} catch (WrongSyntaxException e1) {
-					nadFunkcja.setForeground(Color.red);
-					nadFunkcja.setText(e1.messageForUser);
-				}
 			}
 		});
 		JButton rzeczIUroj = new JButton("Rozbij na część rzeczywistą i urojoną");
@@ -547,35 +558,42 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				FunctionPowloka f;
-				try {
-					TimeKeeping.reset();
-					long pocz = System.currentTimeMillis();
-					f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
-					long srodek = System.currentTimeMillis();
-					TimeKeeping.writeAndReset();
-					System.out.println(srodek - pocz + " <--wczytanie");
 					SwingWorker<Void,Void> rozbijFunc = new SwingWorker<Void,Void>(){
 
 						@Override
 						protected Void doInBackground() throws Exception {
-							long pocz = System.currentTimeMillis();
-							FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
-							long kon = System.currentTimeMillis();
-							System.out.println(kon-pocz + " <-- czas na rozdzielenie");
-							funkcjaTextField.setText(fch.write(ustawienia));
-							pocz = System.currentTimeMillis();
-							changeFunc(fch);
-							kon = System.currentTimeMillis();
-							System.out.println(kon-pocz + " <-- czas na wypisanie");
+							try {
+								//nadFunkcja.setTextAnimated("Wczytywanie funkcji");
+								TimeKeeping.reset();
+								long pocz = System.currentTimeMillis();
+								FunctionPowloka f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
+								long srodek = System.currentTimeMillis();
+								TimeKeeping.writeAndReset();
+								System.out.println(srodek - pocz + " <--wczytanie");
+	
+								pocz = System.currentTimeMillis();
+								//nadFunkcja.setTextAnimated("Rozbijanie funkcji");
+								System.out.println("Poczatek rozbijania");
+								FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
+								System.out.println("Koniec rozbijania");
+								long kon = System.currentTimeMillis();
+								System.out.println(kon-pocz + " <-- czas na rozdzielenie");
+								funkcjaTextField.setText(fch.write(ustawienia));
+								pocz = System.currentTimeMillis();
+								changeFunc(fch);
+								kon = System.currentTimeMillis();
+								System.out.println(kon-pocz + " <-- czas na wypisanie");
+							} catch (WrongSyntaxException e1) {
+								nadFunkcja.setForeground(Color.red);
+								nadFunkcja.setText(e1.messageForUser);
+							} catch(Exception e) {
+								System.out.println("acb");
+							}
+
 							return null;
 						}
 					};
 					rozbijFunc.execute();
-				} catch (WrongSyntaxException e1) {
-					nadFunkcja.setForeground(Color.red);
-					nadFunkcja.setText(e1.messageForUser);
-				}
 			}
 		});
 		przyciski.add(uprosc);
@@ -693,7 +711,7 @@ public class Main extends JFrame {
 		
 	}
 	
-	private SwingWorker<Void,Void> changeFunc(FunctionPowloka f) {
+	private SwingWorker<Void, Void> changeFunc() {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
 		SwingWorker<Void,Void> narysuj = new SwingWorker<Void, Void>(){
@@ -702,7 +720,7 @@ public class Main extends JFrame {
 			protected Void doInBackground() throws Exception {
 				try {
 					long pocz = System.currentTimeMillis();
-					wykres.change(f, wykres.coords ,Graph.basic, 0.5);
+					wykres.change(wykres.function, wykres.coords ,Graph.basic, 0.5);
 					long kon = System.currentTimeMillis();
 					System.out.println(kon - pocz + "ms  <-- czas obliczenia func we wszytkich pkt i jej pokazania");
 					
@@ -731,6 +749,36 @@ public class Main extends JFrame {
 		narysuj.execute();
 		return narysuj;
 	}
+	
+	private void changeFunc(FunctionPowloka f) {
+		nadFunkcja.setForeground(Color.black);
+		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
+			try {
+				long pocz = System.currentTimeMillis();
+				wykres.change(wykres.function, wykres.coords ,Graph.basic, 0.5);
+				long kon = System.currentTimeMillis();
+				System.out.println(kon - pocz + "ms  <-- czas obliczenia func we wszytkich pkt i jej pokazania");
+				
+				legenda.foreGround.resetCurve();
+				for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
+					legenda.foreGround.addNewCurve();
+					for(Complex z : krzywa) {
+						//System.out.println(p);
+						//System.out.println(wykres.getValueAt(p));
+						Point p = wykres.coords.cmplxToPoint( z );
+						if(p.x >= 0 && p.y >= 0 && p.x < wykres.img.getWidth() && p.y < wykres.img.getHeight())
+							legenda.foreGround.addPointToCurve(wykres.getValueAt(p));
+					}
+				}
+				legenda.repaint();
+				
+				nadFunkcja.setForeground(Color.black);
+				nadFunkcja.setText("Obliczono i pokazano funkcję.");
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+	}
+
 	
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -814,6 +862,34 @@ class LabelAboveFunction extends JLabel{
 	public void setText(String text) {
 		if(timer != null)
 			timer.stop();
+		if(text.equals(getText())) {
+			Thread t = new Thread() {
+				
+				@Override
+				public void run() {
+					try {
+						long time = 200;
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								setFont(new Font(getFont().getName(), Font.PLAIN, getFont().getSize()));
+							}
+						});
+						Thread.sleep(time);
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								setFont(new Font(getFont().getName(), Font.BOLD, getFont().getSize()));
+							}
+						});
+
+					}catch(InterruptedException e) {
+						e.printStackTrace();
+					}
+				};
+			};
+			t.run();
+		}
 		super.setText(text);
 	}
 	
@@ -850,6 +926,8 @@ class LabelAboveFunction extends JLabel{
 					timeOld = timeNew; 
 			}
 		};
+		if(timer != null)
+			timer.stop();
 		timer = new Timer(800, timerListener);
 		timer.start();
 	}

@@ -187,7 +187,7 @@ abstract public class Function implements FuncChecker
 			if(lStrona.arr.size() == 0)
 				throw new WrongSyntaxException("Występuje znak \"^\" bez elemntu z lewej strony");
 			TimeKeeping.endTimer("function");
-			return new FuncComp(Functions.pow,	new Function[] {read(lStrona, settings), read(pStrona, settings)});
+			return new FuncComp(Functions.pow,	new Function[] {lFunc, rFunc});
 		}
 		throw new IllegalArgumentException("Nie powinno było tutaj dojść. Podany argument: " + bloki.write());
 	}

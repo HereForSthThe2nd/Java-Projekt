@@ -10,7 +10,7 @@ public class TimeKeeping {
 	private static LinkedList<Long> totalTimes;
 	private static LinkedList<Long> lastStart; 
 	private static LinkedList<Integer> ignore;
-	private static LinkedList<List<Integer>> called;
+	private static LinkedList<Integer> called;
 	static {
 		reset();
 	}
@@ -23,7 +23,7 @@ public class TimeKeeping {
 	static public void startTimer(Object key) {
 		int index = keys.indexOf(key);
 
-	called.set(index, List.of(called.get(index).get(0)+1, called.get(index).get(1)));
+	called.set(index, called.get(index) + 1);
 		if(lastStart.get(index) == null && ignore.get(index) > 0) {
 			throw new IllegalStateException(key+", " +lastStart + ", " + ignore);
 		}
@@ -35,7 +35,6 @@ public class TimeKeeping {
 	}
 	static public void endTimer(Object key) {
 		int index = keys.indexOf(key);
-		called.set(index, List.of(called.get(index).get(0), called.get(index).get(1)+1));
 		if(ignore.get(index) != 0) {
 			ignore.set(index, ignore.get(index)-1);
 			return;
@@ -54,13 +53,13 @@ public class TimeKeeping {
 		totalTimes = new LinkedList<Long>(List.of(0L,0L));
 		lastStart = new LinkedList<Long>(Arrays.asList(null,null)); 
 		ignore = new LinkedList<Integer>(List.of(0,0));
-		called = new LinkedList<List<Integer>>(List.of(List.of(0,0), List.of(0,0)));
+		called = new LinkedList<Integer>(List.of(0,0));
 
 	}
 	
 	static public void writeAndReset() {
 		for(int i=0;i<keys.size();i++) {
-			System.out.println(keys.get(i) + ": " + totalTimes.get(i));
+			System.out.println(keys.get(i) + ": " + totalTimes.get(i) + ", ilość wezwan: " + called.get(i));
 		}
 		reset();
 	}

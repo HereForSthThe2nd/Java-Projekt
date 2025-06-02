@@ -92,12 +92,15 @@ class BlokList{
 			arr.add(blok);
 			index = blok.kon;
 		}
+		
+		/*TODO: usunąć jak już się sprawdzi że to nie jest konieczne
 		if((arr.get(0).type == Blok.OPERATION && arr.get(0).str.matches("[^+-]"))) {
 			throw new WrongSyntaxException("Operacja " + arr.get(0).str + " nie może stać na początku wyrażenia." , "cały str: "+str+".");
 		}
 		if((arr.get(arr.size()-1).type == Blok.OPERATION && arr.get(arr.size()-1).str.matches("[^+-]"))) {
 			throw new WrongSyntaxException("Operacja " + arr.get(arr.size()-1).str + " nie może stać na końcu wyrażenia." , "cały str: "+str+".");
 		}
+		*/
 	}
 	
 	protected int find(String str, int side) {
