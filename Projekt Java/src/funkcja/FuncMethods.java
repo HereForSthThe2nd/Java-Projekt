@@ -156,22 +156,6 @@ class FuncMethods {
 		return ret;
 	}
 
-	protected static Function[] re(Function[] functions)  {
-		Function[] ret = new Function[functions.length];
-		for(int i=0;i<functions.length;i++) {
-			ret[i] = functions[i].re();
-		}
-		return ret;
-	}
-
-	protected static Function[] im(Function[] functions)  {
-		Function[] ret = new Function[functions.length];
-		for(int i=0;i<functions.length;i++) {
-			ret[i] = functions[i].im();
-		}
-		return ret;
-	}
-
 	protected static Function[] putArguments(Function[] functions, Function[] args) {
 		Function[] ret = new Function[functions.length];
 		for(int i=0; i<functions.length;i++) {
@@ -183,7 +167,11 @@ class FuncMethods {
 	protected static Function[] subList(Function[] functions, int a, int b) {
 		//od a do b-1 włącznie
 		if(a<0 || b>functions.length || a>=b)
-			throw new IllegalArgumentException("Podane krańce poza granicami listy lub pierwszy kraniec większy od drugiego. Podane krańce: " + a+", "+b+", lista: " + FuncMethods.write(functions));
+			try {
+				throw new IllegalArgumentException("Podane krańce poza granicami listy lub pierwszy kraniec większy od drugiego. Podane krańce: " + a+", "+b+", lista: " + FuncMethods.write(functions));
+			} catch(WrongSyntaxException e) {
+				throw new IllegalArgumentException("Podane krańce poza granicami listy lub pierwszy kraniec większy od drugiego. Podane krańce: " + a+", "+b+", listy nie udało się wypisać");
+			}
 		Function[] ret = new Function[b-a];
 		for(int i=a;i<b;i++)
 			ret[i-a] = functions[i];
@@ -232,7 +220,7 @@ class FuncMethods {
 		return new Bool<ArrayList<Integer>>(zuzyteIndeksy, foundEverything);
 	}
 
-	protected static String write(Function[] g) {
+	protected static String write(Function[] g) throws WrongSyntaxException {
 		String str = "";
 		str+="[";
 		for(int i=0;i<g.length;i++) {
@@ -283,21 +271,7 @@ interface SimplifyTwo{
 					continue;
 				if(canPutTogether(arr.get(j), arr.get(i))) {
 					if(ret.get(countIndex)  != arr.get(i)) {
-						String errorMessage = "\n";
-						errorMessage += arr.get(i).write(new Settings()) + "\n" + ret.get(0).write(new Settings());
-						errorMessage += "\n";
-						errorMessage += arr.get(i+1).write(new Settings());
-						errorMessage += "\n";
-						errorMessage += "w FuncMethods: SimplTwo.putAllTogether jest problem";
-						errorMessage += "\n";
-						errorMessage += "" + countIndex + "   " + (ret.size()-1) + "   " + i + "   " + j;
-						errorMessage += "\n";
-						errorMessage += canPutTogether(arr.get(j), arr.get(i));
-						errorMessage += "\n";
-						errorMessage += canPutTogether(arr.get(j), ret.get(countIndex));
-						errorMessage += "\n";
-						errorMessage += canPutTogether(arr.get(countIndex), arr.get(i));
-						throw new IllegalStateException(errorMessage);
+						throw new IllegalStateException();
 					}
 					ret.set(countIndex, putTogether(arr.get(j), ret.get(countIndex)));
 					uzyteIndeksy.add(j);

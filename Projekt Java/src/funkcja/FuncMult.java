@@ -82,7 +82,7 @@ class FuncMult extends Function {
 			if(!skracalneWymierne(f, g))
 				try{
 					throw new IllegalArgumentException("Podany iloraz nie jest skracalny. Podane funkcje: f: " + f.write(new Settings()) + " ,g: " + g.write(new Settings()));
-				}catch(NullPointerException e) {
+				}catch(NullPointerException | WrongSyntaxException e) {
 					throw new IllegalArgumentException("Podany iloraz nie jest skracalny. Funckcji w nim zawartych nie udało się wypisać.");
 				}
 			int licz = (int) ((FuncNumConst)f).a.x;
@@ -225,20 +225,19 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function re() {
+	protected Function[] reim() {
+		Function[] f0reim = f[0].reim();
 		if(f.length == 1)
-			return f[0].re();
-		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).re()),
-				new FuncMult(new Function[] {new FuncNumConst(new Complex(-1)), f[0].im(), new FuncMult(FuncMethods.subList(f, 1, f.length)).im()})
-		});
-	}
-	@Override
-	protected Function im() {
-		if(f.length == 1)
-			return f[0].im();
-		return new FuncSum(new Function[] {new FuncMult(f[0].re(), new FuncMult(FuncMethods.subList(f, 1, f.length)).im()),
-				new FuncMult(f[0].im(), new FuncMult(FuncMethods.subList(f, 1, f.length)).re())
-		});
+			return f[0].reim();
+		Function removedf0 = new FuncMult(FuncMethods.subList(f, 1, f.length));
+		Function[] removedf0reim = removedf0.reim();
+		Function re = new FuncSum(new Function[] {new FuncMult(f0reim[0], removedf0reim[0]),
+				new FuncMult(new Function[] {new FuncNumConst(new Complex(-1)), f0reim[1], removedf0reim[1]})
+				});
+		Function im = new FuncSum(new Function[] {new FuncMult(f0reim[0], removedf0reim[1]),
+				new FuncMult(f0reim[1], removedf0reim[0])
+				});
+		return new Function[] {re,im};
 	}
 
 	private boolean putParenthases(Function f, boolean division) {
@@ -258,7 +257,7 @@ class FuncMult extends Function {
 		return false;
 	}
 	@Override
-	protected String write(Settings settings) {
+	protected String write(Settings settings) throws WrongSyntaxException {
 		int i = 0;
 		String str = "";
 		if(f[0].check(new FuncNumConst(new Complex(-1)))) {
@@ -302,6 +301,9 @@ class FuncMult extends Function {
 					str += " * "+f[i].write(settings);
 			}
 		}
+		if(str.length() > 10000)
+			throw new WrongSyntaxException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
+		
 		return str;
 	}
 	@Override

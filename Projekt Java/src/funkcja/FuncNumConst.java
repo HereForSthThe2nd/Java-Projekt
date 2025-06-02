@@ -71,13 +71,8 @@ public class FuncNumConst extends Function {
 	}
 
 	@Override
-	protected Function re() {
-		return new FuncNumConst(new Complex(a.x));
-	}
-
-	@Override
-	protected Function im() {
-		return new FuncNumConst(new Complex(a.y));
+	protected Function[] reim() {
+		return new Function[] { new FuncNumConst(new Complex(a.x)), new FuncNumConst(new Complex(a.y)) };
 	}
 
 	@Override

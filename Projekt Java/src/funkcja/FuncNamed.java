@@ -117,15 +117,9 @@ abstract class UserFunction extends FuncNamed{
 	}
 	
 	@Override
-	protected Function re() { 
-		return f.re();
-	}
-
-	@Override
-	protected Function im() { 
-		return f.im();
-	}
-	
+	protected Function[] reim() { 
+		return f.reim();
+	}	
 }
 
 class FuncGivenName extends UserFunction{
@@ -162,16 +156,6 @@ class VarGivenName extends UserFunction{
 	}
 
 	@Override
-	protected Function re() { 
-		return f.re();
-	}
-
-	@Override
-	protected Function im() { 
-		return f.im();
-	}
-
-	@Override
 	Function removeDiff() {
 		return this;
 	}
@@ -181,7 +165,11 @@ final class FuncConstGivenName extends UserFunction{
 	protected FuncConstGivenName(String name, Function f) {
 		super(name, f);
 		if(f.nofArg != 0) {
-			throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Podana funkxja: " + f.write(new Settings()));
+			try {
+				throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Podana funkxja: " + f.write(new Settings()));
+			} catch(WrongSyntaxException e) {
+				throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Nie udało się jej wypisać");
+			}
 		}
 	}
 
@@ -192,18 +180,14 @@ final class FuncConstGivenName extends UserFunction{
 	
 
 	@Override
-	protected Function re() { 
+	protected Function[] reim() { 
 		if(evaluate(new Complex[] {}).y == 0)
-			return this;
-		return f.re();
+			return new Function[] {this, new FuncNumConst(new Complex(0))};
+		if(evaluate(new Complex[] {}).x == 0)
+			return new Function[] {new FuncNumConst(new Complex(0)), this};
+		return f.reim();
 	}
 
-	@Override
-	protected Function im() { 
-		if(evaluate(new Complex[] {}).x == 0)
-			return this;
-		return f.im();
-	}
 	
 	@Override
 	Function removeDiff() {

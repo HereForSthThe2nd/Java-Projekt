@@ -122,16 +122,19 @@ class FuncSum extends Function {
 	}
 	
 	@Override
-	protected Function re() {
-		return new FuncSum(FuncMethods.re(summands));
-	}
-	@Override
-	protected Function im() {
-		return new FuncSum(FuncMethods.im(summands));
+	protected Function[] reim() {
+		Function reArr[] = new Function[summands.length];
+		Function imArr[] = new Function[summands.length];
+		for(int i =0;i<summands.length;i++) {
+			Function[] ireim = summands[i].reim();
+			reArr[i] = ireim[0];
+			imArr[i] = ireim[1];
+		}
+		return new Function[] { new FuncSum(reArr), new FuncSum(imArr) };
 	}
 	
 	@Override
-	protected String write(Settings settings) {
+	protected String write(Settings settings) throws WrongSyntaxException {
 		String str = summands[0].write(settings);
 		for(int i=1;i<summands.length;i++) {
 			if(summands[i].type == Functions.MULT) {
@@ -142,6 +145,8 @@ class FuncSum extends Function {
 			}else
 				str += " + "+summands[i].write(settings);
 		}
+		if(str.length() > 10000)
+			throw new WrongSyntaxException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
 		return str;
 	}
 

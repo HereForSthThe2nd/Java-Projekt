@@ -36,11 +36,11 @@ abstract public class Function implements FuncChecker
 	}
 	protected abstract Complex evaluate(Complex[] arg);
 	
-	protected abstract Function re();
-	protected abstract Function im();
+	//w zwróconej funkcji z[2k] reprezentuje część rzeczywistą k-tej zmiennej, a z[2k+1] zmienną urojoną k-tej zmiennej
+	protected abstract Function[] reim();
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
-	protected abstract String write(Settings settings);
+	protected abstract String write(Settings settings) throws WrongSyntaxException;
 	
 	//public abstract boolean check(Function f);
 	
@@ -64,6 +64,7 @@ abstract public class Function implements FuncChecker
 
 	
 	//arg - względem którego argumentu brana jest pochodna
+	//dla funkcji zdefiniowanych przez użytkownika liczenie pochodnych może być bardzo wolne, ale naprawienie tego wymagaoby dużo pracy
 	protected abstract Function diffX(int arg, Settings set);
 	protected abstract Function diffY(int arg, Settings set);
 	

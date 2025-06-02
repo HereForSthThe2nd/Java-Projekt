@@ -44,15 +44,16 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re() {
-			FunctionPowloka r;
+		protected Function[] reim() {
 			try {
-				r = new FunctionPowloka("(x^2+y^2)^(1/2)", new Settings());
-				return new FuncComp(ln, new Function[] {r.getFunction()});
+				Function re = new FunctionPowloka("ln((z[0]^2+z[1]^2)^(1/2))", new Settings()).getFunction();
+				Function im = new FuncComp(arg, new Function[] {idChecker.returnFunc("z[0]+i*z[1]")});
+				return new Function[] {re, im};
 			} catch (WrongSyntaxException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
+		
 		
 		protected Function diffX(int arg, Settings set) {
 			if(arg > 1)
@@ -60,11 +61,6 @@ public class Functions {
 			return pow.putArguments(new Function[] {new FuncNumConst(new Complex(1)), idChecker.returnFunc("z")});
 		};
 		
-		@Override
-		protected Function im() {
-			return new FuncComp(arg, new Function[] {idChecker.returnFunc("z")});
-		}
-
 		@Override
 		protected Function diffY(int arg, Settings set) {
 			if(arg > 1)
@@ -80,19 +76,14 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			FunctionPowloka r;
+		protected Function[] reim()  {
 			try {
-				r = new FunctionPowloka("(x^2+y^2)^(1/2)", new Settings());
-				return new FuncComp(ln, new Function[] {r.getFunction()});
+				Function re = new FunctionPowloka("ln((z[0]^2+z[1]^2)^(1/2))", new Settings()).getFunction();
+				Function im = new FuncComp(arg, new Function[] {idChecker.returnFunc("z[0]+i*z[1]")});
+				return new Function[] {re, im};
 			} catch (WrongSyntaxException e) {
-				throw new IllegalStateException(e);
+				throw new IllegalArgumentException(e);
 			}
-		}
-
-		@Override
-		protected Function im() {
-			return new FuncComp(arg, new Function[] {idChecker.returnFunc("z")});
 		}
 
 		@Override
@@ -117,14 +108,10 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			return this;
+		protected Function[] reim()  {
+			return new Function[] {this, new FuncNumConst(new Complex(0))};
 		}
 
-		@Override
-		protected Function im() {
-			return new FuncNumConst(new Complex(0));
-		}
 
 		@Override
 		protected Function diffX(int arg, Settings set) {
@@ -155,26 +142,16 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			FunctionPowloka pom;
+		protected Function[] reim()  {
 			try {
-				pom = new FunctionPowloka("exp(x)*cos(y)", new Settings());
+				Function re = new FunctionPowloka("exp(z[0])*cos(z[1])", new Settings()).getFunction();
+				Function im = new FunctionPowloka("exp(z[0])*sin(z[1])", new Settings()).getFunction();
+				return new Function[] {re,im};
 			} catch (WrongSyntaxException e) {
 				throw new IllegalStateException(e);
 			}
-			return pom.getFunction();
 		}
 
-		@Override
-		protected Function im()  {
-			FunctionPowloka pom;
-			try {
-				pom = new FunctionPowloka("exp(x)*sin(y)", new Settings());
-			} catch (WrongSyntaxException e) {
-				throw new IllegalStateException(e);
-			}
-			return pom.getFunction();
-		}
 
 		@Override
 		protected Function diffX(int arg, Settings set) {
@@ -198,20 +175,11 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
+		protected Function[] reim()  {
 			try {
-				FunctionPowloka pom = new FunctionPowloka("cosh(y)*sin(x)", new Settings());
-				return pom.getFunction();
-			} catch (WrongSyntaxException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		protected Function im()  {
-			try {
-				FunctionPowloka pom = new FunctionPowloka("sinh(y)*cos(x)", new Settings());
-				return pom.getFunction();
+				Function re = new FunctionPowloka("cosh(z[1])*sin(z[0])", new Settings()).getFunction();
+				Function im = new FunctionPowloka("sinh(z[1])*cos(z[0])", new Settings()).getFunction();
+				return new Function[] {re,im};
 			} catch (WrongSyntaxException e) {
 				throw new IllegalStateException(e);
 			}
@@ -240,20 +208,11 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
+		protected Function[] reim()  {
 			try {
-				FunctionPowloka pom = new FunctionPowloka("cosh(y)*cos(x)", new Settings());
-				return pom.getFunction();
-			} catch (WrongSyntaxException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		protected Function im()  {
-			try {
-				FunctionPowloka pom = new FunctionPowloka("-sinh(y)*sin(x)", new Settings());
-				return pom.getFunction();
+				Function re = new FunctionPowloka("cosh(z[1])*cos(z[0])", new Settings()).getFunction();
+				Function im = new FunctionPowloka("-sinh(z[1])*sin(z[0])", new Settings()).getFunction();
+				return new Function[] {re,im};
 			} catch (WrongSyntaxException e) {
 				throw new IllegalStateException(e);
 			}
@@ -283,20 +242,11 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
+		protected Function[] reim()  {
 			try {
-				FunctionPowloka pom = new FunctionPowloka("sinh(x)*cos(y)", new Settings());
-				return pom.getFunction();
-			} catch (WrongSyntaxException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		protected Function im()  {
-			try {
-				FunctionPowloka pom = new FunctionPowloka("cosh(x)*sin(y)", new Settings());
-				return pom.getFunction();
+				Function re = new FunctionPowloka("sinh(z[0])*cos(z[1])", new Settings()).getFunction();
+				Function im = new FunctionPowloka("cosh(z[0])*sin(z[1])", new Settings()).getFunction();
+				return new Function[] {re,im};
 			} catch (WrongSyntaxException e) {
 				throw new IllegalStateException(e);
 			}
@@ -326,20 +276,11 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
+		protected Function[] reim()  {
 			try {
-				FunctionPowloka pom = new FunctionPowloka("cosh(x)*cos(y)", new Settings());
-				return pom.getFunction();
-			} catch (WrongSyntaxException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		@Override
-		protected Function im()  {
-			try {
-				FunctionPowloka pom = new FunctionPowloka("sinh(x)*sin(y)", new Settings());
-				return pom.getFunction();
+				Function re = new FunctionPowloka("cosh(z[0])*cos(z[1])", new Settings()).getFunction();
+				Function im = new FunctionPowloka("sinh(z[0])*sin(z[1])", new Settings()).getFunction();
+				return new Function[] {re,im};
 			} catch (WrongSyntaxException e) {
 				throw new IllegalStateException(e);
 			}
@@ -367,15 +308,10 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			return this;
+		protected Function[] reim()  {
+			return new Function[] {this, new FuncNumConst(new Complex(0))};
 		}
-
-		@Override
-		protected Function im() {
-			return new FuncNumConst(new Complex(0));
-		}
-
+		
 		@Override
 		protected Function diffX(int arg, Settings set) {
 			if(arg > 1)
@@ -398,13 +334,8 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			return this;
-		}
-
-		@Override
-		protected Function im() {
-			return new FuncNumConst(new Complex(0));
+		protected Function[] reim()  {
+			return new Function[] {this, new FuncNumConst(new Complex(0))};
 		}
 
 		@Override
@@ -432,26 +363,16 @@ public class Functions {
 			return "pow";
 		}
 		@Override
-		protected Function re() {
+		protected Function[] reim() {
 			FunctionPowloka innyZapis;
 			try {
 				innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
-				return innyZapis.getFunction().re();
+				return innyZapis.getFunction().reim();
 			} catch (WrongSyntaxException e) {
 				throw new IllegalStateException(e);
 			}
 		}
 
-		@Override
-		protected Function im()  {
-			FunctionPowloka innyZapis;
-			try {
-				innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
-				return innyZapis.getFunction().im();
-			} catch (WrongSyntaxException e) {
-				throw new IllegalStateException(e);
-			}
-		}
 		@Override
 		protected Function diffX(int arg, Settings set) {
 			if(arg > 2)
@@ -494,15 +415,11 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
+		protected Function[] reim()  {
 			throw new IllegalArgumentException("pochodna");
 		}
 
-		@Override
-		protected Function im()  {
-			throw new IllegalArgumentException("pochodna");
-		}
-
+		
 		@Override
 		protected Function diffX(int arg, Settings set) {
 			throw new IllegalArgumentException("pochodna");
@@ -522,12 +439,7 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			throw new IllegalArgumentException("pochodna");
-		}
-
-		@Override
-		protected Function im()  {
+		protected Function[] reim()  {
 			throw new IllegalArgumentException("pochodna");
 		}
 
@@ -550,13 +462,8 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			return this;
-		}
-
-		@Override
-		protected Function im() {
-			return new FuncNumConst(new Complex(0));
+		protected Function[] reim()  {
+			return new Function [] {this, new FuncNumConst(new Complex(0))};
 		}
 
 	};
@@ -567,13 +474,8 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			return this;
-		}
-
-		@Override
-		protected Function im() {
-			return new FuncNumConst(new Complex(0));
+		protected Function[] reim()  {
+			return new Function [] {this, new FuncNumConst(new Complex(0))};
 		}
 
 		@Override
@@ -595,14 +497,10 @@ public class Functions {
 		}
 
 		@Override
-		protected Function re()  {
-			return this;
+		protected Function[] reim()  {
+			return new Function [] {this, new FuncNumConst(new Complex(0))};
 		}
 
-		@Override
-		protected Function im() {
-			return new FuncNumConst(new Complex(0));
-		}
 		@Override
 		boolean check(String str) {
 			return super.check(str) || str.equals("φ");
@@ -769,20 +667,16 @@ public class Functions {
 					}
 
 					@Override
-					protected Function re()  {
-						FunctionPowloka r;
+					protected Function[] reim()  {
 						try {
-							r = new FunctionPowloka("(x^2+y^2)^(1/2)", new Settings());
-							return new FuncComp(ln, new Function[] {r.getFunction()});
+							Function re = new FunctionPowloka("ln((z[0]^2+z[1]^2)^(1/2))", new Settings()).getFunction();
+							Function im = new FuncComp(arg, new Function[] {idChecker.returnFunc("z[0]+i*z[1]")});
+							return new Function[] {re, im};
 						} catch (WrongSyntaxException e) {
 							throw new IllegalStateException(e);
 						}
 					}
 
-					@Override
-					protected Function im() {
-						return new FuncComp(arg, new Function[] {idChecker.returnFunc("z")});
-					}
 
 					@Override
 					protected Function diffX(int arg, Settings set) {
@@ -823,22 +717,11 @@ public class Functions {
 					}
 
 					@Override
-					protected Function re()  {
+					protected Function[] reim()  {
 						FunctionPowloka innyZapis;
 						try {
 							innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
-							return innyZapis.getFunction().re();
-						} catch (WrongSyntaxException e) {
-							throw new IllegalStateException(e);
-						}
-					}
-
-					@Override
-					protected Function im()  {
-						FunctionPowloka innyZapis;
-						try {
-							innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
-							return innyZapis.getFunction().im();
+							return innyZapis.getFunction().reim();
 						} catch (WrongSyntaxException e) {
 							throw new IllegalStateException(e);
 						}
@@ -923,13 +806,10 @@ public class Functions {
 						return this;
 					}
 					@Override
-					protected Function re()  {
-						return new FuncComp(Re, new Function[] {this});
+					protected Function[] reim()  {
+						return new Function[] { new FuncComp(Re, new Function[] {this}), new FuncComp(Im, new Function[] {this})};
 					}
-					@Override
-					protected Function im() {
-						return new FuncComp(Im, new Function[] {this});
-					}
+			
 					@Override
 					protected Function diffX(int arg, Settings set) {
 						if(arg != 1)
@@ -968,13 +848,8 @@ public class Functions {
 				}
 
 				@Override
-				protected Function re() {
-					return new FuncComp(Re, new Function[] {this});
-				}
-
-				@Override
-				protected Function im() {
-					return new FuncComp(Im, new Function[] {this});
+				protected Function[] reim() {
+					return new Function[] { new FuncComp(Re, new Function[] {this}), new FuncComp(Im, new Function[] {this})};
 				}
 
 				@Override

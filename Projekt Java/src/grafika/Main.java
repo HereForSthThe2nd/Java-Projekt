@@ -130,8 +130,7 @@ public class Main extends JFrame {
 							funkcjaTextField.setText(wykres.function.write(ustawienia));
 							funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
 						} catch (WrongSyntaxException e1) {
-							nadFunkcja.setForeground(Color.red);
-							nadFunkcja.setText(e1.messageForUser);
+							nadFunkcja.setErrorText(e1.messageForUser);
 						}
 						return null;
 					}
@@ -370,7 +369,11 @@ public class Main extends JFrame {
 				ustawienia.doubleAcc = dokSt.getValue();
 				dokStLab.setText("Ilość wyświetlanych miejsc po przecinku : " + dokSt.getValue());
 				if(funkcjaTextField.isUpToDate)
-					funkcjaTextField.setText(wykres.function.write(ustawienia));
+					try {
+						funkcjaTextField.setText(wykres.function.write(ustawienia));
+					} catch (WrongSyntaxException e1) {
+						nadFunkcja.setErrorText(e1.messageForUser);;
+					}
 			}
 		});
 		ladneStale.addActionListener(new ActionListener() {
@@ -379,7 +382,11 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				ustawienia.writeNeatVar = ladneStale.isSelected();
 				if(funkcjaTextField.isUpToDate)
-					funkcjaTextField.setText(wykres.function.write(ustawienia));
+					try {
+						funkcjaTextField.setText(wykres.function.write(ustawienia));
+					} catch (WrongSyntaxException e1) {
+						nadFunkcja.setErrorText(e1.messageForUser);
+					}
 			}
 		});
 		uprPow.addActionListener(new ActionListener() {
@@ -397,7 +404,11 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				ustawienia.writePow = !potWyp.isSelected();
 				if(funkcjaTextField.isUpToDate)
-					funkcjaTextField.setText(wykres.function.write(ustawienia));
+					try {
+						funkcjaTextField.setText(wykres.function.write(ustawienia));
+					} catch (WrongSyntaxException e1) {
+						nadFunkcja.setErrorText(e1.messageForUser);
+					}
 			}
 		});
 		
@@ -543,8 +554,7 @@ public class Main extends JFrame {
 								nadFunkcja.setText("Wypisano nową funkcję.");
 								return null;
 							} catch (WrongSyntaxException e) {
-								nadFunkcja.setForeground(Color.red);
-								nadFunkcja.setText(e.messageForUser);
+								nadFunkcja.setErrorText(e.messageForUser);
 								return null;
 							}
 						}
@@ -563,7 +573,7 @@ public class Main extends JFrame {
 						@Override
 						protected Void doInBackground() throws Exception {
 							try {
-								//nadFunkcja.setTextAnimated("Wczytywanie funkcji");
+								nadFunkcja.setTextAnimated("Wczytywanie funkcji");
 								TimeKeeping.reset();
 								long pocz = System.currentTimeMillis();
 								FunctionPowloka f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
@@ -572,22 +582,21 @@ public class Main extends JFrame {
 								System.out.println(srodek - pocz + " <--wczytanie");
 	
 								pocz = System.currentTimeMillis();
-								//nadFunkcja.setTextAnimated("Rozbijanie funkcji");
+								nadFunkcja.setTextAnimated("Rozbijanie funkcji");
 								System.out.println("Poczatek rozbijania");
 								FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
 								System.out.println("Koniec rozbijania");
 								long kon = System.currentTimeMillis();
-								System.out.println(kon-pocz + " <-- czas na rozdzielenie");
-								funkcjaTextField.setText(fch.write(ustawienia));
+								System.out.println(kon-pocz + " <-- czas na rozbicie");
+								nadFunkcja.setText(fch.write(ustawienia));
 								pocz = System.currentTimeMillis();
 								changeFunc(fch);
 								kon = System.currentTimeMillis();
 								System.out.println(kon-pocz + " <-- czas na wypisanie");
 							} catch (WrongSyntaxException e1) {
-								nadFunkcja.setForeground(Color.red);
-								nadFunkcja.setText(e1.messageForUser);
+								nadFunkcja.setErrorText(e1.messageForUser);
 							} catch(Exception e) {
-								System.out.println("acb");
+								e.printStackTrace();
 							}
 
 							return null;
@@ -890,10 +899,48 @@ class LabelAboveFunction extends JLabel{
 			};
 			t.run();
 		}
+		setForeground(Color.black);
 		super.setText(text);
 	}
 	
+	public void setErrorText(String text) {
+		setForeground(Color.red);
+		if(timer != null)
+			timer.stop();
+		if(text.equals(getText())) {
+			Thread t = new Thread() {
+				
+				@Override
+				public void run() {
+					try {
+						long time = 200;
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								setFont(new Font(getFont().getName(), Font.PLAIN, getFont().getSize()));
+							}
+						});
+						Thread.sleep(time);
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								setFont(new Font(getFont().getName(), Font.BOLD, getFont().getSize()));
+							}
+						});
+
+					}catch(InterruptedException e) {
+						e.printStackTrace();
+					}
+				};
+			};
+			t.run();
+		}
+		super.setText(text);
+
+	}
+	
 	public void setTextAnimated(String text){
+		setForeground(Color.black);
 		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
 			static int liczKropki = 0;
 			long timeOld = System.currentTimeMillis();

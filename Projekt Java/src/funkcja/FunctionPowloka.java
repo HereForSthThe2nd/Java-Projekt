@@ -4,6 +4,8 @@
 
 package funkcja;
 
+import java.util.Random;
+
 import Inne.Complex;
 
 public class FunctionPowloka {
@@ -60,21 +62,10 @@ public class FunctionPowloka {
 		return new FunctionPowloka(f.expand());
 	}
 	
-	public FunctionPowloka re(Settings set)  {
-		FunctionPowloka ret = new FunctionPowloka(f.re());
-		ret = ret.simplify(set);
-		return ret;
-	}
-
-	public FunctionPowloka im(Settings set)  {
-		FunctionPowloka ret = new FunctionPowloka(f.im());
-		ret = ret.simplify(set);
-		return ret;
-	}
-	
 	
 	public FunctionPowloka splitByRealAndImaginery(Settings set)  {
-		return new FunctionPowloka(new FuncSum (new Function[] {this.re(set).f, new FuncMult(new FuncNumConst(Complex.i), this.im(set).f)}));
+		Function[] reim = f.reim();
+		return new FunctionPowloka(new FuncSum (new Function[] {reim[0], new FuncMult(new FuncNumConst(Complex.i), reim[1])}));
 	}
 	
 	public FunctionPowloka simplifyOnce(Settings settings) {
@@ -108,11 +99,11 @@ public class FunctionPowloka {
 		return simplifyPom(settings);
 	}
 	
-	public void print(Settings set) { 
+	public void print(Settings set) throws WrongSyntaxException { 
 		System.out.println(f.write(set));
 	}
 
-	public String write(Settings set) {
+	public String write(Settings set) throws WrongSyntaxException {
 		return f.write(set);
 	}
 	
@@ -207,39 +198,52 @@ public class FunctionPowloka {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		Settings set = new Settings(4);//4 oznacza liczbę miejsc po przecinku które będą wypisywane
-		FunctionPowloka stalaUzytkownika = new FunctionPowloka("ln(2)", set);
-		FunctionPowloka zmiennaUzytkownika = new FunctionPowloka("(x^2+y^2)^(1/2)", set);
-		zmiennaUzytkownika = zmiennaUzytkownika.simplify(set);
-		stalaUzytkownika = stalaUzytkownika.simplify(set);
-		stalaUzytkownika.changeToVar("log[2]"); //trochę głupia nazwa ale co tam
-		zmiennaUzytkownika.changeToVar("r");
-		FunctionPowloka fUzytkownika = new FunctionPowloka("r^2 + log[2]", set);
-		fUzytkownika = fUzytkownika.simplify(set);
-		fUzytkownika.changeToNamed("f");
-		FunctionPowloka f = new FunctionPowloka("exp(z*exp(ln(z))) + (z^2)^(1/(sin(pi) + 2)) + sin(2) + f(z^2)+f(z^2)+r + log[2]", set);
-		System.out.println( f.write(set) + " pocz funkcja");
-		f = f.simplify(set);
-		System.out.println(f.write(set) + "  uproszczona");
-		set.strictPow = false;
-		f = f.simplify(set);
-		System.out.println(f.write(set) + " uproszczona strictPow = false");
-		f = f.simplify(set);
-		set.evaluateConstants = true;
-		f = f.simplify(set);
-		System.out.println(f.write(set) + " obliczone stałe");
-		set.evaluateConstants = false;
-		f = f.expand();
-		System.out.println(f.write(set) + " expand1");
-		f = f.expand();
-		System.out.println(f.write(set) + " expand2");
-		f = f.simplify(set);
-		System.out.println(f.write(set) + " jeszcze raz uproszczone: wcześniej tych re nie uprościło bo były ukryte");
-		System.out.println("Teraz testowanie pochodnych:");
-		FunctionPowloka f1 = new FunctionPowloka("z^2", set);
-		FunctionPowloka f2 = new FunctionPowloka("sin(z)", set);
-		FunctionPowloka f3 = new FunctionPowloka("z", set);
-		FunctionPowloka f4 = new FunctionPowloka("z^0.5", set);
+		FunctionPowloka f = new FunctionPowloka("((((((((((((z ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z", new Settings());
+		f = f.splitByRealAndImaginery(new Settings());
+		System.out.println("po rozdzieleniu");
+		//String str = f.write(new Settings());
+		//System.out.println(str.length());
+		Random r = new Random();
+		int j = 0;
+		for(int i = 0;i<300000;i++) {
+			j += r.nextInt();
+		}
+		System.out.println(j);
 		
+		/*
+			Settings set = new Settings(4);//4 oznacza liczbę miejsc po przecinku które będą wypisywane
+			FunctionPowloka stalaUzytkownika = new FunctionPowloka("ln(2)", set);
+			FunctionPowloka zmiennaUzytkownika = new FunctionPowloka("(x^2+y^2)^(1/2)", set);
+			zmiennaUzytkownika = zmiennaUzytkownika.simplify(set);
+			stalaUzytkownika = stalaUzytkownika.simplify(set);
+			stalaUzytkownika.changeToVar("log[2]"); //trochę głupia nazwa ale co tam
+			zmiennaUzytkownika.changeToVar("r");
+			FunctionPowloka fUzytkownika = new FunctionPowloka("r^2 + log[2]", set);
+			fUzytkownika = fUzytkownika.simplify(set);
+			fUzytkownika.changeToNamed("f");
+			FunctionPowloka f = new FunctionPowloka("exp(z*exp(ln(z))) + (z^2)^(1/(sin(pi) + 2)) + sin(2) + f(z^2)+f(z^2)+r + log[2]", set);
+			System.out.println( f.write(set) + " pocz funkcja");
+			f = f.simplify(set);
+			System.out.println(f.write(set) + "  uproszczona");
+			set.strictPow = false;
+			f = f.simplify(set);
+			System.out.println(f.write(set) + " uproszczona strictPow = false");
+			f = f.simplify(set);
+			set.evaluateConstants = true;
+			f = f.simplify(set);
+			System.out.println(f.write(set) + " obliczone stałe");
+			set.evaluateConstants = false;
+			f = f.expand();
+			System.out.println(f.write(set) + " expand1");
+			f = f.expand();
+			System.out.println(f.write(set) + " expand2");
+			f = f.simplify(set);
+			System.out.println(f.write(set) + " jeszcze raz uproszczone: wcześniej tych re nie uprościło bo były ukryte");
+			System.out.println("Teraz testowanie pochodnych:");
+			FunctionPowloka f1 = new FunctionPowloka("z^2", set);
+			FunctionPowloka f2 = new FunctionPowloka("sin(z)", set);
+			FunctionPowloka f3 = new FunctionPowloka("z", set);
+			FunctionPowloka f4 = new FunctionPowloka("z^0.5", set);
+			*/
 	}
 }

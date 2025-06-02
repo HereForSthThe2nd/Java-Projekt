@@ -45,17 +45,25 @@ class FuncComp extends Function {
 		return f.evaluate(FuncMethods.evaluate(g, arg));
 	}
 	@Override
-	protected Function re() {
+	protected Function[] reim() {
+		Function re;
+		Function im;
 		try {
 			if(f == Functions.diffX || f == Functions.diffY) {
-				return new FuncComp(f, new Function[] {new FuncComp(Functions.Re, g)});
+				Function[] g0reim = g[0].reim();
+				re =  new FuncComp(f, new Function[] {g0reim[0]});
+				im =  new FuncComp(f, new Function[] {g0reim[1]});
+				return new Function[] {re, im};
 			}
 			if(checkComponents2(Functions.powChecker, new FuncNumConst( new Complex(0))))
-				return new FuncNumConst(new Complex(1));
-			
+				return new Function[] {new FuncNumConst(new Complex(1)), new FuncNumConst(new Complex(0))};
 			if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(-1)))) {
-				FunctionPowloka fPom = new FunctionPowloka("x / (x^2 + y^2)", new Settings());
-				return fPom.getFunction().putArguments(g);
+				FunctionPowloka rePom = new FunctionPowloka("z[0] / (z[0]^2 + z[1]^2)", new Settings());
+				FunctionPowloka imPom = new FunctionPowloka("-z[1] / (z[0]^2 + z[1]^2)", new Settings());
+				Function[] g0reim = g[0].reim();
+				re = rePom.getFunction().putArguments(g0reim);
+				im = imPom.getFunction().putArguments(g0reim);
+				return new Function[] {re, im};
 			}
 			if(checkComponents2(Functions.powChecker, FuncMethods.isInt)) {
 				if(FuncMethods.isNatural.check(g[1])) {
@@ -63,59 +71,32 @@ class FuncComp extends Function {
 					for(int i=0;i<pom.length;i++) {
 						pom[i] = g[0];
 					}
-					return (new FuncMult(pom)).re();
+					return (new FuncMult(pom)).reim();
 				}
 				else {
+					//TODO: chyba nie działa, sprawdzić to
 					Function[] pom = new Function[(int)g[1].evaluate(null).x];
 					Function pom2 = new FuncComp(f, new Function[] {g[0], new FuncNumConst(new Complex(-1))});
 					for(int i=0;i<pom.length;i++) {
 						pom[i] = pom2;
 					}
-					return (new FuncMult(pom)).re();
+					return (new FuncMult(pom)).reim();
 				}
 			}
 		}catch(WrongSyntaxException e) {
 			throw new IllegalStateException(e);
 		}
-			
-		return f.re().putArguments(g);
-	}
-	@Override
-	protected Function im() {
-		try {
-			if(f == Functions.diffX || f == Functions.diffY) {
-				return new FuncComp(f, new Function[] {new FuncComp(Functions.Im, g)});
-			}
-			if(checkComponents2(Functions.powChecker, new FuncNumConst( new Complex(0))))
-				return new FuncNumConst(new Complex(1));
-			
-			if(checkComponents2(Functions.powChecker, new FuncNumConst(new Complex(-1)))) {
-				FunctionPowloka fPom = new FunctionPowloka("-y / (x^2 + y^2)", new Settings());
-				return fPom.getFunction().putArguments(g);
-			}
-			if(checkComponents2(Functions.powChecker, FuncMethods.isInt)) {
-				if(FuncMethods.isNatural.check(g[1])) {
-					Function[] pom = new Function[(int)g[1].evaluate(null).x];
-					for(int i=0;i<pom.length;i++) {
-						pom[i] = g[0];
-					}
-					return (new FuncMult(pom)).im();
-				}
-				else {
-					Function[] pom = new Function[(int)g[1].evaluate(null).x];
-					Function pom2 = new FuncComp(f, new Function[] {g[0], new FuncNumConst(new Complex(-1))});
-					for(int i=0;i<pom.length;i++) {
-						pom[i] = pom2;
-					}
-					return (new FuncMult(pom)).im();
-				}
-			}
-		}catch(WrongSyntaxException e) {
-			throw new IllegalStateException(e);
+		Function[] retPom = f.reim();
+		Function[] greim = new Function[f.nofArg*2];
+		for(int i = 0;i<f.nofArg;i++) {
+			Function[]greimi = g[i].reim();
+			greim[2*i] = greimi[0];
+			greim[2*i+1] = greimi[i];
 		}
-		return f.im().putArguments(g);
+		return new Function[] {retPom[0].putArguments(greim), retPom[1].putArguments(greim)};
 	}
-	private String wypiszPotege(Settings settings) {
+
+	private String wypiszPotege(Settings settings) throws WrongSyntaxException {
 		//zajmuje się poprawny postawieniem nawiasów
 		String str = "";
 		if(g[0].type == Functions.ADD || g[0].type == Functions.MULT) {
@@ -140,7 +121,7 @@ class FuncComp extends Function {
 		return str;
 	}
 	@Override
-	protected String write(Settings settings) {
+	protected String write(Settings settings) throws WrongSyntaxException {
 		if(settings.writePow && f.check(Functions.pow))
 			return wypiszPotege(settings);
 		if(settings.writeRealVar && checkComponents(Functions.Re, Functions.idChecker))
@@ -152,6 +133,8 @@ class FuncComp extends Function {
 			str += ", " + g[i].write(settings);
 		}
 		str += ")";
+		if(str.length() > 10000)
+			throw new WrongSyntaxException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
 		return str;
 	}
 	@Override
@@ -317,7 +300,11 @@ class FuncComp extends Function {
 						return 0;
 					return 2;
 				}
-				throw new IllegalArgumentException("Argument nipoprawny. funkcja: " + funkcja.write(new Settings()));
+				try {
+					throw new IllegalArgumentException("Argument nipoprawny. funkcja: " + funkcja.write(new Settings()));
+				} catch(WrongSyntaxException e) {
+					throw new IllegalArgumentException("Argument nipoprawny. Funkcji nawet nie można wypisać.");
+				}
 			}
 
 		}
@@ -399,9 +386,9 @@ class FuncComp extends Function {
 		if(fb.bool)
 			return fb.f;
 		if(f.check(Functions.Re))
-			return g[0].re();
+			return g[0].reim()[0];
 		if(f.check(Functions.Im))
-			return g[0].im();
+			return g[0].reim()[1];
 		if(nofArg == 0 && setting.evaluateConstants)
 			return new FuncNumConst( evaluate(new Complex[] {}));
 		//if(checkComponents(null, f))
@@ -414,10 +401,11 @@ class FuncComp extends Function {
 			return new FuncNumConst(new Complex(0));
 		Function[] ret = new Function[2*f.nofArg];
 		for(int i=0;i<f.nofArg;i++) {
+			Function[] giDiffX = new Function[] {g[i].diffX(arg, set)}; 
 			//System.out.println("w funccomp.diffX " + i + "  " + f.write(new Settings()) + "  " + g[i].write(new Settings()) + "  arg: " +arg);
-			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffX(arg, set)}));
+			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, giDiffX));
 			//System.out.println("2w funccomp.diffX " + i + "  " + f.write(new Settings()));
-			ret[2*i+1] = new FuncMult((f.diffY(i+1, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffX(arg, set)}));
+			ret[2*i+1] = new FuncMult((f.diffY(i+1, set)).putArguments(g), new FuncComp(Functions.Im, giDiffX));
 			//System.out.println("3w funccomp.diffX " + i + "  " + f.write(new Settings()));
 		}
 		return new FuncSum(ret);
