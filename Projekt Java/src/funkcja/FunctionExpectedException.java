@@ -4,14 +4,14 @@
 
 package funkcja;
 
-public class WrongSyntaxException extends Exception {
+public class FunctionExpectedException extends Exception {
 	public String messageForUser;
-	public WrongSyntaxException(String message, String messageForDebug) {
+	public FunctionExpectedException(String message, String messageForDebug) {
 		super(message + "\n" + messageForDebug);
 		TimeKeeping.endTimer("BlokList");
 		this.messageForUser = message;
 	};
-	public WrongSyntaxException(String message) {
+	public FunctionExpectedException(String message) {
 		super(message);
 		messageForUser = message;
 	};

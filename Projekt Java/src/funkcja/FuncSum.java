@@ -134,7 +134,7 @@ class FuncSum extends Function {
 	}
 	
 	@Override
-	protected String write(Settings settings) throws WrongSyntaxException {
+	protected String write(Settings settings) throws FunctionExpectedException {
 		String str = summands[0].write(settings);
 		for(int i=1;i<summands.length;i++) {
 			if(summands[i].type == Functions.MULT) {
@@ -146,7 +146,7 @@ class FuncSum extends Function {
 				str += " + "+summands[i].write(settings);
 		}
 		if(str.length() > 10000)
-			throw new WrongSyntaxException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
+			throw new FunctionExpectedException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
 		return str;
 	}
 

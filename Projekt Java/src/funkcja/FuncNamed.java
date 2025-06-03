@@ -167,7 +167,7 @@ final class FuncConstGivenName extends UserFunction{
 		if(f.nofArg != 0) {
 			try {
 				throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Podana funkxja: " + f.write(new Settings()));
-			} catch(WrongSyntaxException e) {
+			} catch(FunctionExpectedException e) {
 				throw new IllegalArgumentException("Liczba argumentów musi podanej funkcji musi być równa 0. Nie udało się jej wypisać");
 			}
 		}

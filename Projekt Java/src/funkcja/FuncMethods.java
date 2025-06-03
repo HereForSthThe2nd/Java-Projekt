@@ -169,7 +169,7 @@ class FuncMethods {
 		if(a<0 || b>functions.length || a>=b)
 			try {
 				throw new IllegalArgumentException("Podane krańce poza granicami listy lub pierwszy kraniec większy od drugiego. Podane krańce: " + a+", "+b+", lista: " + FuncMethods.write(functions));
-			} catch(WrongSyntaxException e) {
+			} catch(FunctionExpectedException e) {
 				throw new IllegalArgumentException("Podane krańce poza granicami listy lub pierwszy kraniec większy od drugiego. Podane krańce: " + a+", "+b+", listy nie udało się wypisać");
 			}
 		Function[] ret = new Function[b-a];
@@ -220,7 +220,7 @@ class FuncMethods {
 		return new Bool<ArrayList<Integer>>(zuzyteIndeksy, foundEverything);
 	}
 
-	protected static String write(Function[] g) throws WrongSyntaxException {
+	protected static String write(Function[] g) throws FunctionExpectedException {
 		String str = "";
 		str+="[";
 		for(int i=0;i<g.length;i++) {

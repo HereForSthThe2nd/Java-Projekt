@@ -80,14 +80,14 @@ class BlokList{
 	
 	BlokList(){};
 	
-	BlokList(String str) throws WrongSyntaxException{
+	BlokList(String str) throws FunctionExpectedException{
 		if(str.equals(""))
-			throw new WrongSyntaxException("Otwarte nawiasy muszą coś zawierać.");
+			throw new FunctionExpectedException("Otwarte nawiasy muszą coś zawierać.");
 		int index = 0;
 		while(index<str.length()) {
 			Blok blok = znajdzBlok(str, index);
 			if(blok.pocz == -1 || blok.kon == -1) {
-				throw new WrongSyntaxException("Nawiasy się nie domykają.", "pełny string: " + str + "chyba w normalnych okolicznościach nie powinno do tego błędu dochodzić, sprawdzić to");
+				throw new FunctionExpectedException("Nawiasy się nie domykają.", "pełny string: " + str + "chyba w normalnych okolicznościach nie powinno do tego błędu dochodzić, sprawdzić to");
 			}
 			arr.add(blok);
 			index = blok.kon;
@@ -323,7 +323,7 @@ class BlokList{
 	}
 
 	
-	private static int[] wNawiasachKl(String str, int index) throws WrongSyntaxException {
+	private static int[] wNawiasachKl(String str, int index) throws FunctionExpectedException {
 		//sprawdza czy pole o indeksie index jest zawarte pomiędzy dwoma nawiasami {}. niedozwolona jest sytuacja, w której takie nawiasy są w sobie zwarte
 		//jeśli tak zwraca ich położenia jeśli nie zwraca -1 dla odpowiednich stron. wynik {-1, (.)!=-1} lub odwrotnie oznacza błędną składnię
 		//zwraca położenia najbardzei wewnętrznych nawiasów możliwych
@@ -376,7 +376,7 @@ class BlokList{
 			}
 		}
 		if(napotkanoOkrągły && konce[0] > 0 && konce[1]>0)
-			throw new WrongSyntaxException("W nawiasach klamrowych nie mogą występować okrągłe nawiasy.\nString: " + str + "indek:" + index+".",
+			throw new FunctionExpectedException("W nawiasach klamrowych nie mogą występować okrągłe nawiasy.\nString: " + str + "indek:" + index+".",
 					"W nawiasach klamrowych nie mogą występować okrągłe nawiasy.");
 		return konce;
 	} 
@@ -424,12 +424,12 @@ class BlokList{
 		return konce;
 	} 
 	
-	private static boolean checkSquareBrackets(String str, int index, int[] konce) throws WrongSyntaxException {
+	private static boolean checkSquareBrackets(String str, int index, int[] konce) throws FunctionExpectedException {
 		//modyfikuje argumenty int[] konce, zwraca czy je zmieniło
 		//modyfikuje je, tak aby wskazywały na nawiasy kwadratowe wokół indeksu
 		int[] temp = wNawiasachKw(str, index);
 		if((temp[0] == -1 && !(temp[1] == -1)) || (temp[1] == -1 && !(temp[0] == -1))) {
-			throw new WrongSyntaxException("Kwadratowe nawiasy się nie zamykają. Występuje nawias " + (temp[0] == -1 ? "]" : "[") + " bez odpowiadającego mu nawiasu " +  (temp[0] == -1 ? "[." : "]."),
+			throw new FunctionExpectedException("Kwadratowe nawiasy się nie zamykają. Występuje nawias " + (temp[0] == -1 ? "]" : "[") + " bez odpowiadającego mu nawiasu " +  (temp[0] == -1 ? "[." : "]."),
 					String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
 		}
 		if(temp[0] > -1 && temp[1] > -1) {
@@ -440,12 +440,12 @@ class BlokList{
 		return false;
 	}
 	
-	private static boolean checkKlamBrackets(String str, int index, int[] konce) throws WrongSyntaxException {
+	private static boolean checkKlamBrackets(String str, int index, int[] konce) throws FunctionExpectedException {
 		//modyfikuje argumenty int[] konce, zwraca czy je zmieniło
 		//modyfikuje je tak 
 		int[] temp = wNawiasachKl(str, index);
 		if((temp[0] == -1 && !(temp[1] == -1)) || (temp[1] == -1 && !(temp[0] == -1))) {
-			throw new WrongSyntaxException("Kwadratowe nawiasy się nie zamykają. Występuje nawias " + (temp[0] == -1 ? "}" : "{") + " bez odpowiadającego mu nawiasu " +  (temp[0] == -1 ? "{." : "}."),
+			throw new FunctionExpectedException("Kwadratowe nawiasy się nie zamykają. Występuje nawias " + (temp[0] == -1 ? "}" : "{") + " bez odpowiadającego mu nawiasu " +  (temp[0] == -1 ? "{." : "}."),
 					String.format("\nindex: %d.  końce:  %d, %d. cały str: %s.",index, konce[0], konce[1], str));
 		}
 		if(temp[0] > -1 && temp[1] > -1) {
@@ -456,7 +456,7 @@ class BlokList{
 		return false;
 	}
 	
-	private static Blok znajdzBlokPom(String str, int index) throws WrongSyntaxException {
+	private static Blok znajdzBlokPom(String str, int index) throws FunctionExpectedException {
 		TimeKeeping.startTimer("BlokList");
 		//zwraca położenia końców bloku wokół index. Zwraca indeks lewej strony oraz indeks+1 prawej.
 		//nie włącza funkcji i ich argumentów w jeden blok
@@ -477,7 +477,7 @@ class BlokList{
 		if(checkSquareBrackets(str, index, konce)) {
 			konce[0] -= 1;
 			if(konce[0] == -1)
-				throw new WrongSyntaxException("Nawiasy kwadratowe nie mogą wystąpić na początku podanej funkcji.");
+				throw new FunctionExpectedException("Nawiasy kwadratowe nie mogą wystąpić na początku podanej funkcji.");
 			isWord = true;
 			isNum = false;
 			isParenthases = false;
@@ -487,7 +487,7 @@ class BlokList{
 			if(checkKlamBrackets(str, index, konce)) {
 				konce[0] -= 1;
 				if(konce[0] == -1)
-					throw new WrongSyntaxException("Nawiasy klamrowe nie mogą wystąpić na początku podanej funkcji.");
+					throw new FunctionExpectedException("Nawiasy klamrowe nie mogą wystąpić na początku podanej funkcji.");
 				isWord = true;
 				isNum = false;
 				isParenthases = false;
@@ -519,7 +519,7 @@ class BlokList{
 				}
 			}
 			if(!(""+str.charAt(konce[0])).matches("[a-zA-Z" + GRECKIALFABET+"]"))
-				throw new WrongSyntaxException("Przed nawiasem " + str.charAt(konce[0]+1) + " musi stać litera, a stoi znak " + str.charAt(konce[0]) + ".");
+				throw new FunctionExpectedException("Przed nawiasem " + str.charAt(konce[0]+1) + " musi stać litera, a stoi znak " + str.charAt(konce[0]) + ".");
 			while(konce[0] > -1 && (""+str.charAt(konce[0])).matches("[a-zA-Z" + GRECKIALFABET + "]")) {
 					konce[0] -= 1;
 			}
@@ -545,9 +545,9 @@ class BlokList{
 					break;
 			}
 			if(countCommas > 1) 
-				throw new WrongSyntaxException("Liczba \"" + str.substring(konce[0], konce[1]) + "\" zawiera w sobie więcej niż jedną kropkę.");
+				throw new FunctionExpectedException("Liczba \"" + str.substring(konce[0], konce[1]) + "\" zawiera w sobie więcej niż jedną kropkę.");
 			if(countCommas == 1 && str.length() == 1)
-				throw new WrongSyntaxException("Występuje kropka, która nie jest wewnątrz liczby.");
+				throw new FunctionExpectedException("Występuje kropka, która nie jest wewnątrz liczby.");
 			TimeKeeping.endTimer("BlokList");
 			return new Blok(str, konce, type);
 		}
@@ -555,7 +555,7 @@ class BlokList{
 			type = Blok.PARENTHASES;
 			int[] temp = wNawiasach(str, index);
 			if((temp[0] == -1 && !(temp[1] == -1)) || (temp[1] == -1 && !(temp[0] == -1)))
-				throw new WrongSyntaxException(	"Nawiasy () nie domykają się poprawnie.\n "
+				throw new FunctionExpectedException(	"Nawiasy () nie domykają się poprawnie.\n "
 								+ "Występuje nawias \'" + (temp[1]==-1 ? "(\'" : ")\'") + " bez odpowiadającego mu nawiasu \'" + (temp[0]==-1 ? "(\'." : ")\'."),
 								"\n caly str: " + str);
 			konce[0] = temp[0];
@@ -573,7 +573,7 @@ class BlokList{
 		}
 	}
 
-	private static Blok znajdzBlok(String str, int index) throws WrongSyntaxException {
+	private static Blok znajdzBlok(String str, int index) throws FunctionExpectedException {
 
 		//zwraca położenia końców bloku wokół index. Zwraca indeks lewej strony oraz indeks+1 prawej.
 		Blok blok = znajdzBlokPom(str, index);
@@ -584,7 +584,7 @@ class BlokList{
 					throw new IllegalArgumentException("Zawarta jest funkcja bez argumentu." + "\n zawara funckja: " + blok.str);
 				Blok prawaStrona = znajdzBlokPom(str, blok.kon);
 				if(prawaStrona.type != Blok.PARENTHASES)
-					throw new WrongSyntaxException("Funkcje muszą mieć po sobie nawias, a funkcja: " + blok.str + " go nie ma.");
+					throw new FunctionExpectedException("Funkcje muszą mieć po sobie nawias, a funkcja: " + blok.str + " go nie ma.");
 				return new BlokWthDefFunction(str, prawaStrona.pocz, prawaStrona.kon, Blok.FUNCTION, Functions.returnNmdFunc(blok.str));
 			}
 				
@@ -600,7 +600,7 @@ class BlokList{
 
 	}
 	
-	public static void main(String[] args) throws WrongSyntaxException {
+	public static void main(String[] args) throws FunctionExpectedException {
 		new BlokList("1.0a{5.90[]}d2.3dsa[32.13243[dsd[]][]]as[]j[]").print();
 	}
 

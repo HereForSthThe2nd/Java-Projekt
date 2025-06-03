@@ -47,9 +47,9 @@ public class Functions {
 		protected Function[] reim() {
 			try {
 				Function re = new FunctionPowloka("ln((z[0]^2+z[1]^2)^(1/2))", new Settings()).getFunction();
-				Function im = new FuncComp(arg, new Function[] {idChecker.returnFunc("z[0]+i*z[1]")});
+				Function im = new FuncComp(arg, new Function[] {new FunctionPowloka ("z[0]+i*z[1]", new Settings()).getFunction()});
 				return new Function[] {re, im};
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
@@ -79,9 +79,9 @@ public class Functions {
 		protected Function[] reim()  {
 			try {
 				Function re = new FunctionPowloka("ln((z[0]^2+z[1]^2)^(1/2))", new Settings()).getFunction();
-				Function im = new FuncComp(arg, new Function[] {idChecker.returnFunc("z[0]+i*z[1]")});
+				Function im = new FuncComp(arg, new Function[] {new FunctionPowloka ("z[0]+i*z[1]", new Settings()).getFunction()});
 				return new Function[] {re, im};
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
@@ -109,7 +109,11 @@ public class Functions {
 
 		@Override
 		protected Function[] reim()  {
-			return new Function[] {this, new FuncNumConst(new Complex(0))};
+			try {
+				return new Function[] {new FuncComp(this, new Function[ ] {new FunctionPowloka("z[0]+i*z[1]", new Settings()).getFunction()}), new FuncNumConst(new Complex(0))};
+			} catch (FunctionExpectedException e) {
+				throw new IllegalStateException(e);
+			}
 		}
 
 
@@ -119,7 +123,7 @@ public class Functions {
 				return new FuncNumConst(new Complex(0));
 			try {
 				return (new FunctionPowloka("-y/(x^2+y^2)", new Settings())).getFunction();
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
@@ -130,7 +134,7 @@ public class Functions {
 				return new FuncNumConst(new Complex(0));
 			try {
 				return (new FunctionPowloka("x/(x^2+y^2)", new Settings())).getFunction();
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
@@ -147,7 +151,7 @@ public class Functions {
 				Function re = new FunctionPowloka("exp(z[0])*cos(z[1])", new Settings()).getFunction();
 				Function im = new FunctionPowloka("exp(z[0])*sin(z[1])", new Settings()).getFunction();
 				return new Function[] {re,im};
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -180,7 +184,7 @@ public class Functions {
 				Function re = new FunctionPowloka("cosh(z[1])*sin(z[0])", new Settings()).getFunction();
 				Function im = new FunctionPowloka("sinh(z[1])*cos(z[0])", new Settings()).getFunction();
 				return new Function[] {re,im};
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -213,7 +217,7 @@ public class Functions {
 				Function re = new FunctionPowloka("cosh(z[1])*cos(z[0])", new Settings()).getFunction();
 				Function im = new FunctionPowloka("-sinh(z[1])*sin(z[0])", new Settings()).getFunction();
 				return new Function[] {re,im};
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -247,7 +251,7 @@ public class Functions {
 				Function re = new FunctionPowloka("sinh(z[0])*cos(z[1])", new Settings()).getFunction();
 				Function im = new FunctionPowloka("cosh(z[0])*sin(z[1])", new Settings()).getFunction();
 				return new Function[] {re,im};
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -281,7 +285,7 @@ public class Functions {
 				Function re = new FunctionPowloka("cosh(z[0])*cos(z[1])", new Settings()).getFunction();
 				Function im = new FunctionPowloka("sinh(z[0])*sin(z[1])", new Settings()).getFunction();
 				return new Function[] {re,im};
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -309,7 +313,7 @@ public class Functions {
 
 		@Override
 		protected Function[] reim()  {
-			return new Function[] {this, new FuncNumConst(new Complex(0))};
+			return new Function[] {idChecker.returnFunc("z[0]"), new FuncNumConst(new Complex(0))};
 		}
 		
 		@Override
@@ -335,7 +339,7 @@ public class Functions {
 
 		@Override
 		protected Function[] reim()  {
-			return new Function[] {this, new FuncNumConst(new Complex(0))};
+			return new Function[] {idChecker.returnFunc("z[1]"), new FuncNumConst(new Complex(0))};
 		}
 
 		@Override
@@ -368,7 +372,7 @@ public class Functions {
 			try {
 				innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 				return innyZapis.getFunction().reim();
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -385,7 +389,7 @@ public class Functions {
 					return (new FunctionPowloka("pow(z[0],z[1])*ln(z[0])", new Settings())).getFunction();
 				}
 				throw new IllegalArgumentException("??? arg == " + arg);
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
@@ -401,7 +405,7 @@ public class Functions {
 					return (new FunctionPowloka("i*pow(z[0],z[1])*ln(z[0])", new Settings())).getFunction();
 				}
 				throw new IllegalArgumentException("??? arg == " + arg);
-			} catch (WrongSyntaxException e) {
+			} catch (FunctionExpectedException e) {
 				throw new IllegalArgumentException(e);
 			}
 		}
@@ -529,7 +533,7 @@ public class Functions {
 		BlokList blok;
 		try {
 			blok = new BlokList(str);
-		} catch (WrongSyntaxException e) {
+		} catch (FunctionExpectedException e) {
 			throw new IncorrectNameException("Nie udało się przetworzyć takiej nazwy.");
 		}
 		if(blok.arr.size() > 1)
@@ -562,7 +566,7 @@ public class Functions {
 		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || logChecker.check(str) || powChecker.check(str);
 	}
 	
-	static protected FuncNamed returnNmdFunc(String str) throws WrongSyntaxException {
+	static protected FuncNamed returnNmdFunc(String str) throws FunctionExpectedException {
 		if(!checkIfNmdFunc(str))
 			throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej funkcji.");
 		if(logChecker.check(str))
@@ -646,7 +650,7 @@ public class Functions {
 							return true;
 						}
 					}
-					catch(WrongSyntaxException e) {}
+					catch(FunctionExpectedException e) {}
 				}
 				return false;
 			}
@@ -670,9 +674,9 @@ public class Functions {
 					protected Function[] reim()  {
 						try {
 							Function re = new FunctionPowloka("ln((z[0]^2+z[1]^2)^(1/2))", new Settings()).getFunction();
-							Function im = new FuncComp(arg, new Function[] {idChecker.returnFunc("z[0]+i*z[1]")});
+							Function im = new FuncComp(arg, new Function[] {new FunctionPowloka ("z[0]+i*z[1]", new Settings()).getFunction()});
 							return new Function[] {re, im};
-						} catch (WrongSyntaxException e) {
+						} catch (FunctionExpectedException e) {
 							throw new IllegalStateException(e);
 						}
 					}
@@ -693,7 +697,7 @@ public class Functions {
 					}
 				};
 			}
-			catch(WrongSyntaxException e){
+			catch(FunctionExpectedException e){
 				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
 			}
 		}
@@ -722,7 +726,7 @@ public class Functions {
 						try {
 							innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
 							return innyZapis.getFunction().reim();
-						} catch (WrongSyntaxException e) {
+						} catch (FunctionExpectedException e) {
 							throw new IllegalStateException(e);
 						}
 					}
@@ -739,7 +743,7 @@ public class Functions {
 								return (new FunctionPowloka("pow(z[0],z[1])*ln(z[0])", new Settings())).getFunction();
 							}
 							throw new IllegalArgumentException("??? arg == " + arg);
-						} catch (WrongSyntaxException e) {
+						} catch (FunctionExpectedException e) {
 							throw new IllegalArgumentException(e);
 						}
 					}
@@ -755,13 +759,13 @@ public class Functions {
 								return (new FunctionPowloka("i*pow(z[0],z[1])*ln(z[0])", new Settings())).getFunction();
 							}
 							throw new IllegalArgumentException("??? arg == " + arg);
-						} catch (WrongSyntaxException e) {
+						} catch (FunctionExpectedException e) {
 							throw new IllegalArgumentException(e);
 						}
 					}
 				};
 			}
-			catch(WrongSyntaxException e){
+			catch(FunctionExpectedException e){
 				throw new IllegalArgumentException("Program nie powinien tutaj wogóle dojść.");
 			}
 		}
@@ -779,7 +783,7 @@ public class Functions {
 						return true;
 					}
 				}
-				catch(WrongSyntaxException e) {}
+				catch(FunctionExpectedException e) {}
 			}
 			return false;
 		}

@@ -24,18 +24,21 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultBoundedRangeModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
@@ -71,7 +74,7 @@ import funkcja.Function;
 import funkcja.FunctionPowloka;
 import funkcja.Settings;
 import funkcja.TimeKeeping;
-import funkcja.WrongSyntaxException;
+import funkcja.FunctionExpectedException;
 import grafika.Graph.Coordinates;
 
 public class Main extends JFrame {
@@ -90,6 +93,13 @@ public class Main extends JFrame {
 		setMinimumSize(new Dimension(600,500));
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setLayout(new BorderLayout());
+		//ImageIcon a = new 
+		try {
+			BufferedImage buff = ImageIO.read(new File("logo.jpg"));
+			setIconImage((new ImageIcon(buff)).getImage());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		doTheShortcuts();
 		doTheMenu();
 		try {
@@ -99,7 +109,7 @@ public class Main extends JFrame {
 			wykres.function = new FunctionPowloka("z^2", new Settings());
 			legenda.change(new FunctionPowloka("z", new Settings()), legenda.rect(new Complex(-10,-10), new Complex(10,10)),Graph.basic ,0.5);
 			wykres.change(wykres.function, wykres.rect(new Complex(-3,-3), new Complex(3,3)),Graph.basic, 0.5);
-		} catch (WrongSyntaxException e) {
+		} catch (FunctionExpectedException e) {
 			throw new IllegalStateException(e);
 		}
 		JPanel zawieraTextFunckcji = new JPanel();
@@ -122,14 +132,16 @@ public class Main extends JFrame {
 					@Override
 					protected Void doInBackground() throws Exception {
 						try {
-							System.out.println(e.getActionCommand());
-							TimeKeeping.reset();
-							wykres.function = new FunctionPowloka(e.getActionCommand(), ustawienia);
-							TimeKeeping.writeAndReset();
+							FunctionPowloka funcTemp = new FunctionPowloka(e.getActionCommand(), ustawienia);
+							if(funcTemp.nofArg() > 1) {
+								nadFunkcja.setErrorText("Podana funkcja powinna zależeć od jednej zmiennej, a zależy od " + funcTemp.nofArg() + ".");
+								return null;
+							}
+							wykres.function = funcTemp;
 							changeFunc(wykres.function.removeDiff());
 							funkcjaTextField.setText(wykres.function.write(ustawienia));
 							funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
-						} catch (WrongSyntaxException e1) {
+						} catch (FunctionExpectedException e1) {
 							nadFunkcja.setErrorText(e1.messageForUser);
 						}
 						return null;
@@ -144,7 +156,6 @@ public class Main extends JFrame {
 			
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				Rectangle rec = legenda.obraz.getBounds();
 				//Complex val = Complex.add(legenda.coords.getLD(), new Complex (e.getX()/rec.getWidth()*(legenda.prawyGorny.x-legenda.coords.getLD().x), (1-e.getY()/rec.getHeight())*(legenda.prawyGorny.y-legenda.coords.getLD().y)));
 				Complex val = legenda.coords.pointToCmplx(e.getPoint());
 				wartosc.setText(val.printE(2, 2));
@@ -171,7 +182,6 @@ public class Main extends JFrame {
 			
 			@Override
 			public void mouseMoved(MouseEvent e) {
-				Rectangle rec = wykres.obraz.getBounds();
 				//Complex arg = Complex.add(wykres.coords.getLD(), new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.coords.getLD().x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.coords.getLD().y)));
 				Complex arg = wykres.coords.pointToCmplx(e.getPoint());
 				Complex val = wykres.getValueAt(e.getX(), e.getY());
@@ -223,7 +233,6 @@ public class Main extends JFrame {
 							wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
 							wykres.foreGround.rect[0].y > wykres.foreGround.rect[1].y ? 
 							wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y) );
-					System.out.println(wykres.coords.getLD().print(2) + "  " + wykres.coords.getPG().print(2));
 					wykres.foreGround.rect = null;
 					wykres.foreGround.szyba = new Color(0,0,0,50);
 					wykres.foreGround.repaint();
@@ -371,7 +380,7 @@ public class Main extends JFrame {
 				if(funkcjaTextField.isUpToDate)
 					try {
 						funkcjaTextField.setText(wykres.function.write(ustawienia));
-					} catch (WrongSyntaxException e1) {
+					} catch (FunctionExpectedException e1) {
 						nadFunkcja.setErrorText(e1.messageForUser);;
 					}
 			}
@@ -384,7 +393,7 @@ public class Main extends JFrame {
 				if(funkcjaTextField.isUpToDate)
 					try {
 						funkcjaTextField.setText(wykres.function.write(ustawienia));
-					} catch (WrongSyntaxException e1) {
+					} catch (FunctionExpectedException e1) {
 						nadFunkcja.setErrorText(e1.messageForUser);
 					}
 			}
@@ -406,7 +415,7 @@ public class Main extends JFrame {
 				if(funkcjaTextField.isUpToDate)
 					try {
 						funkcjaTextField.setText(wykres.function.write(ustawienia));
-					} catch (WrongSyntaxException e1) {
+					} catch (FunctionExpectedException e1) {
 						nadFunkcja.setErrorText(e1.messageForUser);
 					}
 			}
@@ -538,22 +547,13 @@ public class Main extends JFrame {
 						@Override
 						protected Void doInBackground() throws Exception {
 							try {
-								TimeKeeping.reset();
-								long pocz = System.currentTimeMillis();
 								wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
-								long srodek = System.currentTimeMillis();
-								TimeKeeping.writeAndReset();
-								System.out.println(srodek - pocz + " <--wczytanie");
-
-								 pocz = System.currentTimeMillis();
 								FunctionPowloka fch = wykres.function.simplify(ustawienia);
-								long pocz2 = System.currentTimeMillis();
-								System.out.println(pocz2 - pocz + "ms  <--czas uproszczenia");
 								funkcjaTextField.setText(fch.write(ustawienia));
 								changeFunc(fch);
 								nadFunkcja.setText("Wypisano nową funkcję.");
 								return null;
-							} catch (WrongSyntaxException e) {
+							} catch (FunctionExpectedException e) {
 								nadFunkcja.setErrorText(e.messageForUser);
 								return null;
 							}
@@ -574,26 +574,13 @@ public class Main extends JFrame {
 						protected Void doInBackground() throws Exception {
 							try {
 								nadFunkcja.setTextAnimated("Wczytywanie funkcji");
-								TimeKeeping.reset();
-								long pocz = System.currentTimeMillis();
 								FunctionPowloka f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
-								long srodek = System.currentTimeMillis();
-								TimeKeeping.writeAndReset();
-								System.out.println(srodek - pocz + " <--wczytanie");
 	
-								pocz = System.currentTimeMillis();
 								nadFunkcja.setTextAnimated("Rozbijanie funkcji");
-								System.out.println("Poczatek rozbijania");
 								FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
-								System.out.println("Koniec rozbijania");
-								long kon = System.currentTimeMillis();
-								System.out.println(kon-pocz + " <-- czas na rozbicie");
-								nadFunkcja.setText(fch.write(ustawienia));
-								pocz = System.currentTimeMillis();
+								funkcjaTextField.setText(fch.write(ustawienia));
 								changeFunc(fch);
-								kon = System.currentTimeMillis();
-								System.out.println(kon-pocz + " <-- czas na wypisanie");
-							} catch (WrongSyntaxException e1) {
+							} catch (FunctionExpectedException e1) {
 								nadFunkcja.setErrorText(e1.messageForUser);
 							} catch(Exception e) {
 								e.printStackTrace();
@@ -658,27 +645,28 @@ public class Main extends JFrame {
 					ch.setFileFilter(new FileFilter() {
 
 						   public String getDescription() {
-						       return "JPG Images (*.jpg)";
+						       return "PNG"
+						       		+ " files (*.png)";
 						   }
 
 						   public boolean accept(File f) {
-							   System.out.println(f.toString());
 						       if (f.isDirectory()) {
 						           return true;
 						       } else {
 						           String filename = f.getName().toLowerCase();
-						           return filename.endsWith(".jpg") || filename.endsWith(".jpeg") ;
+						           return filename.endsWith(".png");
 						       }
 						   }
 						});
 					
 					int pot = ch.showSaveDialog(null);
 					if(pot == JFileChooser.APPROVE_OPTION) {
-						if(!ch.getSelectedFile().getPath().matches(".*\\.(jpg|jpeg)")){
-							wykres.save(new File(ch.getSelectedFile().getPath() + ".jpg"));
+						if(ch.getSelectedFile().getPath().endsWith(".png")){
+							wykres.save(new File(ch.getSelectedFile().getPath()));
+							return;
 						}
-						else
-							wykres.save(ch.getSelectedFile());
+						wykres.save(new File(ch.getSelectedFile()+".png"));
+						System.out.println("nic nie znalazło");
 					}
 				} catch (Exception e1) {
 					JOptionPane.showMessageDialog(null, "Nie udało się zapisać pliku.", "Błąd!", JOptionPane.ERROR_MESSAGE);
@@ -728,10 +716,7 @@ public class Main extends JFrame {
 			@Override
 			protected Void doInBackground() throws Exception {
 				try {
-					long pocz = System.currentTimeMillis();
 					wykres.change(wykres.function, wykres.coords ,Graph.basic, 0.5);
-					long kon = System.currentTimeMillis();
-					System.out.println(kon - pocz + "ms  <-- czas obliczenia func we wszytkich pkt i jej pokazania");
 					
 					legenda.foreGround.resetCurve();
 					for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
@@ -763,10 +748,7 @@ public class Main extends JFrame {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
 			try {
-				long pocz = System.currentTimeMillis();
-				wykres.change(wykres.function, wykres.coords ,Graph.basic, 0.5);
-				long kon = System.currentTimeMillis();
-				System.out.println(kon - pocz + "ms  <-- czas obliczenia func we wszytkich pkt i jej pokazania");
+				wykres.change(f, wykres.coords ,Graph.basic, 0.5);
 				
 				legenda.foreGround.resetCurve();
 				for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
@@ -969,7 +951,6 @@ class LabelAboveFunction extends JLabel{
 					liczKropki++;
 					liczKropki %= 4;
 					timeNew = System.currentTimeMillis();
-					System.out.println(timeNew - timeOld + "  text");
 					timeOld = timeNew; 
 			}
 		};

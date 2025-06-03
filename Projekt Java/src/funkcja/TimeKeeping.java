@@ -6,6 +6,7 @@ import java.util.List;
 
 public class TimeKeeping {
 	//nie działa dobrze jeśli jest dużo wątków
+	//to jest chyba tylko tymczasowe, pod koniec usunąć
 	private static LinkedList<Object> keys = new LinkedList<Object>(List.of("BlokList", "function"));
 	private static LinkedList<Long> totalTimes;
 	private static LinkedList<Long> lastStart; 

@@ -83,20 +83,20 @@ class FuncComp extends Function {
 					return (new FuncMult(pom)).reim();
 				}
 			}
-		}catch(WrongSyntaxException e) {
+		}catch(FunctionExpectedException e) {
 			throw new IllegalStateException(e);
 		}
-		Function[] retPom = f.reim();
+		Function[] retPom = f.reim();	
 		Function[] greim = new Function[f.nofArg*2];
 		for(int i = 0;i<f.nofArg;i++) {
 			Function[]greimi = g[i].reim();
 			greim[2*i] = greimi[0];
-			greim[2*i+1] = greimi[i];
+			greim[2*i+1] = greimi[1];
 		}
 		return new Function[] {retPom[0].putArguments(greim), retPom[1].putArguments(greim)};
 	}
 
-	private String wypiszPotege(Settings settings) throws WrongSyntaxException {
+	private String wypiszPotege(Settings settings) throws FunctionExpectedException {
 		//zajmuje się poprawny postawieniem nawiasów
 		String str = "";
 		if(g[0].type == Functions.ADD || g[0].type == Functions.MULT) {
@@ -121,7 +121,7 @@ class FuncComp extends Function {
 		return str;
 	}
 	@Override
-	protected String write(Settings settings) throws WrongSyntaxException {
+	protected String write(Settings settings) throws FunctionExpectedException {
 		if(settings.writePow && f.check(Functions.pow))
 			return wypiszPotege(settings);
 		if(settings.writeRealVar && checkComponents(Functions.Re, Functions.idChecker))
@@ -134,7 +134,7 @@ class FuncComp extends Function {
 		}
 		str += ")";
 		if(str.length() > 10000)
-			throw new WrongSyntaxException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
+			throw new FunctionExpectedException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
 		return str;
 	}
 	@Override
@@ -302,7 +302,7 @@ class FuncComp extends Function {
 				}
 				try {
 					throw new IllegalArgumentException("Argument nipoprawny. funkcja: " + funkcja.write(new Settings()));
-				} catch(WrongSyntaxException e) {
+				} catch(FunctionExpectedException e) {
 					throw new IllegalArgumentException("Argument nipoprawny. Funkcji nawet nie można wypisać.");
 				}
 			}
@@ -340,6 +340,14 @@ class FuncComp extends Function {
 			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
 		if(checkComponents(Functions.arg, Functions.Im))
 			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
+		if(checkComponents(Functions.Re, Functions.Re))
+			return new Bool<Function>(new FuncComp(Functions.Re, new Function[] {((FuncComp)g[0]).g[0]}), true);
+		if(checkComponents(Functions.Re, Functions.Im))
+			return new Bool<Function>(new FuncComp(Functions.Im, new Function[] {((FuncComp)g[0]).g[0]}), true);
+		if(checkComponents(Functions.Im, Functions.Re) || checkComponents(Functions.Im, Functions.Im))
+			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
+
+
 		return new Bool<Function>(this, false);
 	}
 	
@@ -385,8 +393,9 @@ class FuncComp extends Function {
 		fb = simplifyMinusy(setting);
 		if(fb.bool)
 			return fb.f;
-		if(f.check(Functions.Re))
+		if(f.check(Functions.Re)) {
 			return g[0].reim()[0];
+		}
 		if(f.check(Functions.Im))
 			return g[0].reim()[1];
 		if(nofArg == 0 && setting.evaluateConstants)

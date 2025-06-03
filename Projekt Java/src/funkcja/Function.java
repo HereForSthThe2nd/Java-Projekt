@@ -40,7 +40,7 @@ abstract public class Function implements FuncChecker
 	protected abstract Function[] reim();
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
-	protected abstract String write(Settings settings) throws WrongSyntaxException;
+	protected abstract String write(Settings settings) throws FunctionExpectedException;
 	
 	//public abstract boolean check(Function f);
 	
@@ -50,14 +50,14 @@ abstract public class Function implements FuncChecker
 	//bardzo podstawowe
 	protected abstract Function simplify(Settings setting);
 	
-	protected static String preliminaryChanges(String str) throws WrongSyntaxException {
+	protected static String preliminaryChanges(String str) throws FunctionExpectedException {
 		if(str.equals("")) 
 			return "";
 		str = str.replaceAll("\\s", "");
 		if(str.charAt(0) == '=') str = str.substring(1);
 		str = BlokList.configureStr(str);
 		if(str.matches(".*[^"+BlokList.OPERATORY+"|[a-zA-Z0-9]|" +BlokList.GRECKIALFABET +"|"+  BlokList.SPECJALNE + "].*")) 
-			throw new WrongSyntaxException(
+			throw new FunctionExpectedException(
 					"Niepoprawny zapis : występuje niedozwolony znak(i): " + str.replaceAll(BlokList.OPERATORY+"|[a-zA-Z0-9]|"+BlokList.GRECKIALFABET +"|"+BlokList.SPECJALNE, ""));
 		return str;
 	}
@@ -70,7 +70,7 @@ abstract public class Function implements FuncChecker
 	
 	abstract Function removeDiff();
 	
-  	private static BlokList removeParenthases(BlokList bloki) throws WrongSyntaxException {
+  	private static BlokList removeParenthases(BlokList bloki) throws FunctionExpectedException {
 		if(bloki.arr.size() == 1 && bloki.arr.get(0).type != Blok.FUNCTION) {
 			BlokList newBloki = new BlokList(BlokList.configureStr(bloki.arr.get(0).str));
 			//System.out.println("usuwanie nawiasów na co zmienilo:");
@@ -80,10 +80,10 @@ abstract public class Function implements FuncChecker
 		return bloki;
 	}
 	 	
-	protected static Function read(BlokList bloki, Settings settings) throws WrongSyntaxException {
+	protected static Function read(BlokList bloki, Settings settings) throws FunctionExpectedException {
 		TimeKeeping.startTimer("function");
 		if(bloki.splitByComma().size()>1) 
-			throw new WrongSyntaxException("Przecinek postawony w złym miejscu. Musi występować wewnątrz funkcji.");
+			throw new FunctionExpectedException("Przecinek postawony w złym miejscu. Musi występować wewnątrz funkcji.");
 		bloki = removeParenthases(bloki);
 		if(bloki.arr.size() == 0){//wchodzi w grę jeśli jest plus lub minus z czymś tylko z jednej strony
 			TimeKeeping.endTimer("function");
@@ -98,7 +98,7 @@ abstract public class Function implements FuncChecker
 			case Blok.FUNCTION:
 				LinkedList<BlokList> argsOfFunction = (new BlokList (blok.str.substring(1, blok.str.length()-1))).splitByComma();
 				if(((BlokWthDefFunction)blok).funkcja.nofArg != argsOfFunction.size())
-					throw new WrongSyntaxException("Funckcja " + ((BlokWthDefFunction)blok).funkcja.name
+					throw new FunctionExpectedException("Funckcja " + ((BlokWthDefFunction)blok).funkcja.name
 							+ " przyjmuje " + ((BlokWthDefFunction)blok).funkcja.nofArg + " argumentów, a podano ich "+ argsOfFunction.size() + ".");
 				Function[] arg = new Function[argsOfFunction.size()];
 				for(int i=0; i<argsOfFunction.size();i++) {
@@ -112,7 +112,7 @@ abstract public class Function implements FuncChecker
 					TimeKeeping.endTimer("function");
 					return Functions.returnVar(blok.str);
 				}
-				throw new WrongSyntaxException(blok.str + " nie jest znaną nazwą ani funkcji ani zmiennej ani stałej.");
+				throw new FunctionExpectedException(blok.str + " nie jest znaną nazwą ani funkcji ani zmiennej ani stałej.");
 			}
 		}
 		int splitIndex;
@@ -121,7 +121,7 @@ abstract public class Function implements FuncChecker
 			BlokList lStrona = bloki.subList(0, splitIndex);
 			BlokList pStrona = bloki.subList(splitIndex+1, bloki.arr.size());
 			if(pStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"+\" bez elemntu z prawej strony");
+				throw new FunctionExpectedException("Występuje znak \"+\" bez elemntu z prawej strony");
 			Function lFunc = read(lStrona, settings);
 			Function rFunc = read(pStrona, settings);
 			TimeKeeping.endTimer("function");
@@ -136,7 +136,7 @@ abstract public class Function implements FuncChecker
 			Function lFunc = read(lStrona, settings);
 			Function rFunc = read(pStrona, settings);
 			if(pStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"-\" bez elemntu z prawej strony");
+				throw new FunctionExpectedException("Występuje znak \"-\" bez elemntu z prawej strony");
 			TimeKeeping.endTimer("function");
 			if(lStrona.arr.size() == 0)
 				return new FuncMult(new FuncNumConst(new Complex(-1.0)), rFunc);
@@ -149,9 +149,9 @@ abstract public class Function implements FuncChecker
 			Function lFunc = read(lStrona, settings);
 			Function rFunc = read(pStrona, settings);
 			if(pStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"*\" bez elemntu z prawej strony");
+				throw new FunctionExpectedException("Występuje znak \"*\" bez elemntu z prawej strony");
 			if(lStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"*\" bez elemntu z lewej strony");
+				throw new FunctionExpectedException("Występuje znak \"*\" bez elemntu z lewej strony");
 			TimeKeeping.endTimer("function");
 			return new FuncMult(lFunc, rFunc);
 		}
@@ -167,9 +167,9 @@ abstract public class Function implements FuncChecker
 			BlokList lStrona = bloki.subList(0, splitIndex);
 			BlokList pStrona = bloki.subList(splitIndex+1, bloki.arr.size());
 			if(pStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"/\" bez elemntu z prawej strony");
+				throw new FunctionExpectedException("Występuje znak \"/\" bez elemntu z prawej strony");
 			if(lStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"/\" bez elemntu z lewej strony");
+				throw new FunctionExpectedException("Występuje znak \"/\" bez elemntu z lewej strony");
 
 			Function lFunc = read(lStrona, settings);
 			Function rFunc = read(pStrona, settings);
@@ -184,9 +184,9 @@ abstract public class Function implements FuncChecker
 			Function lFunc = read(lStrona, settings);
 			Function rFunc = read(pStrona, settings);
 			if(pStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"^\" bez elemntu z prawej strony");
+				throw new FunctionExpectedException("Występuje znak \"^\" bez elemntu z prawej strony");
 			if(lStrona.arr.size() == 0)
-				throw new WrongSyntaxException("Występuje znak \"^\" bez elemntu z lewej strony");
+				throw new FunctionExpectedException("Występuje znak \"^\" bez elemntu z lewej strony");
 			TimeKeeping.endTimer("function");
 			return new FuncComp(Functions.pow,	new Function[] {lFunc, rFunc});
 		}

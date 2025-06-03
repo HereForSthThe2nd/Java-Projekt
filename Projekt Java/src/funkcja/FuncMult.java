@@ -82,7 +82,7 @@ class FuncMult extends Function {
 			if(!skracalneWymierne(f, g))
 				try{
 					throw new IllegalArgumentException("Podany iloraz nie jest skracalny. Podane funkcje: f: " + f.write(new Settings()) + " ,g: " + g.write(new Settings()));
-				}catch(NullPointerException | WrongSyntaxException e) {
+				}catch(NullPointerException | FunctionExpectedException e) {
 					throw new IllegalArgumentException("Podany iloraz nie jest skracalny. Funckcji w nim zawartych nie udało się wypisać.");
 				}
 			int licz = (int) ((FuncNumConst)f).a.x;
@@ -257,7 +257,7 @@ class FuncMult extends Function {
 		return false;
 	}
 	@Override
-	protected String write(Settings settings) throws WrongSyntaxException {
+	protected String write(Settings settings) throws FunctionExpectedException {
 		int i = 0;
 		String str = "";
 		if(f[0].check(new FuncNumConst(new Complex(-1)))) {
@@ -302,7 +302,7 @@ class FuncMult extends Function {
 			}
 		}
 		if(str.length() > 10000)
-			throw new WrongSyntaxException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
+			throw new FunctionExpectedException("Funkcja jest za długa aby ją wypisać. Ma w zapisie > 10000 znaków.");
 		
 		return str;
 	}

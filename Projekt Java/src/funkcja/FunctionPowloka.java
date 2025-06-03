@@ -14,7 +14,7 @@ public class FunctionPowloka {
 		//może jeśli zmieni w ustawieniach znaczenie pow to może to mogłoby mieć sens? 
 		//Poza tym jeśli chce się to gdzieś przepisać bez zmian czy coś
 	
- 	public FunctionPowloka(String str, Settings settings) throws WrongSyntaxException {
+ 	public FunctionPowloka(String str, Settings settings) throws FunctionExpectedException {
 		if(str.equals("")) {
 			f = new FuncNumConst(new Complex(0));
 			return;
@@ -65,7 +65,9 @@ public class FunctionPowloka {
 	
 	public FunctionPowloka splitByRealAndImaginery(Settings set)  {
 		Function[] reim = f.reim();
-		return new FunctionPowloka(new FuncSum (new Function[] {reim[0], new FuncMult(new FuncNumConst(Complex.i), reim[1])}));
+		Function re = (new FunctionPowloka(reim[0]).simplify(set)).getFunction();
+		Function im = (new FunctionPowloka(reim[1]).simplify(set)).getFunction();
+		return new FunctionPowloka(new FuncSum (new Function[] {re, new FuncMult(new FuncNumConst(Complex.i), im)}));
 	}
 	
 	public FunctionPowloka simplifyOnce(Settings settings) {
@@ -99,11 +101,11 @@ public class FunctionPowloka {
 		return simplifyPom(settings);
 	}
 	
-	public void print(Settings set) throws WrongSyntaxException { 
+	public void print(Settings set) throws FunctionExpectedException { 
 		System.out.println(f.write(set));
 	}
 
-	public String write(Settings set) throws WrongSyntaxException {
+	public String write(Settings set) throws FunctionExpectedException {
 		return f.write(set);
 	}
 	

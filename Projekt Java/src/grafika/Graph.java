@@ -209,17 +209,17 @@ public class Graph extends JPanel{
 			private Complex prawGorny = prawyGorny;		
 			@Override
 			public Complex pointToCmplx(Point p, Complex argLewDol, Complex argPrawGorny) {
-				Complex arga = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argLewDol, argPrawGorny));
-				Complex argb = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
+				Complex a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argPrawGorny, argLewDol));
+				Complex b = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
 				Complex zeta = rect(new Complex(-1,-1), new Complex(1,1)).pointToCmplx(p);
-				return Complex.div(Complex.add(arga, Complex.mult(argb, zeta)), zeta);
+				return Complex.div(Complex.add(a, Complex.mult(b, zeta)), zeta);
 			}
 			
 			@Override
 			public Point cmplxToPoint(Complex z, Complex argLewDol, Complex argPrawGorny) {
-				Complex arga = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argLewDol, argPrawGorny));
-				Complex argb = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
-				Complex zeta = Complex.div(arga, Complex.subt(z, argb));
+				Complex a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argPrawGorny, argLewDol));
+				Complex b = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
+				Complex zeta = Complex.div(a, Complex.subt(z, b));
 				return rect(new Complex(-1,-1), new Complex(1,1)).cmplxToPoint(zeta);
 			}
 			
