@@ -74,7 +74,7 @@ class BlokWthDefFunction extends Blok{
 class BlokList{
 	protected final static String SPECJALNE = "[\\(\\)\\[\\]\\{\\}\\.,]";
 	protected final static String OPERATORY = "[\\^\\*/\\+\\-]";
-	protected final static String GRECKIALFABET = "ςερτυθιοπασδφγηξκλζχψωβνμ";
+	protected final static String GRECKIALFABET = "ςερτυθιοπασδφγηξκλζχψωβνμΕΡΤΥΘΙΟΠΛΚΞΗΓΦΔΣΑΖΧΨΩΒΝΜ";
 		
 	ArrayList<Blok> arr = new ArrayList<Blok>();
 	

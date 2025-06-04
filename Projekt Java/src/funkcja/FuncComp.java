@@ -370,7 +370,12 @@ class FuncComp extends Function {
 		//System.out.println("fueufufeu w  funccomp.simplify");
 		//System.out.println(f.write(new Settings()) + "  " + g[0].write(new Settings()));
 		if(f == Functions.diffX) {
-			//System.out.println(g[0].write(new Settings()));
+			try {
+				System.out.println(g[0].write(new Settings()) + " w funccomp.simplify");
+			} catch (FunctionExpectedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			return g[0].diffX(1, new Settings());
 		}
 		if(f == Functions.diffY) {
@@ -406,8 +411,15 @@ class FuncComp extends Function {
 	}
 	@Override
 	protected Function diffX(int arg, Settings set) {
+		if(arg == 0)
+			throw new IllegalArgumentException("Numeracja zaczyna się od 1");
 		if(f.nofArg == 0)
 			return new FuncNumConst(new Complex(0));
+		if(Functions.diffX.check(f))
+			return (g[0].diffX(1, set)).diffX(arg, set);
+		if(Functions.diffY.check(f))
+			return (g[0].diffY(1, set)).diffX(arg, set);
+
 		Function[] ret = new Function[2*f.nofArg];
 		for(int i=0;i<f.nofArg;i++) {
 			Function[] giDiffX = new Function[] {g[i].diffX(arg, set)}; 
@@ -423,7 +435,11 @@ class FuncComp extends Function {
 	protected Function diffY(int arg, Settings set) {
 		if(f.nofArg == 0)
 			return new FuncNumConst(new Complex(0));
-		
+		if(Functions.diffX.check(f))
+			return (g[0].diffX(1, set)).diffY(arg, set);
+		if(Functions.diffY.check(f))
+			return (g[0].diffY(1, set)).diffY(arg, set);
+
 		Function[] ret = new Function[2*f.nofArg];
 		for(int i=0;i<f.nofArg;i++) {
 			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffY(arg, set)}));

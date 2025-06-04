@@ -139,10 +139,17 @@ public class Main extends JFrame {
 							}
 							wykres.function = funcTemp;
 							changeFunc(wykres.function.removeDiff());
+							wykres.function = funcTemp;
+							int caretPosition = funkcjaTextField.getCaretPosition();
 							funkcjaTextField.setText(wykres.function.write(ustawienia));
-							funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
+							if(caretPosition < funkcjaTextField.getText().length())
+								funkcjaTextField.setCaretPosition(caretPosition);//funkcjaTextField.getText().length());
+							else
+								funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
 						} catch (FunctionExpectedException e1) {
 							nadFunkcja.setErrorText(e1.messageForUser);
+						} catch(Exception e) {
+							e.printStackTrace();
 						}
 						return null;
 					}
@@ -185,8 +192,14 @@ public class Main extends JFrame {
 				//Complex arg = Complex.add(wykres.coords.getLD(), new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.coords.getLD().x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.coords.getLD().y)));
 				Complex arg = wykres.coords.pointToCmplx(e.getPoint());
 				Complex val = wykres.getValueAt(e.getX(), e.getY());
-				argument.setText(arg.printE(2, 2));
-				wartosc.setText(val.printE(2, 2));
+				if(arg!=null)
+					argument.setText(arg.printE(2, 2));
+				else
+					argument.setText("Jeszcze nie obliczone");
+				if(wartosc != null)
+					wartosc.setText(val.printE(2, 2));
+				else
+					wartosc.setText("Jeszcze nie obliczone");
 				wykres.foreGround.marker = arg;
 				legenda.foreGround.marker = val;
 				legenda.repaint();
@@ -547,11 +560,12 @@ public class Main extends JFrame {
 						@Override
 						protected Void doInBackground() throws Exception {
 							try {
+								nadFunkcja.setTextAnimated("Wczytywanie funkcji");
 								wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
+								nadFunkcja.setTextAnimated("Upraszczanie funckji");
 								FunctionPowloka fch = wykres.function.simplify(ustawienia);
 								funkcjaTextField.setText(fch.write(ustawienia));
 								changeFunc(fch);
-								nadFunkcja.setText("Wypisano nową funkcję.");
 								return null;
 							} catch (FunctionExpectedException e) {
 								nadFunkcja.setErrorText(e.messageForUser);
@@ -577,9 +591,9 @@ public class Main extends JFrame {
 								FunctionPowloka f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
 	
 								nadFunkcja.setTextAnimated("Rozbijanie funkcji");
-								FunctionPowloka fch = f.splitByRealAndImaginery(ustawienia);
-								funkcjaTextField.setText(fch.write(ustawienia));
-								changeFunc(fch);
+								wykres.function = f.splitByRealAndImaginery(ustawienia);
+								funkcjaTextField.setText(wykres.function.write(ustawienia));
+								changeFunc();
 							} catch (FunctionExpectedException e1) {
 								nadFunkcja.setErrorText(e1.messageForUser);
 							} catch(Exception e) {

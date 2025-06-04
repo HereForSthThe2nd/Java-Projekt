@@ -244,9 +244,20 @@ class FuncMult extends Function {
 		//na celu sprawdzenia czy trzeba postawić nawiasy podczas wypisywania
 		if(f.type == Functions.ADD)
 			return true;
+		if(f.type == Functions.MULT) {
+			if(((FuncMult)f).f[0].check(new FuncNumConst(new Complex(-1))))
+				return true;
+		}
 		if(f.type == Functions.NUMCONST) {
+			try {
+				System.out.println("funcmult.putparenthases " + f.write(new Settings()) + ", "+((FuncNumConst)f).form);
+			} catch (FunctionExpectedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			switch(((FuncNumConst)f).form) {
 			case FuncNumConst.UJEMNYPIERWSZY, FuncNumConst.ZES:
+				
 				return true;
 			case FuncNumConst.DODR, FuncNumConst.DODUR:
 				return false;
@@ -389,7 +400,7 @@ class FuncMult extends Function {
 			return new FuncSum(new Function[] {new FuncMult(f[0].diffX(arg, set), f[1]), new FuncMult(f[1].diffX(arg, set), f[0])});
 		Function[] fMod = new Function[f.length-1];
 		for(int i=1;i<f.length;i++) {
-			fMod[i] = f[i-1];
+			fMod[i-1] = f[i];
 		}
 		Function fP = new FuncMult(f[0], new FuncMult(fMod));
 		return fP.diffX(arg, set);

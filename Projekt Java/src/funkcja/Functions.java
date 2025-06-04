@@ -368,10 +368,11 @@ public class Functions {
 		}
 		@Override
 		protected Function[] reim() {
-			FunctionPowloka innyZapis;
 			try {
-				innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
-				return innyZapis.getFunction().reim();
+				Function mnoz = new FunctionPowloka("exp(z[2]*ln(z[0]^2+z[1]^2)/2 - z[3] * arg(z[0]+i*z[1]))", new Settings()).getFunction();
+				Function rePom = new FunctionPowloka("cos(ln(z[0]^2+z[1]^2)*z[3]/2+arg(z[0]+i*z[1])*z[2])", new Settings()).getFunction();
+				Function imPom = new FunctionPowloka("sin(ln(z[0]^2+z[1]^2)*z[3]/2+arg(z[0]+i*z[1])*z[2])", new Settings()).getFunction();
+				return new Function[] {new FuncMult(mnoz, rePom), new FuncMult(mnoz, imPom)};
 			} catch (FunctionExpectedException e) {
 				throw new IllegalStateException(e);
 			}
@@ -722,10 +723,11 @@ public class Functions {
 
 					@Override
 					protected Function[] reim()  {
-						FunctionPowloka innyZapis;
 						try {
-							innyZapis = new FunctionPowloka("exp(z[1]*ln(z[0]))", new Settings());
-							return innyZapis.getFunction().reim();
+							Function mnoz = new FunctionPowloka("exp(z[2]*ln(z[0]^2+z[1]^2)/2 - z[3] * arg(z[0]+i*z[1]))", new Settings()).getFunction();
+							Function rePom = new FunctionPowloka("cos(ln(z[0]^2+z[1]^2)*z[3]/2+arg(z[0]+i*z[1])*z[2])", new Settings()).getFunction();
+							Function imPom = new FunctionPowloka("sin(ln(z[0]^2+z[1]^2)*z[3]/2+arg(z[0]+i*z[1])*z[2])", new Settings()).getFunction();
+							return new Function[] {new FuncMult(mnoz, rePom), new FuncMult(mnoz, imPom)};
 						} catch (FunctionExpectedException e) {
 							throw new IllegalStateException(e);
 						}

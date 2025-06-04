@@ -65,6 +65,11 @@ public class FunctionPowloka {
 	
 	public FunctionPowloka splitByRealAndImaginery(Settings set)  {
 		Function[] reim = f.reim();
+		try {
+			System.out.println(reim[0].write(new Settings()));
+		} catch (FunctionExpectedException e) {
+			e.printStackTrace();
+		}
 		Function re = (new FunctionPowloka(reim[0]).simplify(set)).getFunction();
 		Function im = (new FunctionPowloka(reim[1]).simplify(set)).getFunction();
 		return new FunctionPowloka(new FuncSum (new Function[] {re, new FuncMult(new FuncNumConst(Complex.i), im)}));
