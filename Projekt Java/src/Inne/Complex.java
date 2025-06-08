@@ -14,10 +14,13 @@ public class Complex {
 	
 	static public String toStr(double a, int doubleAcc, int whenToShorten) {
 		//dla doubla
-		if(Math.abs(a) < Math.pow(10, whenToShorten) && Math.abs(a) >= Math.pow(10, -whenToShorten)) {
-			return String.format("%.2f", a);
+		String format = "%."+whenToShorten;
+		if((Math.abs(a) < Math.pow(10, whenToShorten) && Math.abs(a) >= Math.pow(10, -whenToShorten)) || a == 0) {
+			format += "f";
+			return String.format(format, a);
 		}
-		return String.format("%.2e", a);
+		format += "e";
+		return String.format(format, a);
 	}
 	
 	//TODO: chyba usunąć
@@ -56,12 +59,31 @@ public class Complex {
 	public String printE(int doubleAcc, int whenToShorten) {
 		if(equals(new Complex(0)))
 			return "0";
-		if(y >= 0)
+		if(x == 0)
+			return toStr(y, doubleAcc, whenToShorten);
+		if(y == 0)
+			return toStr(x, doubleAcc, whenToShorten);
+		if(y > 0)
 			return toStr(x, doubleAcc, whenToShorten)+" + i"+toStr(y, doubleAcc, whenToShorten);
 		if(y < 0)
 			return toStr(x, doubleAcc, whenToShorten)+" - i"+toStr(-y, doubleAcc, whenToShorten);
 		return x + ", i" + y;
 	}
+		
+	public String printEShort(int doubleAcc, int whenToShorten) {
+		if(equals(new Complex(0)))
+			return "0";
+		if(Math.abs(x) < 10e-12)
+			return toStr(y, doubleAcc, whenToShorten);
+		if(Math.abs(y) < 10e-12)
+			return toStr(x, doubleAcc, whenToShorten);
+		if(y > 0)
+			return toStr(x, doubleAcc, whenToShorten)+" + i"+toStr(y, doubleAcc, whenToShorten);
+		if(y < 0)
+			return toStr(x, doubleAcc, whenToShorten)+" - i"+toStr(-y, doubleAcc, whenToShorten);
+		return x + ", i" + y;
+	}
+
 
 	
 	public Complex(double x, double y){

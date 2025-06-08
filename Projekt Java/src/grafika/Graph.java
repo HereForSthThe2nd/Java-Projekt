@@ -64,29 +64,39 @@ public class Graph extends JPanel{
 	JPanel obraz;
 	Foreground foreGround;
 	static CmplxToColor basic;
+	static CmplxToColor noArg;
+	static CmplxToColor halfPlane;
+	static CmplxToColor circle;
+	
+	private static double przedNorm(double r) {
+		//zwraca liczbę z przedziału 0, 1
+		if(r<-0.00001) {
+			throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
+		}
+		r = r>0 ? r : 0;
+		//return 2/Math.PI * (Math.atan(r));
+		if(Double.isInfinite(r)) {
+			return 1;
+		}
+		return 2/Math.PI * (Math.atan(Math.log(r+1)));
+	}
+	
 	static {
 		basic = new CmplxToColor() {
 			
-			private static double przedNorm(double r) {
-				if(r<-0.00001) {
-					throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
-				}
-				r = r>0 ? r : 0;
-				//return 2/Math.PI * (Math.atan(r));
-				return 2/Math.PI * (Math.atan(Math.log(r+1)));
-			}
-			
-			private static double[] pointToHSL(Complex z, double lSpeedChange) {
+			private static double[] complexToHSL(Complex z, double colorSpeedChange) {
 				if(z == null || Double.isNaN(z.x) || Double.isNaN(z.y)) {
 					return null;
 				}
 				double[] HSL = new double[4];
-				HSL[3] = 255;
+				HSL[3] = 255; // przejrzystość
+				//HSL[0] w -pi/3, 5/3pi
 				HSL[0] = z.arg() + 2.0/3*Math.PI;
 				HSL[1] = 1;
 				//HSL[2] = 2/Math.PI*Math.atan( Math.log(Math.pow(z.mod(), 1/lSpeedChange)+1) );
-				HSL[2] = przedNorm( Math.pow(z.mod(), lSpeedChange ));
+				HSL[2] = przedNorm( Math.pow(z.mod(), colorSpeedChange ));
 				if(HSL[2]>1 || HSL[2]<0) {
+					throw new IllegalStateException();
 				}
 				return HSL;
 			}
@@ -96,11 +106,97 @@ public class Graph extends JPanel{
 				if(parameters.length != 1) {
 					throw new IllegalArgumentException("Ta funkcja przyjmuje tylko jeden parametr.");
 				}
-				int[] rgb = HSLToRGB(pointToHSL(z, parameters[0]));
+				int[] rgb = HSLToRGB(complexToHSL(z, parameters[0]));
 				if(rgb == null) {
 					return null;
 				}
 				return rgbToHex(rgb);
+			}
+
+			@Override
+			public double[] defaultParams() {
+				return new double[] {0.5};
+			}
+
+			@Override
+			public String[] paramsNames() {
+				return new String[] {"Szybkość zmiany koloru"};
+			}
+			
+		};
+
+		noArg = new CmplxToColor() {
+			
+			private static double[] complexToHSL(Complex z, double colorChangeSpeed) {
+				if(z == null || Double.isNaN(z.x) || Double.isNaN(z.y)) {
+					return null;
+				}
+				double HSL[] = new double[4];
+				HSL[1] = 1;
+				HSL[2] = 0.5;
+				HSL[3] = 255;
+				HSL[0] = 2*Math.PI * (przedNorm( Math.pow(z.mod(), colorChangeSpeed ))) - Math.PI/3;
+				return HSL;
+			}
+			
+			@Override
+			public Integer colorOf(Complex z, double... parameters) {
+				if(parameters.length != 1) {
+					throw new IllegalArgumentException("Ta funkcja przyjmuje tylko jeden parametr.");
+				}
+				int[] rgb = HSLToRGB(complexToHSL(z, parameters[0]));
+				if(rgb == null) {
+					return null;
+				}
+				return rgbToHex(rgb);
+			}
+
+			@Override
+			public double[] defaultParams() {
+				return new double[] {0.5};
+			}
+
+			@Override
+			public String[] paramsNames() {
+				return new String[] {"Szybkość zmiany koloru"};
+			}
+		};
+	
+		halfPlane = new CmplxToColor() {
+			
+			@Override
+			public String[] paramsNames() {
+				return new String[] {"Re punktu na granicy", "Im punktu na granicy", "Kąt"};
+			}
+			
+			@Override
+			public double[] defaultParams() {
+				return new double[] {0,0,0};
+			}
+			
+			@Override
+			public Integer colorOf(Complex z, double... parameters) {
+				Complex z1 = Complex.subt(z, new Complex(parameters[0], parameters[1]));
+				Complex rotated = Complex.mult(z1, Complex.exp(new Complex(0,-parameters[2])));
+				return rgbToHex(rotated.y > 0 ? Color.black : Color.white);
+			}
+		};
+	
+		circle = new CmplxToColor() {
+			
+			@Override
+			public String[] paramsNames() {
+				return new String[] {"x", "y", "r"};
+			}
+			
+			@Override
+			public double[] defaultParams() {
+				return new double[] {0,0,1};
+			}
+			
+			@Override
+			public Integer colorOf(Complex z, double... parameters) {
+				return Complex.subt(z, new Complex(parameters[0], parameters[1])).mod() < parameters[2] ? rgbToHex(Color.black) :rgbToHex(Color.white);
 			}
 		};
 	}
@@ -311,14 +407,14 @@ public class Graph extends JPanel{
 				values[xI][yI] = f.evaluate(new Complex[] {z});
 			}
 		}
-		setColor(basic, parameters);
+		setColor(colorMap, parameters);
 	}
 	
 	public void change() {
 		change(function, coords, colorMap, colorMapParams);
 	}
 	
-	private void setColor(CmplxToColor colorMap, double... parameters) {
+	public void setColor(CmplxToColor colorMap, double... parameters) {
 		SwingWorker<Void,Void> draw = new SwingWorker<Void, Void>() {
 			boolean finish = false;
 			@Override
@@ -359,10 +455,17 @@ public class Graph extends JPanel{
 		if(HSL[2]==1) return new int[] {255,255,255, (int)HSL[3]};
 		if(HSL[2]==0) return new int[] {0,0,0, (int)HSL[3]};
 		double[] nrgb = new double[3];
+		//normH w 0, 6
 		double normH = 3.0/Math.PI*HSL[0]+1;
 		int iM = (int) Math.floor(normH/2);
 		int[] order = {1,2,2,0,0,1};
-		int im = order[ (int) Math.floor(normH) ];
+		int ind = (int) Math.floor(normH);
+		int im;
+		if(ind  >= 6.0 && ind < 6.0+1e-10) {
+			ind = 0;
+			iM = 0;
+		}
+		im = order[ind];
 		int isr =  (3-im-iM)%3;
 		nrgb[iM] = HSL[2] + HSL[1]*(1-Math.abs(2*HSL[2]-1))/2;
 		nrgb[im] = HSL[2] - HSL[1]*(1-Math.abs(2*HSL[2]-1))/2;
@@ -402,7 +505,9 @@ public class Graph extends JPanel{
 		Complex[] rect;
 		private static final int MARKERWIDTH = 12;
 		LinkedList<LinkedList<Complex>> krzywa = new LinkedList<LinkedList<Complex>>();
-				
+		boolean osie = false;
+		final static int LICZBAOSI = 5; 
+		
 		public Foreground() {
 			setOpaque(false);
 		}
@@ -434,6 +539,8 @@ public class Graph extends JPanel{
 			Graphics2D g2D = (Graphics2D)g;
 			g2D.setColor(szyba);
 			g2D.fillRect(0, 0, getWidth(), getHeight());
+			g.setFont(new Font(getFont().getName(), getFont().getStyle(), getFont().getSize() - 6 + (getWidth()+getHeight())/200 ));
+			
 			if(marker != null && !Double.isNaN(marker.x) && !Double.isNaN(marker.y)) {
 				Point wsp = coords.cmplxToPoint(marker);
 				g2D.setColor(Color.red);
@@ -442,6 +549,7 @@ public class Graph extends JPanel{
 				g2D.setStroke(new BasicStroke(2));
 				g2D.drawOval(wsp.x - MARKERWIDTH/2, wsp.y-MARKERWIDTH/2,MARKERWIDTH , MARKERWIDTH);
 			}
+			
 			for(LinkedList<Complex> podKrzywa : krzywa) {
 				if(podKrzywa != null) {
 					Point p = coords.cmplxToPoint( podKrzywa.get(0) );
@@ -485,6 +593,31 @@ public class Graph extends JPanel{
 				drawWillBeLine(g2D, rect[1], new Complex(rect[1].x, rect[0].y), 100);
 				drawWillBeLine(g2D, rect[1], new Complex(rect[0].x, rect[1].y), 100);
 			}
+			
+			if(osie) {
+				g2D.setColor(Color.BLACK);
+				for(int i=0;i<LICZBAOSI+1;i++) {
+					g2D.setStroke(new BasicStroke((getWidth() + getHeight())/2 < 400 ? 1 : (float)1.5));
+					//g2D.setStroke(new BasicStroke((float)1));
+					int strx, stry;
+					String str;
+					int y = getHeight()*i/(LICZBAOSI+1);
+					g2D.drawLine(0, y, getWidth(), y);
+					str = coords.pointToCmplx(new Point(getWidth() / 2, y)).printEShort(2, 2);//Complex.toStr(coords.pointToCmplx(new Point(getWidth() / 2, y)).y, 2, 2);
+					strx = getWidth()/2+5;
+					stry = y-5;
+					drawStringWthHighlight(g2D, str, strx, stry);
+					int x = getWidth()*i/(LICZBAOSI+1);
+					g2D.drawLine(x, 0, x, getHeight());
+					str = coords.pointToCmplx(new Point(x, getHeight()/2)).printEShort(2,2);
+					strx = x+5;
+					stry = getHeight()/2-5;
+				if(! (x == getWidth()/2))
+					drawStringWthHighlight(g2D, str, strx, stry);
+
+			}
+		}
+
 		}
 		private void drawWillBeLine(Graphics2D g2D, Complex begginig, Complex end, int dok) {
 			//rysuje coś co po zmienieniu granic wykresu przez przeciągnięcie będzie odcinkiem
@@ -503,10 +636,23 @@ public class Graph extends JPanel{
 				pLast = p;
 			}
 		}
+		
+		private void drawStringWthHighlight(Graphics2D g, String txt, int x, int y) {
+			FontMetrics fm = g.getFontMetrics();
+			int width = fm.stringWidth(txt);
+			int height = fm.getAscent();
+			g.setColor(new Color(255,255,255,140));
+			g.setFont(new Font(g.getFont().getName(), Font.BOLD, g.getFont().getSize()));
+			g.fillRect(x-1, y-height+1, width+2, height+1);
+			g.setColor(Color.BLACK);
+			g.drawString(txt, x, y);
+		}
 	}
 
 	interface CmplxToColor{
 		Integer colorOf(Complex z, double... parameters);
+		double[] defaultParams();
+		String[] paramsNames();
 	}
 	 
 	interface Coordinates{

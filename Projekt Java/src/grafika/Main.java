@@ -59,6 +59,8 @@ import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.Border;
@@ -73,6 +75,7 @@ import funkcja.FunctionPowloka;
 import funkcja.Settings;
 import funkcja.TimeKeeping;
 import funkcja.FunctionExpectedException;
+import grafika.Graph.CmplxToColor;
 import grafika.Graph.Coordinates;
 
 public class Main extends JFrame {
@@ -109,7 +112,7 @@ public class Main extends JFrame {
 			wykres = new Graph(600);
 			wykres.setBackground(new Color(55,200,0));
 			wykres.function = new FunctionPowloka("z^2", new Settings());
-			legenda.change(new FunctionPowloka("z", new Settings()), legenda.rect(new Complex(-10,-10), new Complex(10,10)),Graph.basic ,0.5);
+			legenda.change(new FunctionPowloka("z", new Settings()), legenda.rect(new Complex(-4, -4), new Complex(4,4)),Graph.basic ,0.5);
 			wykres.change(wykres.function, wykres.rect(new Complex(-3,-3), new Complex(3,3)),Graph.basic, 0.5);
 		} catch (FunctionExpectedException e) {
 			throw new IllegalStateException(e);
@@ -426,7 +429,6 @@ public class Main extends JFrame {
 			}
 		});
 
-
 		potWyp.addActionListener(new ActionListener() {
 			
 			@Override
@@ -450,7 +452,6 @@ public class Main extends JFrame {
 		JRadioButtonMenuItem legendaTyp = new JRadioButtonMenuItem("Normalna skala");
 		JRadioButtonMenuItem legendaLogSkala = new JRadioButtonMenuItem("Moduł w skali logarytmicznej");
 		JRadioButtonMenuItem legndaInf = new JRadioButtonMenuItem("Wokół nieksończoności");
-		JCheckBoxMenuItem legendaKwadrat = new JCheckBoxMenuItem("Obszar musi byc kwadratem");
 		ButtonGroup legBG = new ButtonGroup();
 		
 		legBG.add(legendaTyp);
@@ -463,7 +464,6 @@ public class Main extends JFrame {
 		JRadioButtonMenuItem wykresTyp = new JRadioButtonMenuItem("Normalna skala");
 		JRadioButtonMenuItem wykresLogSkala = new JRadioButtonMenuItem("Moduł w skali logarytmicznej");
 		JRadioButtonMenuItem wykresInf = new JRadioButtonMenuItem("Wokół nieskończoności");
-		JCheckBoxMenuItem wykresKwadrat = new JCheckBoxMenuItem("Obszar musi byc kwadratem");
 
 		ButtonGroup wykBG = new ButtonGroup();
 		wykBG.add(wykresTyp);
@@ -474,13 +474,11 @@ public class Main extends JFrame {
 		legendaMenu.add(legendaTyp);
 		legendaMenu.add(legendaLogSkala);
 		legendaMenu.add(legndaInf);
-		legendaMenu.add(legendaKwadrat);
 
 		wykresMenu.add(osieWykresu);
 		wykresMenu.add(wykresTyp);
 		wykresMenu.add(wykresLogSkala);
 		wykresMenu.add(wykresInf);
-		wykresMenu.add(wykresKwadrat);
 		
 		menuBar.add(wykresILegendaMenu);
 		
@@ -517,6 +515,15 @@ public class Main extends JFrame {
 			}
 		});
 		
+		osieLegendy.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				legenda.foreGround.osie = osieLegendy.isSelected();
+				legenda.foreGround.repaint();
+			}
+		});
+		
 		wykresTyp.addActionListener(new ActionListener() {
 			
 			@Override
@@ -550,6 +557,14 @@ public class Main extends JFrame {
 			}
 		});
 		
+		osieWykresu.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wykres.foreGround.osie = osieWykresu.isSelected();
+				wykres.foreGround.repaint();
+			}
+		});
 	}
 	
 	private void doTheLeft() {
@@ -726,17 +741,109 @@ public class Main extends JFrame {
 		obszarWykres.add(prawyGornyTxt);
 		lewStr.add(obszarWykres);
 		
-		JComponent opcja;
-		JComponent wybor;
+		JComponent comp1;
+		JComponent comp2;
 		JPanel calaOpcja;
 
 		calaOpcja = new JPanel();
-		calaOpcja.setLayout(new GridLayout(2,1));
-		opcja = new JPanel ();
-		opcja.add(new JLabel("Sposób pokolorowania legendy"));
-		wybor= new JComboBox<String>();
-		calaOpcja.add(opcja);
-		calaOpcja.add(wybor);
+		calaOpcja.setLayout(new BoxLayout(calaOpcja, BoxLayout.Y_AXIS));
+		JPanel dolWybKoloru = new JPanel();
+		comp1 = new JPanel ();
+		comp1.add(new JLabel("Sposób pokolorowania legendy"));
+	
+		
+		JComboBox<String> colorCB= new JComboBox<String>(new String[] {"Podstawowy", "Moduł funkcji", "Półpłaszczyzna", "Koło"});
+		
+		JComboBox<String> colorParams = new JComboBox<String>();
+		
+		for(int i=0;i<legenda.colorMap.paramsNames().length;i++) {
+			colorParams.addItem(legenda.colorMap.paramsNames()[i]);	
+		}
+		
+		JTextField paramValTxt = new JTextField(""+legenda.colorMapParams[colorParams.getSelectedIndex()]);
+		paramValTxt.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					double[] newParams = new double[legenda.colorMap.paramsNames().length];
+					for(int j = 0;j<legenda.colorMap.paramsNames().length;j++) {
+						if(j != colorParams.getSelectedIndex()) {
+							newParams[j] = wykres.colorMapParams[j];
+							continue;
+						}
+						newParams[colorParams.getSelectedIndex()] = Double.parseDouble(paramValTxt.getText());
+					}
+					legenda.colorMapParams = newParams;
+					wykres.colorMapParams = newParams;
+					legenda.setColor(wykres.colorMap, newParams);
+					wykres.setColor(wykres.colorMap, newParams);
+					nadFunkcja.setText("Zmieniono kolor.");
+				}catch (NumberFormatException e1) {
+					nadFunkcja.setErrorText("Nie można rozczytać wartości ze wprowadzonej liczby.");
+				}
+			}
+		});
+		paramValTxt.setPreferredSize(new Dimension(40, paramValTxt.getPreferredSize().height));
+		
+		colorCB.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int wybrane = ((JComboBox<String>)colorCB).getSelectedIndex();
+				switch(wybrane) {
+				case 0:
+					wykres.colorMap = Graph.basic;
+					legenda.colorMap = Graph.basic;
+					break;
+				case 1:
+					wykres.colorMap = Graph.noArg;
+					legenda.colorMap = Graph.noArg;
+					break;
+				case 2:
+					wykres.colorMap = Graph.halfPlane;
+					legenda.colorMap = Graph.halfPlane;
+					break;
+				case 3:
+					wykres.colorMap = Graph.circle;
+					legenda.colorMap = Graph.circle;
+					break;
+				}
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						colorParams.removeAllItems();
+						wykres.colorMapParams = wykres.colorMap.defaultParams();
+						wykres.setColor(wykres.colorMap, wykres.colorMapParams);
+						legenda.colorMapParams = legenda.colorMap.defaultParams();
+						legenda.setColor(legenda.colorMap, wykres.colorMapParams);
+						for(int i=0;i<legenda.colorMap.paramsNames().length;i++) {
+						colorParams.addItem(legenda.colorMap.paramsNames()[i]);	
+					}
+					paramValTxt.setText(wykres.colorMapParams[0]+"");
+					nadFunkcja.setText("Zmieniono kolor");
+					}
+				});
+			}
+		});
+
+		colorParams.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int ind = colorParams.getSelectedIndex();
+				if(ind != -1) {
+					paramValTxt.setText(""+legenda.colorMapParams[colorParams.getSelectedIndex()]);
+				}
+			}
+		});
+		
+		dolWybKoloru.add(colorCB);
+		dolWybKoloru.add(colorParams);
+		dolWybKoloru.add(paramValTxt);
+		
+		calaOpcja.add(comp1);
+		calaOpcja.add(dolWybKoloru);
 		calaOpcja.setBorder(border);
 		lewStr.add(calaOpcja);
 		
@@ -762,8 +869,8 @@ public class Main extends JFrame {
 		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
 		lewStr.add(calaOpcja);
 		
-		wybor= new JButton("Zapisz wykres");
-		((JButton)wybor).addActionListener(new ActionListener() {
+		comp2= new JButton("Zapisz wykres");
+		((JButton)comp2).addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
@@ -801,15 +908,15 @@ public class Main extends JFrame {
 			}
 		});
 		
-		lewStr.add(wybor);
+		lewStr.add(comp2);
 		
 		calaOpcja = new JPanel();
-		opcja = new JLabel("Całka po krzywej: ");
+		comp1 = new JLabel("Całka po krzywej: ");
 		calkaTxtArea = new JTextArea("---");
 		calkaTxtArea.setPreferredSize(new Dimension(200, calkaTxtArea.getPreferredSize().height));
 		calkaTxtArea.setMaximumSize(getPreferredSize());
 		calkaTxtArea.setEditable(false);
-		calaOpcja.add(opcja);
+		calaOpcja.add(comp1);
 		calaOpcja.add(calkaTxtArea);
 		calaOpcja.setBorder(border);
 		lewStr.add(calaOpcja);
@@ -853,7 +960,8 @@ public class Main extends JFrame {
 			@Override
 			protected Void doInBackground() throws Exception {
 				try {
-					wykres.change(wykres.function, wykres.coords ,Graph.basic, 0.5);
+					
+					wykres.change(wykres.function, wykres.coords ,wykres.colorMap, wykres.colorMapParams);
 					
 					legenda.foreGround.resetCurve();
 					for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
@@ -894,7 +1002,7 @@ public class Main extends JFrame {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
 			try {
-				wykres.change(f, wykres.coords ,Graph.basic, 0.5);
+				wykres.change(f, wykres.coords ,wykres.colorMap, wykres.colorMapParams);
 				
 				legenda.foreGround.resetCurve();
 				for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
