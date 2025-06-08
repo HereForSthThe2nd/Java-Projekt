@@ -64,8 +64,14 @@ public class FunctionPowloka {
 	}
 	
 	
-	public FunctionPowloka splitByRealAndImaginery(Settings set)  {
+	public FunctionPowloka splitByRealAndImaginery(Settings set) throws FunctionExpectedException  {
 		Function[] reim = f.reim();
+		try {
+			reim[0].write(set);
+			reim[1].write(set);
+		}catch(FunctionExpectedException e) {
+			throw new FunctionExpectedException("Funckja za długa.z");
+		}
 		Function re = (new FunctionPowloka(reim[0]).simplify(set)).getFunction();
 		Function im = (new FunctionPowloka(reim[1]).simplify(set)).getFunction();
 		return new FunctionPowloka(new FuncSum (new Function[] {re, new FuncMult(new FuncNumConst(Complex.i), im)}));

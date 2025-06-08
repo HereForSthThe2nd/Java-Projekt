@@ -87,6 +87,7 @@ public class Main extends JFrame {
 	TxtFieldForZes lewDolnyTxt;
 	TxtFieldForZes prawyGornyTxt;
 	JCheckBox rysowanie;
+	JTextArea calkaTxtArea;
 	Settings ustawienia = new Settings();
 	
 	public Main() {
@@ -221,6 +222,7 @@ public class Main extends JFrame {
 					if(rysowanie.isSelected() && wykres.foreGround.krzywa.size() != 0) {
 							wykres.foreGround.addPointToCurve(arg);
 							legenda.foreGround.addPointToCurve(val);
+							calkaTxtArea.setText(wykres.integralOfCurve().printE(2, 2));
 							legenda.repaint();
 							wykres.repaint();
 					}
@@ -323,6 +325,7 @@ public class Main extends JFrame {
 		    public void actionPerformed(ActionEvent e) {
 		    	wykres.foreGround.resetCurve();
 		    	legenda.foreGround.resetCurve();
+		    	calkaTxtArea.setText("---");
 		    	repaint();
 		    }
 		});
@@ -595,9 +598,7 @@ public class Main extends JFrame {
 								FunctionPowloka f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
 	
 								nadFunkcja.setTextAnimated("Rozbijanie funkcji");
-								System.out.println("abc");
 								wykres.function = f.splitByRealAndImaginery(ustawienia);
-								System.out.println("ddd");
 								funkcjaTextField.setText(wykres.function.write(ustawienia));
 								changeFunc();
 							} catch (FunctionExpectedException e1) {
@@ -690,7 +691,6 @@ public class Main extends JFrame {
 								nadFunkcja.setWarningText("Część rzeczywista prawego górnego rogu powinna być większa od części rzeczywistej lewego  dolnego rogu. Obliczono funkcję.");							
 						}
 					});
-
 					prawyGornyTxt.ur.requestFocus();
 					prawyGornyTxt.ur.selectAll();
 				}catch(NumberFormatException e1) {
@@ -752,6 +752,7 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 		    	wykres.foreGround.resetCurve();
 		    	legenda.foreGround.resetCurve();
+				calkaTxtArea.setText("---");
 		    	repaint();
 			}
 		});
@@ -804,10 +805,12 @@ public class Main extends JFrame {
 		
 		calaOpcja = new JPanel();
 		opcja = new JLabel("Całka po krzywej: ");
-		wybor = new JTextArea("---");
-		((JTextArea)wybor).setEditable(false);
+		calkaTxtArea = new JTextArea("---");
+		calkaTxtArea.setPreferredSize(new Dimension(200, calkaTxtArea.getPreferredSize().height));
+		calkaTxtArea.setMaximumSize(getPreferredSize());
+		calkaTxtArea.setEditable(false);
 		calaOpcja.add(opcja);
-		calaOpcja.add(wybor);
+		calaOpcja.add(calkaTxtArea);
 		calaOpcja.setBorder(border);
 		lewStr.add(calaOpcja);
 		
@@ -863,10 +866,8 @@ public class Main extends JFrame {
 								legenda.foreGround.addPointToCurve(wykres.getValueAt(p));
 						}
 					}
+					calkaTxtArea.setText(wykres.integralOfCurve().printE(2, 2));
 					legenda.repaint();
-					
-					nadFunkcja.setForeground(Color.black);
-					nadFunkcja.setText("Obliczono i pokazano funkcję.");
 				}catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -884,7 +885,9 @@ public class Main extends JFrame {
 	}
 	
  	private SwingWorker<Void, Void> changeFunc() {
- 		return changeFunc(() -> {});
+ 		return changeFunc(() -> {
+ 			nadFunkcja.setText("Obliczono i pokazano funkcję.");
+ 		});
 	}
  	
 	private void changeFunc(FunctionPowloka f) {

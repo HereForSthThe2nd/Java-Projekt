@@ -111,7 +111,11 @@ public class Graph extends JPanel{
 	}
 	
 	public Complex getValueAt(Point p) {
-		return values[p.x][p.y];
+		try {
+			return values[p.x][p.y];
+		}catch(ArrayIndexOutOfBoundsException e) {
+			return null;
+		}
 	}
 	
 	//dba o to aby graf był zawsze wyśrodkowany
@@ -379,12 +383,26 @@ public class Graph extends JPanel{
 		return (color.getAlpha() << 24) | (color.getBlue() << 16) | (color.getGreen() << 8) | color.getRed();
 	}
 
+	public Complex integralOfCurve() {
+		Complex ret = new Complex(0);
+		for(LinkedList<Complex> i: foreGround.krzywa) {
+			Complex z0 = i.getFirst();
+			for(Complex z : i) {
+				if(getValueAt(coords.cmplxToPoint(z)) != null && getValueAt(coords.cmplxToPoint(z0)) != null)
+					ret.add(Complex.mult(Complex.subt(z, z0), getValueAt(coords.cmplxToPoint(z))));
+				z0 = z;
+			}
+		}
+		return ret;
+	}
+	
 	class Foreground extends JPanel{
 		public Color szyba = new Color(0,0,0,0);
 		Complex marker;
 		Complex[] rect;
 		private static final int MARKERWIDTH = 12;
 		LinkedList<LinkedList<Complex>> krzywa = new LinkedList<LinkedList<Complex>>();
+				
 		public Foreground() {
 			setOpaque(false);
 		}
@@ -401,10 +419,11 @@ public class Graph extends JPanel{
 				krzywa.set(krzywa.size()-1,new LinkedList<Complex>());
 			}
 			Point wsp = coords.cmplxToPoint(z);
-			if(krzywa.getLast().size() > 1 && coords.cmplxToPoint(krzywa.getLast().getLast()).distanceSq(wsp.getX(), wsp.getY()) <  getWidth() *getHeight() / 100 / 100 / 5) {
+			if(krzywa.getLast().size() > 1 && coords.cmplxToPoint(krzywa.getLast().getLast()).distanceSq(wsp.getX(), wsp.getY()) <  getWidth() *getHeight() / 100 / 100 / 10) {
 				//System.out.println("tyle Mniej: " + tyleMniej++);
 				return;
 			}
+			
 			//System.out.println("tyle: " + tyle++);
 			krzywa.getLast().add(z);
 		}
