@@ -12,11 +12,29 @@ public class Complex {
 		System.out.println(x + " + i" + y);
 	}
 	
-	private String toStr(double a, int doubleAcc, int whenToShorten) {
+	static public String toStr(double a, int doubleAcc, int whenToShorten) {
+		//dla doubla
 		if(Math.abs(a) < Math.pow(10, whenToShorten) && Math.abs(a) >= Math.pow(10, -whenToShorten)) {
 			return String.format("%.2f", a);
 		}
 		return String.format("%.2e", a);
+	}
+	
+	//TODO: chyba usunąć
+	static public Double readStr(String str) {
+		try {
+	
+			str = str.replaceAll("\\s+", "");
+			
+			int eind = str.indexOf("e");
+			if(eind == -1)
+				return Double.parseDouble(str);
+		//TODO
+			return 1.0;
+			
+		}catch(NumberFormatException e){
+			return null;
+		}
 	}
 	
 	public String print(int doubleAcc) {
@@ -173,9 +191,7 @@ public class Complex {
 		return pow(this,b, d);
 	}
 	public static void main(String[] args) {
-		Ln(new Complex(1,-1)).print();
-		ln(new Complex(1,-
-				1), 0).print();
+
 	}
 }
 

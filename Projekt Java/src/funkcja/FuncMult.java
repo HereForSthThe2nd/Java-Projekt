@@ -249,12 +249,6 @@ class FuncMult extends Function {
 				return true;
 		}
 		if(f.type == Functions.NUMCONST) {
-			try {
-				System.out.println("funcmult.putparenthases " + f.write(new Settings()) + ", "+((FuncNumConst)f).form);
-			} catch (FunctionExpectedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			switch(((FuncNumConst)f).form) {
 			case FuncNumConst.UJEMNYPIERWSZY, FuncNumConst.ZES:
 				

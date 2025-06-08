@@ -10,10 +10,10 @@ import Inne.Complex;
 /*
  * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
  */
-abstract class FuncNamed extends Function{
+abstract class FuncWthName extends Function{
 	//żadne 2 funkcje FuncNamed nie mogą mieć tego samego pola name
 	final String name;
-	public FuncNamed(int nofArg, String name) {
+	public FuncWthName(int nofArg, String name) {
 		super(Functions.NAMED, nofArg);
 		this.name = name;
 	}
@@ -25,7 +25,7 @@ abstract class FuncNamed extends Function{
 	public
 	final boolean check(Function f) {
 		if(f.type == Functions.NAMED) {
-			if(((FuncNamed)f).name.equals(this.name))
+			if(((FuncWthName)f).name.equals(this.name))
 				return true;
 		}
 		return false;
@@ -41,9 +41,9 @@ abstract class FuncNamed extends Function{
 	}
 }
 
-abstract class FuncDefault extends FuncNamed{
+abstract class FunctionDefault extends FuncWthName{
 
-	protected FuncDefault(int nofArg, String name) {
+	protected FunctionDefault(int nofArg, String name) {
 		super(nofArg, name);
 	}
 
@@ -63,7 +63,7 @@ abstract class FuncDefault extends FuncNamed{
 	}
 }
 
-abstract class FuncConstDefault extends FuncNamed{
+abstract class FuncConstDefault extends FuncWthName{
 	protected FuncConstDefault(String name) {
 		super(0, name);
 	}
@@ -89,13 +89,23 @@ abstract class FuncConstDefault extends FuncNamed{
 	}
 }
 
-abstract class UserFunction extends FuncNamed{
+abstract class FuncSurrWthName extends FuncWthName{
 	final Function f;
 
-	public UserFunction(String name, Function f) {
+	public FuncSurrWthName(String name, Function f) {
 		super(f.nofArg, name);
 		this.f = f;
 	}
+	
+	public FuncSurrWthName(String name, String f, int nofArg) {
+		super(nofArg, name);
+		try {
+			this.f = new FunctionPowloka(f, new Settings()).getFunction();
+		} catch (FunctionExpectedException e) {
+			throw new IllegalStateException("Wewnątrz programu. Wpisana funkcja: " + f + ", błąd: " + e);
+		}
+	}
+	
 	@Override
 	protected Complex evaluate(Complex[] arg) {
 		return f.evaluate(arg);
@@ -122,7 +132,7 @@ abstract class UserFunction extends FuncNamed{
 	}	
 }
 
-class FuncGivenName extends UserFunction{
+class FuncGivenName extends FuncSurrWthName{
 	protected FuncGivenName(Function f, String name) {
 		super(name, f);
 	}
@@ -138,11 +148,15 @@ class FuncGivenName extends UserFunction{
 	}
 }
 
-class VarGivenName extends UserFunction{
+class VarGivenName extends FuncSurrWthName{
 	protected VarGivenName(String name, Function f) {
 		super(name, f);
 	}
 
+	public VarGivenName(String name, String f, int nofArg) {
+		super(name, f, nofArg);
+	}
+	
 	@Override
 	protected Function putArguments(Function[] args) {
 		if(FuncMethods.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
@@ -161,7 +175,7 @@ class VarGivenName extends UserFunction{
 	}
 }
 
-final class FuncConstGivenName extends UserFunction{
+final class FuncConstGivenName extends FuncSurrWthName{
 	protected FuncConstGivenName(String name, Function f) {
 		super(name, f);
 		if(f.nofArg != 0) {

@@ -10,9 +10,9 @@ package funkcja;
 import Inne.Complex;
 
 class FuncComp extends Function {
-	private FuncNamed f;
+	private FuncWthName f;
 	private Function[] g;
-	protected FuncComp(FuncNamed f, Function[] g) {
+	protected FuncComp(FuncWthName f, Function[] g) {
 		super(Functions.COMPOSITE, FuncMethods.countArguments(g));
 		this.f = f;
 		if(g.length<f.nofArg)
@@ -125,9 +125,9 @@ class FuncComp extends Function {
 		if(settings.writePow && f.check(Functions.pow))
 			return wypiszPotege(settings);
 		if(settings.writeRealVar && checkComponents(Functions.Re, Functions.idChecker))
-			return Functions.varChecker.returnStr("x", Functions.idChecker.returnNumber(((FuncNamed)g[0]).name));
+			return Functions.xAndYchecker.returnStr("x", Functions.idChecker.returnNumber(((FuncWthName)g[0]).name));
 		if(settings.writeRealVar && checkComponents(Functions.Im, Functions.idChecker))
-			return Functions.varChecker.returnStr("y", Functions.idChecker.returnNumber(((FuncNamed)g[0]).name));
+			return Functions.xAndYchecker.returnStr("y", Functions.idChecker.returnNumber(((FuncWthName)g[0]).name));
 		String str = f.write(settings) + "(" + g[0].write(settings);
 		for(int i=1; i<g.length;i++) {
 			str += ", " + g[i].write(settings);
@@ -422,7 +422,7 @@ class FuncComp extends Function {
 
 		Function[] ret = new Function[2*f.nofArg];
 		for(int i=0;i<f.nofArg;i++) {
-			Function[] giDiffX = new Function[] {g[i].diffX(arg, set)}; 
+			Function[] giDiffX = new Function[] {new FunctionPowloka(g[i].diffX(arg, set)).simplify(set).getFunction()}; 
 			//System.out.println("w funccomp.diffX " + i + "  " + f.write(new Settings()) + "  " + g[i].write(new Settings()) + "  arg: " +arg);
 			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, giDiffX));
 			//System.out.println("2w funccomp.diffX " + i + "  " + f.write(new Settings()));
@@ -442,8 +442,9 @@ class FuncComp extends Function {
 
 		Function[] ret = new Function[2*f.nofArg];
 		for(int i=0;i<f.nofArg;i++) {
-			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, new Function[] {g[i].diffY(arg, set)}));
-			ret[2*i+1] = new FuncMult((f.diffY(i+1, set)).putArguments(g), new FuncComp(Functions.Im, new Function[] {g[i].diffY(arg, set)}));
+			Function[] giDiffY = new Function[] {new FunctionPowloka(g[i].diffY(arg, set)).simplify(set).getFunction()}; 
+			ret[2*i] = new FuncMult((f.diffX(i+1, set)).putArguments(g), new FuncComp(Functions.Re, giDiffY));
+			ret[2*i+1] = new FuncMult((f.diffY(i+1, set)).putArguments(g), new FuncComp(Functions.Im, giDiffY));
 		}
 		
 		return new FuncSum(ret);

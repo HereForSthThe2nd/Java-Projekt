@@ -21,7 +21,7 @@ interface NonStandardFuncStr extends FuncChecker{
 	boolean check(String str);
 	default boolean check(Function f) {
 		if(f.type==Functions.NAMED)
-			if(check(((FuncNamed)f).name))
+			if(check(((FuncWthName)f).name))
 				return true;
 		return false;
 	};
@@ -36,7 +36,12 @@ public class Functions {
 			POW=5,
 			COMPOSITE=6;
 	
-	final private static FuncNamed Ln = new FuncDefault(1, "Ln") {
+	static Log logChecker = new Log();
+	static Pow powChecker = new Pow();
+	static  BscVariables xAndYchecker = new BscVariables();
+	static Identities idChecker = new Identities();
+	
+	final private static FuncWthName Ln = new FunctionDefault(1, "Ln") {
 		//przy upraszczaniu pamięta konkretną gałąz
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -68,7 +73,7 @@ public class Functions {
 			return pow.putArguments(new Function[] {new FuncNumConst(Complex.i), idChecker.returnFunc("z")});
 		}
 	};
-	final static FuncNamed ln = new FuncDefault(1,"ln") {
+	final static FuncWthName ln = new FunctionDefault(1,"ln") {
 		//przy upraszczaniu niekoniecznie pamięta gałąź
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -100,7 +105,7 @@ public class Functions {
 			return pow.putArguments(new Function[] {new FuncNumConst(Complex.i), idChecker.returnFunc("z")});
 		}
 	};
-	final protected static FuncNamed arg = new FuncDefault(1, "arg") {
+	final protected static FuncWthName arg = new FunctionDefault(1, "arg") {
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -139,7 +144,7 @@ public class Functions {
 			}
 		}
 	};
-	final protected static FuncNamed exp = new FuncDefault(1, "exp") {
+	final protected static FuncWthName exp = new FunctionDefault(1, "exp") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return Complex.exp(arg[0]);
@@ -171,7 +176,7 @@ public class Functions {
 			return new FuncMult(new FuncNumConst(Complex.i), this);
 		}
 	};
-	final protected static FuncNamed sin = new FuncDefault(1, "sin") {
+	final protected static FuncWthName sin = new FunctionDefault(1, "sin") {
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -204,7 +209,7 @@ public class Functions {
 		}
 		
 	};
-	final protected static FuncNamed cos = new FuncDefault(1, "cos") {
+	final protected static FuncWthName cos = new FunctionDefault(1, "cos") {
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -238,7 +243,7 @@ public class Functions {
 		
 		
 	};
-	final protected static FuncNamed sinh = new FuncDefault(1, "sinh") {
+	final protected static FuncWthName sinh = new FunctionDefault(1, "sinh") {
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -272,7 +277,7 @@ public class Functions {
 		}
 		
 	};
-	final protected static FuncNamed cosh = new FuncDefault(1, "cosh") {
+	final protected static FuncWthName cosh = new FunctionDefault(1, "cosh") {
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -305,7 +310,7 @@ public class Functions {
 		}
 		
 	};
-	final protected static FuncNamed Re = new FuncDefault(1, "Re") {
+	final protected static FuncWthName Re = new FunctionDefault(1, "Re") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(arg[0].x);
@@ -330,7 +335,7 @@ public class Functions {
 			return new FuncNumConst(new Complex(0));
 		}
 	};
-	final protected static FuncNamed Im = new FuncDefault(1, "Im") {
+	final protected static FuncWthName Im = new FunctionDefault(1, "Im") {
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -356,7 +361,7 @@ public class Functions {
 			return new FuncNumConst(new Complex(1));
 		}
 	};
-	final protected static FuncNamed pow = new FuncDefault(2,"pow") {
+	final protected static FuncWthName pow = new FunctionDefault(2,"pow") {
 		//przy upraszczaniu niekoniecznie pamięta gałąź
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -412,7 +417,7 @@ public class Functions {
 		}
 	};
 	
-	final protected static FuncNamed diffX = new FuncDefault(1, "diffX") {
+	final protected static FuncWthName diffX = new FunctionDefault(1, "diffX") {
 		//zapewne w inny sposób powinno byc zaimplementowane, najlepiej zmienić całys sposób działania funkcji bazowych
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -436,7 +441,7 @@ public class Functions {
 		}
 	};
 	
-	final protected static FuncNamed diffY = new FuncDefault(1, "diffY") {
+	final protected static FuncWthName diffY = new FunctionDefault(1, "diffY") {
 		//zapewne w inny sposób powinno byc zaimplementowane, najlepiej zmienić całys sposób działania funkcji bazowych
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -460,7 +465,7 @@ public class Functions {
 	};
 
 	
-	final protected static FuncNamed e = new FuncConstDefault("e") {
+	final protected static FuncWthName e = new FuncConstDefault("e") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(Math.E);
@@ -472,7 +477,7 @@ public class Functions {
 		}
 
 	};
-	final protected static FuncNamed pi = new FuncConstDefault("pi") {
+	final protected static FuncWthName pi = new FuncConstDefault("pi") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(Math.PI);
@@ -495,7 +500,7 @@ public class Functions {
 		};
 		
 	};
-	final protected static FuncNamed phi = new FuncConstDefault("phi") {
+	final protected static FuncWthName phi = new FuncConstDefault("phi") {
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex((Math.sqrt(5)+1)/2);
@@ -508,23 +513,35 @@ public class Functions {
 
 		@Override
 		boolean check(String str) {
-			return super.check(str) || str.equals("φ");
+			return super.check(str) || str.equals("\u03d5");
 		};
 		@Override
 		protected String write(Settings settings) {
 			if(!settings.writeNeatVar)
 				return super.write(settings);
-			return "φ";
+			return "\u03d5";
 		};
 
 	};	
 	final protected static Function i = new FuncNumConst(Complex.i);
 		
-	protected final static nameAndValue defaultVar = new nameAndValue(new ArrayList<String>(List.of("e", "pi", "phi")),
-			new ArrayList<FuncNamed>(List.of(e ,pi, phi)));
+	protected static FuncWthName r = new VarGivenName("r", new FuncComp(pow, new Function[] {new FuncSum(new Function []{
+			new FuncComp(pow, new Function[] {xAndYchecker.returnFunc("x"), new FuncNumConst(new Complex(2))}),
+			new FuncComp(pow, new Function[] {xAndYchecker.returnFunc("y"), new FuncNumConst(new Complex(2))})
+			}),
+			new FuncNumConst(new Complex(0.5))}));// new VarGivenName("r", "(x^2+y^2)^1/2", 1);
+	protected static FuncWthName kat = new VarGivenName("\u03c6", new FuncComp(arg, new Function[] {idChecker.returnFunc("z")})) {
+		@Override
+		protected Function[] reim() {
+			return new Function[] {this, new FuncNumConst(new Complex(0))};
+		};
+	};
+		
+	protected final static nameAndValue defaultVar = new nameAndValue(new ArrayList<String>(List.of("e", "pi", "phi", "\u03c6", "r")),
+			new ArrayList<FuncWthName>(List.of(e ,pi, phi, kat, r)));
 	protected final static nameAndValue defaultFunctions = new nameAndValue(
 			new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg", "diffX", "diffY")),
-			new ArrayList<FuncNamed>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg, diffX, diffY)));
+			new ArrayList<FuncWthName>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg, diffX, diffY)));
 	protected static nameAndValue userFunctions = new nameAndValue();
 	protected static nameAndValue userVar = new nameAndValue();
 	
@@ -550,24 +567,18 @@ public class Functions {
 		}
 	}
 	
-	static protected FuncNamed addNmdFunc(Function f0, String str) throws IncorrectNameException {
+	static protected FuncWthName addNmdFunc(Function f0, String str) throws IncorrectNameException {
 		checkNameRequirements(str);
-		FuncNamed f = new FuncGivenName(f0, str);
+		FuncWthName f = new FuncGivenName(f0, str);
 		userFunctions.add(f, f.name);
 		return f;
-	}
-
-	static Log logChecker = new Log();
-	static Pow powChecker = new Pow();
-	static  BscVariables varChecker = new BscVariables();
-	static Identities idChecker = new Identities();
-	
+	}	
 
 	static protected boolean checkIfNmdFunc(String str) {
 		return defaultFunctions.checkIfContained(str) || userFunctions.checkIfContained(str) || logChecker.check(str) || powChecker.check(str);
 	}
 	
-	static protected FuncNamed returnNmdFunc(String str) throws FunctionExpectedException {
+	static protected FuncWthName returnNmdFunc(String str) throws FunctionExpectedException {
 		if(!checkIfNmdFunc(str))
 			throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej funkcji.");
 		if(logChecker.check(str))
@@ -577,9 +588,9 @@ public class Functions {
 		return defaultFunctions.checkIfContained(str) ? defaultFunctions.functionOf(str) : userFunctions.functionOf(str);
 	}
 
-	static protected FuncNamed addVar(Function f0, String str) throws IncorrectNameException {
+	static protected FuncWthName addVar(Function f0, String str) throws IncorrectNameException {
 		checkNameRequirements(str);
-		FuncNamed f;
+		FuncWthName f;
 		if(f0.nofArg == 0)
 			f = new FuncConstGivenName(str, f0);
 		else
@@ -589,7 +600,7 @@ public class Functions {
 	}
 	
 	static boolean ckeckIfVar(String str) {
-		return userVar.checkIfContained(str) || defaultVar.checkIfContained(str) || varChecker.check(str) || idChecker.check(str) || "i".equals(str);
+		return userVar.checkIfContained(str) || defaultVar.checkIfContained(str) || xAndYchecker.check(str) || idChecker.check(str) || "i".equals(str);
 	}
 	
 	static Function returnVar(String str) {
@@ -600,8 +611,8 @@ public class Functions {
 			return defaultVar.functionOf(str);
 		if(userVar.checkIfContained(str))
 			return userVar.functionOf(str);
-		if(varChecker.check(str))
-			return varChecker.returnFunc(str);
+		if(xAndYchecker.check(str))
+			return xAndYchecker.returnFunc(str);
 		if(idChecker.check(str))
 			return idChecker.returnFunc(str);
 		throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej zmiennej");
@@ -610,9 +621,9 @@ public class Functions {
 	static class nameAndValue{
 
 		ArrayList<String> names = new ArrayList<String>();
-		ArrayList<FuncNamed> values = new ArrayList<FuncNamed>();
+		ArrayList<FuncWthName> values = new ArrayList<FuncWthName>();
 		nameAndValue(){};
-		nameAndValue(ArrayList<String> names,ArrayList<FuncNamed> val){
+		nameAndValue(ArrayList<String> names,ArrayList<FuncWthName> val){
 			if(names.size() != val.size())
 				throw new IllegalArgumentException("names oraz val muszą mieć taką samą wielkość.\nPodane names: " + names + "podane val: " + val);
 			this.names = names;
@@ -628,10 +639,10 @@ public class Functions {
 		boolean checkIfContained(String str) {
 			return indexOf(str)!=-1;
 		}
-		FuncNamed functionOf(String str){
+		FuncWthName functionOf(String str){
 			return values.get(indexOf(str));
 		}
-		void add(FuncNamed val, String str) {
+		void add(FuncWthName val, String str) {
 			names.add(str);
 			values.add(val);
 		}
@@ -657,15 +668,15 @@ public class Functions {
 			}
 	
 		@Override
-		public FuncDefault returnFunc(String str){
+		public FunctionDefault returnFunc(String str){
 			if(str.equals("ln")||str.equals("Ln"))
-				return (FuncDefault)defaultFunctions.functionOf(str);
+				return (FunctionDefault)defaultFunctions.functionOf(str);
 			if(!check(str))
 				throw new IllegalArgumentException();
 			try {
 				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
 				double d = f.evaluate(new Complex[] {}).x;
-				return new FuncDefault(1, "ln{"+d+"}") {
+				return new FunctionDefault(1, "ln{"+d+"}") {
 					@Override
 					protected Complex evaluate(Complex[] arg) {
 						return Complex.ln(arg[0], d);
@@ -707,15 +718,15 @@ public class Functions {
 	static class Pow implements NonStandardFuncStr{
 	
 		@Override
-		public FuncDefault returnFunc(String str){
+		public FunctionDefault returnFunc(String str){
 			if(!check(str))
 				throw new IllegalArgumentException();
 			if(str.equals("pow"))
-				return (FuncDefault)defaultFunctions.functionOf(str);
+				return (FunctionDefault)defaultFunctions.functionOf(str);
 			try {
 				FunctionPowloka f = new FunctionPowloka(str.substring(4, str.length()-1), new Settings());
 				double d = f.evaluate(new Complex[] {}).x;
-				return new FuncDefault(2, "pow{"+d+"}") {
+				return new FunctionDefault(2, "pow{"+d+"}") {
 					@Override
 					protected Complex evaluate(Complex[] arg) {
 						return Complex.pow(arg[0], arg[1], d);
@@ -724,12 +735,14 @@ public class Functions {
 					@Override
 					protected Function[] reim()  {
 						try {
+							
 							Function mnoz = new FunctionPowloka("exp(z[2]*ln(z[0]^2+z[1]^2)/2 - z[3] * arg(z[0]+i*z[1]))", new Settings()).getFunction();
 							Function rePom = new FunctionPowloka("cos(ln(z[0]^2+z[1]^2)*z[3]/2+arg(z[0]+i*z[1])*z[2])", new Settings()).getFunction();
 							Function imPom = new FunctionPowloka("sin(ln(z[0]^2+z[1]^2)*z[3]/2+arg(z[0]+i*z[1])*z[2])", new Settings()).getFunction();
 							return new Function[] {new FuncMult(mnoz, rePom), new FuncMult(mnoz, imPom)};
 						} catch (FunctionExpectedException e) {
-							throw new IllegalStateException(e);
+							e.printStackTrace();
+							throw new IllegalStateException("Funkcja wewnętrzna zle zapisana " + e.messageForUser);
 						}
 					}
 
@@ -797,7 +810,7 @@ public class Functions {
 		@Override
 		public Function returnFunc(String str) {
 			if(str.equals("z") || str.equals("z[0]")) 
-				return new FuncNamed(1, "z") {
+				return new FuncWthName(1, "z") {
 
 					@Override
 					protected Complex evaluate(Complex[] arg) {
@@ -837,7 +850,7 @@ public class Functions {
 				return returnFunc("z[1]");
 			}
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
-			return new FuncNamed(k+1, k == 0 ? "z" : str) {
+			return new FuncWthName(k+1, k == 0 ? "z" : str) {
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return arg[k];

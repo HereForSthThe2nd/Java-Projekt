@@ -29,6 +29,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Executable;
 import java.util.LinkedList;
 
 import javax.imageio.ImageIO;
@@ -58,15 +59,12 @@ import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 
 import Inne.Complex;
@@ -86,8 +84,11 @@ public class Main extends JFrame {
 	LabelAboveFunction nadFunkcja;
 	JTextField argument;
 	JTextField wartosc;
+	TxtFieldForZes lewDolnyTxt;
+	TxtFieldForZes prawyGornyTxt;
 	JCheckBox rysowanie;
 	Settings ustawienia = new Settings();
+	
 	public Main() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600,500));
@@ -196,7 +197,7 @@ public class Main extends JFrame {
 					argument.setText(arg.printE(2, 2));
 				else
 					argument.setText("Jeszcze nie obliczone");
-				if(wartosc != null)
+				if(val != null)
 					wartosc.setText(val.printE(2, 2));
 				else
 					wartosc.setText("Jeszcze nie obliczone");
@@ -238,14 +239,17 @@ public class Main extends JFrame {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				if(!rysowanie.isSelected() && wykres.foreGround.rect != null) {
-					wykres.coords.setLD( new Complex(wykres.foreGround.rect[0].x < wykres.foreGround.rect[1].x ? 
+					Complex lewyDolny =  new Complex(
+						wykres.foreGround.rect[0].x < wykres.foreGround.rect[1].x ? 
 						wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
 						wykres.foreGround.rect[0].y < wykres.foreGround.rect[1].y ? 
-						wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y) );
-					wykres.coords.setPG( new Complex(wykres.foreGround.rect[0].x > wykres.foreGround.rect[1].x ? 
+						wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y);
+					Complex prawyGorny = new Complex(
+							wykres.foreGround.rect[0].x > wykres.foreGround.rect[1].x ? 
 							wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
 							wykres.foreGround.rect[0].y > wykres.foreGround.rect[1].y ? 
-							wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y) );
+							wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y);
+					setWykresBounds(lewyDolny, prawyGorny);
 					wykres.foreGround.rect = null;
 					wykres.foreGround.szyba = new Color(0,0,0,50);
 					wykres.foreGround.repaint();
@@ -328,18 +332,18 @@ public class Main extends JFrame {
 		    public void actionPerformed(ActionEvent e) {
 		    	if(funkcjaTextField.isFocusOwner())
 		    		return;
-		    	Timer timer = new Timer(0, new ActionListener() {
+		    	Timer timer = new Timer(10, new ActionListener() {
 					
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						funkcjaTextField.setEnabled(true);
+				    	funkcjaTextField.selectAll();
 					}
 				});
 		    	timer.setRepeats(false);
 				funkcjaTextField.setEnabled(false);
 		    	timer.start();
 		    	funkcjaTextField.requestFocus();
-		    	funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
 		    }
 		});
 		Object wyjdzZziekszeniaKey = 3;
@@ -515,7 +519,7 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wykres.coords = wykres.rect(wykres.coords.getLD(), wykres.coords.getPG());
-				wykres.change();
+				changeFunc();
 			}
 		});
 		
@@ -539,7 +543,7 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wykres.coords = wykres.logarithmic(wykres.coords.getLD(), wykres.coords.getPG());
-				wykres.change();
+				changeFunc();
 			}
 		});
 		
@@ -591,7 +595,9 @@ public class Main extends JFrame {
 								FunctionPowloka f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
 	
 								nadFunkcja.setTextAnimated("Rozbijanie funkcji");
+								System.out.println("abc");
 								wykres.function = f.splitByRealAndImaginery(ustawienia);
+								System.out.println("ddd");
 								funkcjaTextField.setText(wykres.function.write(ustawienia));
 								changeFunc();
 							} catch (FunctionExpectedException e1) {
@@ -613,6 +619,112 @@ public class Main extends JFrame {
 		JPanel lewStr = new JPanel();
 		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
 		lewStr.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
+		
+		JPanel obszarWykres = new JPanel();
+		obszarWykres.setLayout(new GridLayout(2,2));
+		//obszarWykres.add(new JLabel("róg lewy dolny"));
+		//obszarWykres.add(new JLabel("róg prawy górny"));
+		lewDolnyTxt = new TxtFieldForZes(wykres.coords.getLD(), "Róg lewy dolny:");
+		prawyGornyTxt = new TxtFieldForZes(wykres.coords.getPG(), "Róg prawy górny:");
+		lewDolnyTxt.rzecz.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					double xn = Double.parseDouble(lewDolnyTxt.rzecz.getText());
+					setWykresBounds(new Complex(xn, lewDolnyTxt.getWart().y), prawyGornyTxt.getWart());
+					if(xn >= prawyGornyTxt.getWart().x)
+						nadFunkcja.setWarningText("Część rzeczywista lewego dolnego rogu powinna być mniejsza od części rzeczywistej prawego górnego rogu.");
+					changeFunc(new Runnable() {
+						
+						@Override
+						public void run() {
+							if(xn >= prawyGornyTxt.getWart().x)
+								nadFunkcja.setWarningText("Część rzeczywista lewego dolnego rogu powinna być mniejsza od części rzeczywistej prawego górnego rogu. Obliczono funkcję.");
+						}
+					});
+					lewDolnyTxt.ur.requestFocus();
+					lewDolnyTxt.ur.selectAll();
+				}catch(NumberFormatException e1) {
+					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+					lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
+				}
+			}
+		});
+		lewDolnyTxt.ur.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					double yn = Double.parseDouble(lewDolnyTxt.ur.getText());
+					setWykresBounds(new Complex(lewDolnyTxt.getWart().x, yn), prawyGornyTxt.getWart());
+					if(yn >= prawyGornyTxt.getWart().y)
+						nadFunkcja.setWarningText("Część urojona lewego dolnego rogu powinna być mniejsza od części urojonej prawego górnego rogu.");
+					changeFunc(new Runnable() {
+						
+						@Override
+						public void run() {
+							if(yn >= prawyGornyTxt.getWart().y)
+								nadFunkcja.setWarningText("Część urojona lewego dolnego rogu powinna być mniejsza od części urojonej prawego górnego rogu. Obliczono funkcję.");
+						}
+					});
+					prawyGornyTxt.rzecz.requestFocus();
+					prawyGornyTxt.rzecz.selectAll();
+				}catch(NumberFormatException e1) {
+					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+					lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
+				}
+			}
+		});
+		prawyGornyTxt.rzecz.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					double xn = Double.parseDouble(prawyGornyTxt.rzecz.getText());
+					setWykresBounds(lewDolnyTxt.getWart(), new Complex(xn, prawyGornyTxt.getWart().y));
+					if(xn <= lewDolnyTxt.getWart().x)
+						nadFunkcja.setWarningText("Część rzeczywista prawego górnego rogu powinna być większa od części rzeczywistej lewego  dolnego rogu.");
+					changeFunc(new Runnable() {
+						
+						@Override
+						public void run() {
+							if(xn <= lewDolnyTxt.getWart().x)
+								nadFunkcja.setWarningText("Część rzeczywista prawego górnego rogu powinna być większa od części rzeczywistej lewego  dolnego rogu. Obliczono funkcję.");							
+						}
+					});
+
+					prawyGornyTxt.ur.requestFocus();
+					prawyGornyTxt.ur.selectAll();
+				}catch(NumberFormatException e1) {
+					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+					prawyGornyTxt.setZesp(prawyGornyTxt.getWart());
+				}
+			}
+		});
+		prawyGornyTxt.ur.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					double yn = Double.parseDouble(prawyGornyTxt.ur.getText());
+					if(yn <= lewDolnyTxt.getWart().y)
+						nadFunkcja.setWarningText("Część urojona prawego górnego rogu powinna być większa od części urojonej lewego dolnego rogu.");
+					setWykresBounds(lewDolnyTxt.getWart(), new Complex(prawyGornyTxt.getWart().x, yn));
+					changeFunc(new Runnable() {
+						
+						@Override
+						public void run() {
+							if(yn <= lewDolnyTxt.getWart().y)
+								nadFunkcja.setWarningText("Część urojona prawego górnego rogu powinna być większa od części urojonej lewego dolnego rogu. Obliczono funkcję.");
+						}
+					});
+				}catch(NumberFormatException e1) {
+					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+					lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
+				}
+			}
+		});
+
+		obszarWykres.add(lewDolnyTxt);
+		obszarWykres.add(prawyGornyTxt);
+		lewStr.add(obszarWykres);
 		
 		JComponent opcja;
 		JComponent wybor;
@@ -699,6 +811,7 @@ public class Main extends JFrame {
 		calaOpcja.setBorder(border);
 		lewStr.add(calaOpcja);
 		
+		
 		lewStr.add(new JLabel("Legenda:"));
 		
 		left.add(Box.createRigidArea(new Dimension(0,30)));
@@ -722,7 +835,14 @@ public class Main extends JFrame {
 		
 	}
 	
-	private SwingWorker<Void, Void> changeFunc() {
+	private void setWykresBounds(Complex z1, Complex z2){
+		wykres.coords.setLD(z1);
+		wykres.coords.setPG(z2);
+		lewDolnyTxt.setZesp(z1);
+		prawyGornyTxt.setZesp(z2);
+	}
+	
+ 	private SwingWorker<Void, Void> changeFunc(Runnable r) {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
 		SwingWorker<Void,Void> narysuj = new SwingWorker<Void, Void>(){
@@ -752,12 +872,21 @@ public class Main extends JFrame {
 				}
 					return null;
 			}
+			@Override
+			protected void done() {
+				super.done();
+				r.run();
+			}
 			
 		};
 		narysuj.execute();
 		return narysuj;
 	}
 	
+ 	private SwingWorker<Void, Void> changeFunc() {
+ 		return changeFunc(() -> {});
+	}
+ 	
 	private void changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
@@ -784,7 +913,6 @@ public class Main extends JFrame {
 			}
 	}
 
-	
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			
@@ -799,178 +927,39 @@ public class Main extends JFrame {
 			}
 		});
 	}
+
+	static class TxtFieldForZes extends JPanel{
+		JTextField rzecz;
+		JTextField ur;
+		private Complex wart;
+		public TxtFieldForZes(Complex z, String lab) {
+			wart = z;
+			rzecz = new JTextField(Complex.toStr(z.x, 2, 2));
+			ur = new JTextField(Complex.toStr(z.y, 2, 2));
+			rzecz.setPreferredSize(new Dimension(70, rzecz.getPreferredSize().height+5));
+			ur.setPreferredSize(new Dimension(70, ur.getPreferredSize().height+5));
+			JLabel srod = new JLabel(" + i");
+			srod.setFont(new Font(getFont().getName(), Font.BOLD, getFont().getSize()));
+			add(new JLabel(lab));
+			add(rzecz);
+			add(srod);
+			add(ur);
+		}
+		
+		public void setZesp(Complex z) {
+			wart = z;
+			rzecz.setText(Complex.toStr(wart.x, 2, 2));
+			ur.setText(Complex.toStr(wart.y, 2, 2));
+			
+		}
+				
+		public Complex getWart(){
+			return wart;
+		}
+		
+	}
 }
 
 abstract class ActionListenerWthStop implements ActionListener{
 	boolean stop = false;
-}
-
-class FunctionTextField extends JTextField{
-	//opcja dodania listenera wyłapującego tylko zmiany dokonane przez użytkownika
-	private int doneByProgramFlag = 0;
-	//zapamiętuje czy ostatnia zmiana została wykonana przez użytkownika czy przez program
-	public boolean isUpToDate;
-	public FunctionTextField(String string) {
-		super(string);
-		isUpToDate = true;
-		getDocument().addDocumentListener(new DocumentListener() {
-			
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				if(doneByProgramFlag>0) {
-					doneByProgramFlag--;
-					return;
-				}
-				isUpToDate = false;
-
-			}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-
-				if(doneByProgramFlag>0) {
-					doneByProgramFlag--;
-					return;
-				}
-				isUpToDate = false;
-
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				if(doneByProgramFlag>0) {
-					doneByProgramFlag--;
-					return;
-				}
-				isUpToDate = false;
-
-			}
-		});
-
-	}
-	@Override
-	public void setText(String t) {
-		doneByProgramFlag += 2;
-		isUpToDate = true;
-		super.setText(t);
-	}
-}
-
-class LabelAboveFunction extends JLabel{
-	Timer timer;
-	
-	public LabelAboveFunction(String text) {
-		super(text);
-	}
-	
-	@Override
-	public void setText(String text) {
-		if(timer != null)
-			timer.stop();
-		if(text.equals(getText())) {
-			Thread t = new Thread() {
-				
-				@Override
-				public void run() {
-					try {
-						long time = 200;
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								setFont(new Font(getFont().getName(), Font.PLAIN, getFont().getSize()));
-							}
-						});
-						Thread.sleep(time);
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								setFont(new Font(getFont().getName(), Font.BOLD, getFont().getSize()));
-							}
-						});
-
-					}catch(InterruptedException e) {
-						e.printStackTrace();
-					}
-				};
-			};
-			t.run();
-		}
-		setForeground(Color.black);
-		super.setText(text);
-	}
-	
-	public void setErrorText(String text) {
-		setForeground(Color.red);
-		if(timer != null)
-			timer.stop();
-		if(text.equals(getText())) {
-			Thread t = new Thread() {
-				
-				@Override
-				public void run() {
-					try {
-						long time = 200;
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								setFont(new Font(getFont().getName(), Font.PLAIN, getFont().getSize()));
-							}
-						});
-						Thread.sleep(time);
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								setFont(new Font(getFont().getName(), Font.BOLD, getFont().getSize()));
-							}
-						});
-
-					}catch(InterruptedException e) {
-						e.printStackTrace();
-					}
-				};
-			};
-			t.run();
-		}
-		super.setText(text);
-
-	}
-	
-	public void setTextAnimated(String text){
-		setForeground(Color.black);
-		ActionListenerWthStop timerListener = new ActionListenerWthStop() {
-			static int liczKropki = 0;
-			long timeOld = System.currentTimeMillis();
-			long timeNew = System.currentTimeMillis();
-			@Override
-			public void actionPerformed(ActionEvent e) {
-					if(stop) {
-						return;
-					}
-					String kropki;
-					switch(liczKropki){
-					case 0:
-						kropki = ".";
-						break;
-					case 1:
-						kropki = "..";
-						break;
-					case 2:
-						kropki = "...";
-						break;
-					default:
-						kropki = "";
-						break;
-					}
-					LabelAboveFunction.super.setText(text + kropki);
-					liczKropki++;
-					liczKropki %= 4;
-					timeNew = System.currentTimeMillis();
-					timeOld = timeNew; 
-			}
-		};
-		if(timer != null)
-			timer.stop();
-		timer = new Timer(800, timerListener);
-		timer.start();
-	}
 }

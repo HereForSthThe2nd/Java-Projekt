@@ -47,15 +47,15 @@ class Blok{
 }
 
 class BlokWthDefFunction extends Blok{
-	protected FuncNamed funkcja;
-	BlokWthDefFunction(String wejsc, int[] konce, int type, FuncNamed funkcja) {
+	protected FuncWthName funkcja;
+	BlokWthDefFunction(String wejsc, int[] konce, int type, FuncWthName funkcja) {
 		super(wejsc, konce, type);
 		//System.out.println(type);
 		this.funkcja = funkcja;
 		if(type != Blok.FUNCTION)
 			throw new IllegalArgumentException("BlokWthFunction musi być typu Blok.FUNCTION");
 	}
-	BlokWthDefFunction(String wejsc, int pocz, int kon, int type, FuncNamed funkcja){
+	BlokWthDefFunction(String wejsc, int pocz, int kon, int type, FuncWthName funkcja){
 		super(wejsc, pocz,kon,type);
 		this.pocz -=  wejsc.length();
 		this.funkcja = funkcja;
@@ -74,7 +74,7 @@ class BlokWthDefFunction extends Blok{
 class BlokList{
 	protected final static String SPECJALNE = "[\\(\\)\\[\\]\\{\\}\\.,]";
 	protected final static String OPERATORY = "[\\^\\*/\\+\\-]";
-	protected final static String GRECKIALFABET = "ςερτυθιοπασδφγηξκλζχψωβνμΕΡΤΥΘΙΟΠΛΚΞΗΓΦΔΣΑΖΧΨΩΒΝΜ";
+	protected final static String GRECKIALFABET = "ςερτυθιοπασδφγηξκλζχψωβνμΕΡΤΥΘΙΟΠΛΚΞΗΓΦΔΣΑΖΧΨΩΒΝΜ\u03d5";
 		
 	ArrayList<Blok> arr = new ArrayList<Blok>();
 	

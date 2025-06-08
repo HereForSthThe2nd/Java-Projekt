@@ -112,7 +112,7 @@ abstract public class Function implements FuncChecker
 					TimeKeeping.endTimer("function");
 					return Functions.returnVar(blok.str);
 				}
-				throw new FunctionExpectedException(blok.str + " nie jest znaną nazwą ani funkcji ani zmiennej ani stałej.");
+				throw new FunctionExpectedException(blok.str + " nie jest znaną nazwą ani funkcji ani zmiennej.");
 			}
 		}
 		int splitIndex;
