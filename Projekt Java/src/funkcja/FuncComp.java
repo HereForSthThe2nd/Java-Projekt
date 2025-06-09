@@ -378,12 +378,6 @@ public class FuncComp extends Function {
 		//System.out.println("fueufufeu w  funccomp.simplify");
 		//System.out.println(f.write(new Settings()) + "  " + g[0].write(new Settings()));
 		if(f == Functions.diffX) {
-			try {
-				System.out.println(g[0].write(new Settings()) + " w funccomp.simplify");
-			} catch (FunctionExpectedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			return g[0].diffX(1, new Settings());
 		}
 		if(f == Functions.diffY) {
@@ -407,10 +401,23 @@ public class FuncComp extends Function {
 		if(fb.bool)
 			return fb.f;
 		if(f.check(Functions.Re)) {
-			return g[0].reim()[0];
+			Function[] putInto = new Function[g[0].nofArg*2];
+			for(int i=0;i<g[0].nofArg;i++) {
+				putInto[2*i] = Functions.xAndYchecker.returnFunc("x["+i+"]");
+				putInto[2*i+1] = Functions.xAndYchecker.returnFunc("y["+i+"]");
+				
+			}
+			return g[0].reim()[0].putArguments(putInto);
 		}
-		if(f.check(Functions.Im))
-			return g[0].reim()[1];
+		if(f.check(Functions.Im)) {
+			Function[] putInto = new Function[g[0].nofArg*2];
+			for(int i=0;i<g[0].nofArg;i++) {
+				putInto[2*i] = Functions.xAndYchecker.returnFunc("x["+i+"]");
+				putInto[2*i+1] = Functions.xAndYchecker.returnFunc("y["+i+"]");
+				
+			}
+			return g[0].reim()[1].putArguments(putInto);
+		}
 		if(nofArg == 0 && setting.evaluateConstants)
 			return new FuncNumConst( evaluate(new Complex[] {}));
 		//if(checkComponents(null, f))

@@ -740,13 +740,13 @@ public class Main extends JFrame {
 							listOfUnsafeFunc += str + ", ";
 						}
 						int wybor = JOptionPane.showConfirmDialog(null, "Funkcje " + listOfUnsafeFunc + " zależą od funkcji " + nazwa+". Na pewno usunąć?", "Uwaga", JOptionPane.INFORMATION_MESSAGE);
-						if(wybor == 1)
+						if(wybor == JOptionPane.NO_OPTION || wybor == JOptionPane.CANCEL_OPTION)
 							return;
 						Functions.expandAllSpecific(nazwa);
 					}
 					boolean jestBazowe = Functions.defaultFunctions.checkIfContained(nazwa);
 					if(jestBazowe) {
-						JOptionPane.showMessageDialog(null, "Funkcja "+nazwa+"jest wbudowana. Nie można jej usunąć.", "Błąd", JOptionPane.ERROR_MESSAGE);
+						JOptionPane.showMessageDialog(null, "Funkcja "+nazwa+" jest wbudowana. Nie można jej usunąć.", "Błąd", JOptionPane.ERROR_MESSAGE);
 						continue;
 					}
 					Functions.userFunctions.removeFunc(nazwa);
@@ -1172,7 +1172,6 @@ public class Main extends JFrame {
 							return;
 						}
 						wykres.save(new File(ch.getSelectedFile()+".png"));
-						System.out.println("nic nie znalazło");
 					}
 				} catch (Exception e1) {
 					JOptionPane.showMessageDialog(null, "Nie udało się zapisać pliku.", "Błąd!", JOptionPane.ERROR_MESSAGE);

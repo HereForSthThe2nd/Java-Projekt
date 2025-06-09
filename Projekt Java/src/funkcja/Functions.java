@@ -1033,7 +1033,8 @@ public class Functions {
 					}
 					@Override
 					protected Function[] reim()  {
-						return new Function[] { new FuncComp(Re, new Function[] {this}), new FuncComp(Im, new Function[] {this})};
+						return new Function[] {idChecker.returnFunc("z[0]"), idChecker.returnFunc("z[1]")};
+						//return new Function[] { new FuncComp(Re, new Function[] {this}), new FuncComp(Im, new Function[] {this})};
 					}
 			
 					@Override
@@ -1084,7 +1085,8 @@ public class Functions {
 
 				@Override
 				protected Function[] reim() {
-					return new Function[] { new FuncComp(Re, new Function[] {this}), new FuncComp(Im, new Function[] {this})};
+					return new Function[] {idChecker.returnFunc("z["+2*k+"]"), idChecker.returnFunc("z["+(2*k+1)+"]")};
+					//return new Function[] { new FuncComp(Re, new Function[] {this}), new FuncComp(Im, new Function[] {this})};
 				}
 
 				@Override

@@ -74,6 +74,14 @@ public class FunctionPowloka {
 		}
 		Function re = (new FunctionPowloka(reim[0]).simplify(set)).getFunction();
 		Function im = (new FunctionPowloka(reim[1]).simplify(set)).getFunction();
+		Function[] putInto = new Function[f.nofArg*2];
+		for(int i=0;i<f.nofArg;i++) {
+			putInto[2*i] = Functions.xAndYchecker.returnFunc("x["+i+"]");
+			putInto[2*i+1] = Functions.xAndYchecker.returnFunc("y["+i+"]");
+			
+		}
+		re = re.putArguments(putInto);
+		im = im.putArguments(putInto);
 		return new FunctionPowloka(new FuncSum (new Function[] {re, new FuncMult(new FuncNumConst(Complex.i), im)}));
 	}
 	
@@ -205,8 +213,7 @@ public class FunctionPowloka {
 		g4.print(set4);
 
 	}
-	
-	public static void main(String[] args) throws Exception {
+	/*public static void main(String[] args) throws Exception {
 		FunctionPowloka f = new FunctionPowloka("((((((((((((z ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z) ^ 2 + z", new Settings());
 		f = f.splitByRealAndImaginery(new Settings());
 		System.out.println("po rozdzieleniu");
@@ -253,6 +260,6 @@ public class FunctionPowloka {
 			FunctionPowloka f2 = new FunctionPowloka("sin(z)", set);
 			FunctionPowloka f3 = new FunctionPowloka("z", set);
 			FunctionPowloka f4 = new FunctionPowloka("z^0.5", set);
-			*/
-	}
+
+	}*/
 }
