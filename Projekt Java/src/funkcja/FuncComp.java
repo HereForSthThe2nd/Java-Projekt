@@ -9,10 +9,10 @@ package funkcja;
 
 import Inne.Complex;
 
-class FuncComp extends Function {
+public class FuncComp extends Function {
 	private FuncWthName f;
 	private Function[] g;
-	protected FuncComp(FuncWthName f, Function[] g) {
+	public FuncComp(FuncWthName f, Function[] g) {
 		super(Functions.COMPOSITE, FuncMethods.countArguments(g));
 		this.f = f;
 		if(g.length<f.nofArg)
@@ -121,7 +121,7 @@ class FuncComp extends Function {
 		return str;
 	}
 	@Override
-	protected String write(Settings settings) throws FunctionExpectedException {
+	public String write(Settings settings) throws FunctionExpectedException {
 		if(settings.writePow && f.check(Functions.pow))
 			return wypiszPotege(settings);
 		if(settings.writeRealVar && checkComponents(Functions.Re, Functions.idChecker))
@@ -138,11 +138,11 @@ class FuncComp extends Function {
 		return str;
 	}
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return new FuncComp(f, FuncMethods.putArguments(g, args));
 	}
 	@Override
-	protected Function expand() {
+	public Function expand() {
 		Function outer = f.expand();
 		if(!outer.check(f))
 			return outer.putArguments(g);

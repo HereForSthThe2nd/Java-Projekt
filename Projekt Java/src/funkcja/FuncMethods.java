@@ -10,7 +10,7 @@ import java.util.List;
 
 import Inne.Complex;
 
-class FuncMethods {
+public class FuncMethods {
 	
 	static final FuncChecker isNumConst = new FuncChecker() {
 		@Override
@@ -239,6 +239,13 @@ class FuncMethods {
 		return true;
 	}
 	
+	public static Function[] returnIdentities(int k) {
+		Function[] ret = new Function[k];
+		for(int i=0;i<k;i++) {
+			ret[i] = Functions.idChecker.returnFunc("z["+i+"]");
+		}
+		return ret;
+	}
 }
 
 /*

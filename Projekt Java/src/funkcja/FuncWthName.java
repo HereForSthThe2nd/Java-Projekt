@@ -10,15 +10,15 @@ import Inne.Complex;
 /*
  * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
  */
-abstract class FuncWthName extends Function{
+abstract public class FuncWthName extends Function{
 	//żadne 2 funkcje FuncNamed nie mogą mieć tego samego pola name
-	final String name;
+	final public String name;
 	public FuncWthName(int nofArg, String name) {
 		super(Functions.NAMED, nofArg);
 		this.name = name;
 	}
 	@Override
-	protected String write(Settings settings) {
+	public String write(Settings settings) {
 			return name;
 	}
 	@Override
@@ -48,12 +48,12 @@ abstract class FunctionDefault extends FuncWthName{
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return new FuncComp(this, args);
 	}
 
 	@Override
-	protected Function expand() {
+	public Function expand() {
 		return this;
 	}
 
@@ -76,11 +76,11 @@ abstract class FuncConstDefault extends FuncWthName{
 		return new FuncNumConst(new Complex(0));
 	}
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return this;
 	}
 	@Override
-	protected Function expand() {
+	public Function expand() {
 		return this;
 	}
 	@Override
@@ -112,7 +112,7 @@ abstract class FuncSurrWthName extends FuncWthName{
 	}
 
 	@Override
-	protected Function expand() {
+	public Function expand() {
 		return f;
 	}
 
@@ -138,7 +138,7 @@ class FuncGivenName extends FuncSurrWthName{
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return new FuncComp(this, args);
 	}
 	
@@ -158,14 +158,14 @@ class VarGivenName extends FuncSurrWthName{
 	}
 	
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		if(FuncMethods.argsAreIdentities(args, f.nofArg))//TODO:nieprzetestowane jezcze
 			return this;
 		return f.putArguments(args);
 	}
 	
 	@Override
-	protected Function expand() {
+	public Function expand() {
 		return f;
 	}
 
@@ -188,7 +188,7 @@ final class FuncConstGivenName extends FuncSurrWthName{
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return this;
 	}
 	

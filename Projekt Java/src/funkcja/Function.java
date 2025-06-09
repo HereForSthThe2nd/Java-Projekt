@@ -29,7 +29,7 @@ abstract public class Function implements FuncChecker
  {	
 		
 	final int type;
-	final int nofArg;
+	final public int nofArg;
 	protected Function(int type, int nofArg) {
 		this.type=type;
 		this.nofArg = nofArg;
@@ -40,13 +40,13 @@ abstract public class Function implements FuncChecker
 	protected abstract Function[] reim();
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
-	protected abstract String write(Settings settings) throws FunctionExpectedException;
+	public abstract String write(Settings settings) throws FunctionExpectedException;
 	
 	//public abstract boolean check(Function f);
 	
-	protected abstract Function putArguments(Function[] args);
+	public abstract Function putArguments(Function[] args);
 	
-	protected abstract Function expand();
+	public abstract Function expand();
 	//bardzo podstawowe
 	protected abstract Function simplify(Settings setting);
 	

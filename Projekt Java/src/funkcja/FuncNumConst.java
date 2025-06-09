@@ -43,17 +43,17 @@ public class FuncNumConst extends Function {
 	}
 
 	@Override
-	protected String write(Settings settings) {
+	public String write(Settings settings) {
 		return a.print(settings.doubleAcc);
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return this;
 	}
 
 	@Override
-	protected Function expand() {
+	public Function expand() {
 
 		return this;
 	}

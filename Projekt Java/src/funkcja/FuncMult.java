@@ -262,7 +262,7 @@ class FuncMult extends Function {
 		return false;
 	}
 	@Override
-	protected String write(Settings settings) throws FunctionExpectedException {
+	public String write(Settings settings) throws FunctionExpectedException {
 		int i = 0;
 		String str = "";
 		if(f[0].check(new FuncNumConst(new Complex(-1)))) {
@@ -312,11 +312,11 @@ class FuncMult extends Function {
 		return str;
 	}
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return new FuncMult(FuncMethods.putArguments(f, args));
 	}
 	@Override
-	protected Function expand() {
+	public Function expand() {
 		return new FuncMult(FuncMethods.expand(f));
 	}
 	@Override

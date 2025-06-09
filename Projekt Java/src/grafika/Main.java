@@ -1,6 +1,7 @@
 package grafika;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -48,6 +49,7 @@ import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -55,7 +57,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -70,8 +74,12 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 import Inne.Complex;
+import funkcja.FuncComp;
+import funkcja.FuncMethods;
+import funkcja.FuncWthName;
 import funkcja.Function;
 import funkcja.FunctionPowloka;
+import funkcja.Functions;
 import funkcja.Settings;
 import funkcja.TimeKeeping;
 import funkcja.FunctionExpectedException;
@@ -80,6 +88,8 @@ import grafika.Graph.Coordinates;
 
 public class Main extends JFrame {
 	Graph wykres;
+	JPanel zapisFun = new JPanel();
+	
 	JPanel containsWykres;
 	FunctionTextField funkcjaTextField;
 	boolean txtFuncUpToDate = false;
@@ -303,13 +313,20 @@ public class Main extends JFrame {
 			}
 		});
 		
+		containsWykres = new JPanel();
+		containsWykres.setLayout(new CardLayout());
+		containsWykres.add(wykres, "wykres");
+		containsWykres.add(zapisFun, "zapis");
+		
+		doZapisane();
+		
 		add(zawieraTextFunckcji, BorderLayout.NORTH);
-		add(wykres, BorderLayout.CENTER);
+		add(containsWykres, BorderLayout.CENTER);
 		
 		doTheLeft();
 
 	}
-	
+
 	private void doTheShortcuts() {
 		JComponent rootPane = getRootPane();
 		Object rysowanieToggleKey = 0;
@@ -567,10 +584,68 @@ public class Main extends JFrame {
 		});
 	}
 	
+	private void doZapisane() {
+		JPanel gora = new JPanel();
+		JPanel srodek = new JPanel();
+		JButton zapisz = new JButton("Zapisz");
+		JButton fCv = new JButton("Zmienne");
+		JButton usun = new JButton("Usuń");
+		
+		JLabel funkNazwLab = new JLabel("Nazwa funkcji:");
+		JTextField funkNazw = new JTextField();
+		JLabel funkjaDoZapLab = new JLabel("Funckja:");
+		JTextField funkcjaDoZap = new JTextField();
+		funkNazw.setFont(new Font(funkNazw.getFont().getName(), Font.PLAIN, funkNazw.getFont().getSize()+5));
+		funkNazw.setPreferredSize(new Dimension(70, funkNazw.getPreferredSize().height + 10));
+		funkcjaDoZap.setFont(new Font(funkcjaDoZap.getFont().getName(), Font.PLAIN, funkcjaDoZap.getFont().getSize()+5));
+		funkcjaDoZap.setPreferredSize(new Dimension(800, funkcjaDoZap.getPreferredSize().height + 10));
+		
+		gora.add(zapisz);
+		gora.add(fCv);
+		gora.add(usun);
+		srodek.add(funkNazwLab);
+		srodek.add(funkNazw);
+		srodek.add(funkjaDoZapLab);
+		srodek.add(funkcjaDoZap);
+		
+		JPanel containsTable = new JPanel();
+		containsTable.setLayout(new CardLayout());
+		
+		String header[] = new String[] {"Nazwa", "Ilość argómentów", "Funkcja bazowa"};
+		Object[][] data = new Object[Functions.defaultFunctions.size() + Functions.userFunctions.size()][3];
+		try {
+			for(int i=0;i<Functions.defaultFunctions.size();i++) {
+				data[i][0] = Functions.defaultFunctions.getValues().get(i).name;
+				data[i][1] = Functions.defaultFunctions.getValues().get(i).nofArg;
+				data[i][2] = new FuncComp(Functions.defaultFunctions.getValues().get(i), FuncMethods.returnIdentities((int)data[i][1])).write(ustawienia);
+			}
+			for(int i=Functions.defaultFunctions.size();i<Functions.userFunctions.size()+Functions.defaultFunctions.size();i++) {
+				data[i][0] = Functions.userFunctions.getValues().get(i).name;
+				data[i][1] = Functions.userFunctions.getValues().get(i).nofArg;
+				data[i][2] = Functions.userFunctions.getValues().get(i).expand().putArguments(FuncMethods.returnIdentities((int)data[i][1])).write(ustawienia);
+			}
+
+		}catch(FunctionExpectedException e) {
+			throw new IllegalStateException(e);
+		}
+		
+		JTable tabZapisanych = new JTable(data, header);
+		tabZapisanych.getColumnModel().getColumn(0).setPreferredWidth(100);
+		tabZapisanych.getColumnModel().getColumn(1).setPreferredWidth(110);
+		tabZapisanych.getColumnModel().getColumn(2).setPreferredWidth(1000);
+		containsTable.add(new JScrollPane(tabZapisanych));
+		
+		zapisFun.setLayout(new BoxLayout(zapisFun, BoxLayout.Y_AXIS));
+		zapisFun.add(gora);
+		zapisFun.add(srodek);
+		zapisFun.add(containsTable);
+	}
+
 	private void doTheLeft() {
 		JPanel left = new JPanel();
 		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
 		JPanel przyciski = new JPanel();
+		przyciski.setLayout(new GridLayout(2, 2));
 		JButton uprosc = new JButton("Uprość");
 		uprosc.addActionListener(new ActionListener() {
 			
@@ -628,8 +703,19 @@ public class Main extends JFrame {
 					rozbijFunc.execute();
 			}
 		});
+		JButton expand = new JButton("Rozwiń funkcje złożone");
+		JButton zapisaneF = new JButton("Zapisane");
+		zapisaneF.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				((CardLayout)containsWykres.getLayout()).next(containsWykres);
+			}
+		});
+		
 		przyciski.add(uprosc);
 		przyciski.add(rzeczIUroj);
+		przyciski.add(expand);
+		przyciski.add(zapisaneF);
 		
 		Border border = BorderFactory.createLineBorder(Color.orange);
 		JPanel lewStr = new JPanel();

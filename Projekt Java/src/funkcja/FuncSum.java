@@ -134,7 +134,7 @@ class FuncSum extends Function {
 	}
 	
 	@Override
-	protected String write(Settings settings) throws FunctionExpectedException {
+	public String write(Settings settings) throws FunctionExpectedException {
 		String str = summands[0].write(settings);
 		for(int i=1;i<summands.length;i++) {
 			if(summands[i].type == Functions.MULT) {
@@ -151,12 +151,12 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function putArguments(Function[] args) {
+	public Function putArguments(Function[] args) {
 		return new FuncSum(FuncMethods.putArguments(summands, args));
 	}
 
 	@Override
-	protected Function expand() {
+	public Function expand() {
 		return new FuncSum(FuncMethods.expand(summands));
 	}
 	

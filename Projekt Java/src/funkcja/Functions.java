@@ -8,6 +8,7 @@ package funkcja;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import Inne.Complex;
@@ -368,7 +369,8 @@ public class Functions {
 			return arg[0].pow(arg[1]);
 		}
 		@Override
-		protected String write(Settings settings) {
+		public String write(Settings settings) {
+			//?????nie wiem czemu to tu jest
 			return "pow";
 		}
 		@Override
@@ -493,7 +495,7 @@ public class Functions {
 			return super.check(str) || str.equals("π");
 		}
 		@Override
-		protected String write(Settings settings) {
+		public String write(Settings settings) {
 			if(!settings.writeNeatVar)
 				return super.write(settings);
 			return "π";
@@ -516,7 +518,7 @@ public class Functions {
 			return super.check(str) || str.equals("\u03d5");
 		};
 		@Override
-		protected String write(Settings settings) {
+		public String write(Settings settings) {
 			if(!settings.writeNeatVar)
 				return super.write(settings);
 			return "\u03d5";
@@ -537,13 +539,13 @@ public class Functions {
 		};
 	};
 		
-	protected final static nameAndValue defaultVar = new nameAndValue(new ArrayList<String>(List.of("e", "pi", "phi", "\u03c6", "r")),
+	public final static nameAndValue defaultVar = new nameAndValue(/*new ArrayList<String>(List.of("e", "pi", "phi", "\u03c6", "r")),*/
 			new ArrayList<FuncWthName>(List.of(e ,pi, phi, kat, r)));
-	protected final static nameAndValue defaultFunctions = new nameAndValue(
-			new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg", "diffX", "diffY")),
+	public final static nameAndValue defaultFunctions = new nameAndValue(
+			/*new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg", "diffX", "diffY")),*/
 			new ArrayList<FuncWthName>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg, diffX, diffY)));
-	protected static nameAndValue userFunctions = new nameAndValue();
-	protected static nameAndValue userVar = new nameAndValue();
+	public static nameAndValue userFunctions = new nameAndValue();
+	public static nameAndValue userVar = new nameAndValue();
 	
 	static private void checkNameRequirements(String str) throws IncorrectNameException{
 		if(ckeckIfVar(str) || checkIfNmdFunc(str))
@@ -618,16 +620,15 @@ public class Functions {
 		throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej zmiennej");
 	}
 
-	static class nameAndValue{
-
-		ArrayList<String> names = new ArrayList<String>();
-		ArrayList<FuncWthName> values = new ArrayList<FuncWthName>();
+	public static class nameAndValue{
+		LinkedList<String> names = new LinkedList<String>();
+		private ArrayList<FuncWthName> values = new ArrayList<FuncWthName>();
 		nameAndValue(){};
-		nameAndValue(ArrayList<String> names,ArrayList<FuncWthName> val){
-			if(names.size() != val.size())
-				throw new IllegalArgumentException("names oraz val muszą mieć taką samą wielkość.\nPodane names: " + names + "podane val: " + val);
-			this.names = names;
+		nameAndValue(ArrayList<FuncWthName> val){
 			this.values = val;
+			for(FuncWthName i : values) {
+				names.add(i.name);
+			}
 		}
 		int indexOf(String str) {
 			for(int i=0;i<names.size();i++) {
@@ -645,6 +646,12 @@ public class Functions {
 		void add(FuncWthName val, String str) {
 			names.add(str);
 			values.add(val);
+		}
+		public int size() {
+			return names.size();
+		}
+		public ArrayList<FuncWthName> getValues(){
+			return values;
 		}
 	}
 
@@ -817,11 +824,11 @@ public class Functions {
 						return arg[0];
 					}
 					@Override
-					protected Function putArguments(Function[] args) {
+					public Function putArguments(Function[] args) {
 						return args[0];
 					}
 					@Override
-					protected Function expand() {
+					public Function expand() {
 						return this;
 					}
 					@Override
@@ -857,12 +864,12 @@ public class Functions {
 				}
 
 				@Override
-				protected Function putArguments(Function[] args) {
+				public Function putArguments(Function[] args) {
 					return args[k];
 				}
 
 				@Override
-				protected Function expand()  {
+				public Function expand()  {
 					return this;
 				}
 
