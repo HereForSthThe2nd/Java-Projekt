@@ -11,6 +11,10 @@ import Inne.Complex;
 import Inne.Pair;
 
 class FuncSum extends Function {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2020322120449746684L;
 	final Function[] summands;
 	
 	protected FuncSum(Function[] f) {
@@ -23,6 +27,12 @@ class FuncSum extends Function {
 	
 	SimplifyTwo sameStuff = new SimplifyTwo() {
 		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5117900012970583541L;
+
+
 		private static Function putTogetherTwoMult(FuncMult f, FuncMult g) {
 			if(!canPutTogetherPom2(f, g)) 
 				throw new IllegalArgumentException();

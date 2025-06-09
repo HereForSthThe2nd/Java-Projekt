@@ -12,6 +12,10 @@ import java.util.LinkedList;
 import Inne.Complex;
 
 class FuncMult extends Function {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3731704753646330967L;
 	final Function[] f;
 	public FuncMult(Function[] f) {
 		super(Functions.MULT, FuncMethods.countArguments(f));
@@ -33,6 +37,11 @@ class FuncMult extends Function {
 	
  	static SimplifyTwo putSameBasesTogether = new SimplifyTwo() {
 		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2194079811477821517L;
+
 		private boolean sameBasesPom(Function f, Function g) {
 			if(f.type == Functions.COMPOSITE) {
 				if(((FuncComp)f).checkComponents(Functions.pow, g))
@@ -166,6 +175,10 @@ class FuncMult extends Function {
 	};
 
 	static class PutSameExponentsTogether implements SimplifyTwo {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1254978749361225162L;
 		Settings set;
 		public PutSameExponentsTogether(Settings settings) {
 			set = settings;

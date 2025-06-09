@@ -97,6 +97,10 @@ import grafika.Graph.CmplxToColor;
 import grafika.Graph.Coordinates;
 
 public class Main extends JFrame {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6184366862447560671L;
 	Graph wykres;
 	JPanel zapisFun = new JPanel();
 	
@@ -351,6 +355,11 @@ public class Main extends JFrame {
 		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl R"), rysowanieToggleKey);
 		rootPane.getActionMap().put(rysowanieToggleKey, new AbstractAction() {
 
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 657885571196520622L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				rysowanie.setSelected(!rysowanie.isSelected());
@@ -359,7 +368,12 @@ public class Main extends JFrame {
 		});
 		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl W"), "usunKrzywe");
 		rootPane.getActionMap().put("usunKrzywe", new AbstractAction() {
-		    @Override
+		    /**
+			 * 
+			 */
+			private static final long serialVersionUID = 2887395622133930115L;
+
+			@Override
 		    public void actionPerformed(ActionEvent e) {
 		    	wykres.foreGround.resetCurve();
 		    	legenda.foreGround.resetCurve();
@@ -369,7 +383,12 @@ public class Main extends JFrame {
 		});
 		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl SLASH"), "przejdz do pola tekstowego");
 		rootPane.getActionMap().put("przejdz do pola tekstowego", new AbstractAction() {
-		    @Override
+		    /**
+			 * 
+			 */
+			private static final long serialVersionUID = -2021440080332044727L;
+
+			@Override
 		    public void actionPerformed(ActionEvent e) {
 		    	if(funkcjaTextField.isFocusOwner())
 		    		return;
@@ -390,6 +409,11 @@ public class Main extends JFrame {
 		Object wyjdzZziekszeniaKey = 3;
 		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), wyjdzZziekszeniaKey);
 		rootPane.getActionMap().put(wyjdzZziekszeniaKey, new AbstractAction() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -990853042581357055L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -763,9 +787,9 @@ public class Main extends JFrame {
 		JPanel uwagi = new JPanel();
 		
 		JLabel czerwTlo = new JLabel("Kolor czerwony oznacza funkcję wbudowaną. Nie można ich usuwać.");
-		//JLabel usuwUwag = new JLabel("Można");
+		JLabel zupelnosc = new JLabel("Prócz widocznych funkcji istnieją jeszcze pow{.}, oraz ln{.}");
 		uwagi.add(czerwTlo);
-		
+		uwagi.add(zupelnosc);
 		zapisFun.setLayout(new BoxLayout(zapisFun, BoxLayout.Y_AXIS));
 		zapisFun.add(gora);
 		zapisFun.add(srodek);
@@ -867,8 +891,9 @@ public class Main extends JFrame {
 		expand.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				wykres.function = wykres.function.expand();
 				try {
+					wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia); 
+					wykres.function = wykres.function.expand();
 					funkcjaTextField.setText(wykres.function.write(ustawienia));
 				} catch (FunctionExpectedException e1) {
 					e1.printStackTrace();
@@ -881,7 +906,6 @@ public class Main extends JFrame {
 		przyciski.add(expand);
 		przyciski.add(zapisaneF);
 		
-		Border border = BorderFactory.createLineBorder(Color.orange);
 		JPanel lewStr = new JPanel();
 		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
 		lewStr.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
@@ -1094,7 +1118,6 @@ public class Main extends JFrame {
 		
 		calaOpcja.add(comp1);
 		calaOpcja.add(dolWybKoloru);
-		calaOpcja.setBorder(border);
 		lewStr.add(calaOpcja);
 		
 		calaOpcja = new JPanel();
@@ -1116,7 +1139,6 @@ public class Main extends JFrame {
 		
 		calaOpcja.add(wyczysc);
 		
-		calaOpcja.setBorder(BorderFactory.createLineBorder(Color.red));
 		lewStr.add(calaOpcja);
 		
 		comp2= new JButton("Zapisz wykres");
@@ -1168,7 +1190,6 @@ public class Main extends JFrame {
 		calkaTxtArea.setEditable(false);
 		calaOpcja.add(comp1);
 		calaOpcja.add(calkaTxtArea);
-		calaOpcja.setBorder(border);
 		lewStr.add(calaOpcja);
 		
 		
@@ -1218,7 +1239,12 @@ public class Main extends JFrame {
 		tabZapisanych.getColumnModel().getColumn(2).setPreferredWidth(1000);
 		
 		tabZapisanych.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-		    @Override
+		    /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1684200323320088826L;
+
+			@Override
 		    public Component getTableCellRendererComponent(JTable table, Object value,
 		            boolean isSelected, boolean hasFocus, int row, int column) {
 		        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -1339,6 +1365,10 @@ public class Main extends JFrame {
 	}
 
 	static class TxtFieldForZes extends JPanel{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7572209176711303733L;
 		JTextField rzecz;
 		JTextField ur;
 		private Complex wart;

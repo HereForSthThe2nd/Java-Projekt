@@ -15,6 +15,10 @@ import Inne.Complex;
  * funkcja typu funcnamed to np. exp, ln, oraz funkcje zdefiniowane przez użytkownika
  */
 abstract public class FuncWthName extends Function{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5660417902115773356L;
 	//żadne 2 funkcje FuncNamed nie mogą mieć tego samego pola name
 	final public String name;
 	public FuncWthName(int nofArg, String name) {
@@ -51,6 +55,11 @@ abstract public class FuncWthName extends Function{
 
 abstract class FunctionDefault extends FuncWthName{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7394738283914950742L;
+
 	protected FunctionDefault(int nofArg, String name) {
 		super(nofArg, name);
 	}
@@ -77,6 +86,11 @@ abstract class FunctionDefault extends FuncWthName{
 }
 
 abstract class FuncConstDefault extends FuncWthName{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6608176858072865533L;
+
 	protected FuncConstDefault(String name) {
 		super(0, name);
 	}
@@ -108,6 +122,10 @@ abstract class FuncConstDefault extends FuncWthName{
 }
 
 abstract class FuncSurrWthName extends FuncWthName{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -961712837872623963L;
 	final Function f;
 
 	public FuncSurrWthName(String name, Function f) {
@@ -179,6 +197,11 @@ class FuncGivenName extends FuncSurrWthName{
 }
 
 class VarGivenName extends FuncSurrWthName{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3694781086877775964L;
+
 	protected VarGivenName(String name, Function f) {
 		super(name, f);
 	}
@@ -206,6 +229,12 @@ class VarGivenName extends FuncSurrWthName{
 }
 
 final class FuncConstGivenName extends FuncSurrWthName{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 928736742916336200L;
+
+
 	protected FuncConstGivenName(String name, Function f) {
 		super(name, f);
 		if(f.nofArg != 0) {

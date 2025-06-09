@@ -12,6 +12,10 @@ import java.util.LinkedList;
 import Inne.Complex;
 
 public class FuncComp extends Function {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2737673966955685326L;
 	private FuncWthName f;
 	private Function[] g;
 	public FuncComp(FuncWthName f, Function[] g) {

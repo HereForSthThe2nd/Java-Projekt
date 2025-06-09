@@ -29,6 +29,10 @@ class Bool<T>{
 abstract public class Function implements FuncChecker, Serializable
  {	
 		
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1650548978200084729L;
 	final int type;
 	final public int nofArg;
 	protected Function(int type, int nofArg) {

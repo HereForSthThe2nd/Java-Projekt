@@ -7,6 +7,10 @@ import javax.swing.event.DocumentListener;
 class FunctionTextField extends JTextField{
 	//istnieje, aby kiedy się zmienia ustawienia jak ma być wypisywanafunkcja, to zmienia się tylko jeśli jest "upToDate"
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1580676246610641740L;
 	//opcja dodania listenera wyłapującego tylko zmiany dokonane przez użytkownika
 	private int doneByProgramFlag = 0;
 	//zapamiętuje czy ostatnia zmiana została wykonana przez użytkownika czy przez program

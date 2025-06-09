@@ -10,6 +10,10 @@ import Inne.Complex;
 
 //publiczne tymczasowo na cele testow
 public class FuncNumConst extends Function {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1899910097321712917L;
 	//chodzi o to czy trzeba dodawać nawiasy przy wypisywaniu.
 	final static int DODR=1, //1.09, i, 0   (i to jest szczególny przypadek)
 			DODUR=2, //2i, 2.11i

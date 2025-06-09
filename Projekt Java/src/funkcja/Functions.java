@@ -861,6 +861,11 @@ public class Functions {
 				FunctionPowloka f = new FunctionPowloka(str.substring(3, str.length()-1), new Settings());
 				double d = f.evaluate(new Complex[] {}).x;
 				return new FunctionDefault(1, "ln{"+d+"}") {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1147887075367181046L;
+
 					@Override
 					protected Complex evaluate(Complex[] arg) {
 						return Complex.ln(arg[0], d);
@@ -916,6 +921,10 @@ public class Functions {
 				FunctionPowloka f = new FunctionPowloka(str.substring(4, str.length()-1), new Settings());
 				double d = f.evaluate(new Complex[] {}).x;
 				return new FunctionDefault(2, "pow{"+d+"}") {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -4670303628812155289L;
 					@Override
 					protected Complex evaluate(Complex[] arg) {
 						return Complex.pow(arg[0], arg[1], d);

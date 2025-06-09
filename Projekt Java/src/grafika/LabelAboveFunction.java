@@ -9,6 +9,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 class LabelAboveFunction extends JLabel{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7070361413824931144L;
 	Timer timer;
 	
 	public LabelAboveFunction(String text) {

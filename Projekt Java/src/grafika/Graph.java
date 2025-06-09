@@ -55,6 +55,10 @@ import javax.swing.ImageIcon;
 import java.awt.image.BufferedImage;
 
 public class Graph extends JPanel{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8436283896706339087L;
 	BufferedImage img;
 	private Complex[][] values; //może trochę overkill, zajmuje z 5 razy więcej miejsca niż obraz, może np. zrobić by co 3 - 10 ^ 2 pikseli obliczało wartości po funkcji (i je tylko wtedy zapisywało) a reszę jakoś interpolowało
 	Coordinates coords;
@@ -500,6 +504,10 @@ public class Graph extends JPanel{
 	}
 	
 	class Foreground extends JPanel{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6226797058189817506L;
 		public Color szyba = new Color(0,0,0,0);
 		Complex marker;
 		Complex[] rect;

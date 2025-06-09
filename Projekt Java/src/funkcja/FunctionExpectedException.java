@@ -5,6 +5,10 @@
 package funkcja;
 
 public class FunctionExpectedException extends Exception {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 84463736441828268L;
 	public String messageForUser;
 	public FunctionExpectedException(String message, String messageForDebug) {
 		super(message + "\n" + messageForDebug);

@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.text.DecimalFormat;
 
 public class Complex implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8998826487834311530L;
 	public double x;
 	public double y;
 	public static final Complex NaN = new Complex(Double.NaN, Double.NaN);
