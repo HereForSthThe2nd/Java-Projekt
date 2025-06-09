@@ -5,6 +5,10 @@
 
 package funkcja;
 
+import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.List;
+
 import Inne.Complex;
 
 /*
@@ -39,6 +43,10 @@ abstract public class FuncWthName extends Function{
 	boolean check(String str) {
 		return str.equals(name);
 	}
+	@Override
+	protected Function expandSpecific(String name) {
+		return this.check(name) ? this.expand() : this;
+	}
 }
 
 abstract class FunctionDefault extends FuncWthName{
@@ -60,6 +68,11 @@ abstract class FunctionDefault extends FuncWthName{
 	@Override
 	Function removeDiff() {
 		throw new IllegalArgumentException("Nie powinno do tegodojść " + name);
+	}
+
+	@Override
+	protected LinkedList<String> checkDepecdencies() {
+		return new LinkedList<String>(List.of(this.name));
 	}
 }
 
@@ -86,6 +99,11 @@ abstract class FuncConstDefault extends FuncWthName{
 	@Override
 	Function removeDiff() {
 		return this;
+	}
+
+	@Override
+	protected LinkedList<String> checkDepecdencies() {
+		return new LinkedList<String>(List.of(this.name));
 	}
 }
 
@@ -130,9 +148,21 @@ abstract class FuncSurrWthName extends FuncWthName{
 	protected Function[] reim() { 
 		return f.reim();
 	}	
+
+	@Override
+	protected LinkedList<String> checkDepecdencies() {
+		LinkedList<String>ret = f.checkDepecdencies();
+		ret.add(name);
+		return ret;
+	}
 }
 
 class FuncGivenName extends FuncSurrWthName{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6691458202768274748L;
+
 	protected FuncGivenName(Function f, String name) {
 		super(name, f);
 	}

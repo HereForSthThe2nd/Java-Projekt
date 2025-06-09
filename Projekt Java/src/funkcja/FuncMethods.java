@@ -4,6 +4,7 @@
 
 package funkcja;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,6 +69,43 @@ public class FuncMethods {
 		return max;
 	}
 
+	protected static Function[] expandSpecificAll(Function[] f, String name) {
+		Function[] ret = new Function[f.length];
+		for(int i=0;i<f.length;i++) {
+			ret[i] = f[i].expandSpecific(name);
+		}
+		return ret;
+	}
+	
+	protected static LinkedList<String> checkDepAll(Function[] f) {
+		LinkedList<String> ret = new LinkedList<String>();
+		for(int i=0;i<f.length;i++) {
+			LinkedList<String> reti = f[i].checkDepecdencies();
+			for(String name : reti) {
+				if(!ret.contains(name))
+					ret.add(name);
+			}
+		}
+		return ret;
+	}
+	
+	protected static LinkedList<String> checkDepAll(Function f, Function[] g) {
+		LinkedList<String> ret = new LinkedList<String>();
+		for(int i=0;i<g.length;i++) {
+			LinkedList<String> reti = g[i].checkDepecdencies();
+			for(String name : reti) {
+				if(!ret.contains(name))
+					ret.add(name);
+			}
+		}
+		LinkedList<String> reti = f.checkDepecdencies();
+		for(String name : reti) {
+			if(!ret.contains(name))
+				ret.add(name);
+		}
+		return ret;
+	}
+	
 	protected static int countArguments(LinkedList<Function> f) {
 		int max=0;
 		for(int i=0;i<f.size(); i++) {
@@ -259,7 +297,7 @@ interface FuncChecker{
 /*
  * SimplifyTwo łączy ze sobą elemnty w celu upraszczania (w funcsum i funcmult)
  */
-interface SimplifyTwo{
+interface SimplifyTwo extends Serializable{
 	boolean canPutTogether(Function func1, Function f2);
 	Function putTogether(Function func1, Function func2);
 	

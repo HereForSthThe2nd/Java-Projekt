@@ -29,7 +29,10 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Executable;
 import java.util.LinkedList;
 
@@ -72,6 +75,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 
 import Inne.Complex;
 import funkcja.FuncComp;
@@ -80,8 +88,10 @@ import funkcja.FuncWthName;
 import funkcja.Function;
 import funkcja.FunctionPowloka;
 import funkcja.Functions;
+import funkcja.IncorrectNameException;
 import funkcja.Settings;
 import funkcja.TimeKeeping;
+import funkcja.Functions.NameAndValue;
 import funkcja.FunctionExpectedException;
 import grafika.Graph.CmplxToColor;
 import grafika.Graph.Coordinates;
@@ -91,7 +101,14 @@ public class Main extends JFrame {
 	JPanel zapisFun = new JPanel();
 	
 	JPanel containsWykres;
+	JTable tabZapisanychFunk;
+	JTable tabZapisanychVar;
+	JScrollPane scrlPnTablicaFunkcji;
+	JScrollPane scrlPaneTablicaVar;
+	
 	FunctionTextField funkcjaTextField;
+	JTextField funkcjaDoZap;
+	JPanel containsTable;
 	boolean txtFuncUpToDate = false;
 	Graph legenda;
 	LabelAboveFunction nadFunkcja;
@@ -161,6 +178,7 @@ public class Main extends JFrame {
 								funkcjaTextField.setCaretPosition(caretPosition);//funkcjaTextField.getText().length());
 							else
 								funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
+							
 						} catch (FunctionExpectedException e1) {
 							nadFunkcja.setErrorText(e1.messageForUser);
 						} catch(Exception e) {
@@ -349,7 +367,7 @@ public class Main extends JFrame {
 		    	repaint();
 		    }
 		});
-		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("SLASH"), "przejdz do pola tekstowego");
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl SLASH"), "przejdz do pola tekstowego");
 		rootPane.getActionMap().put("przejdz do pola tekstowego", new AbstractAction() {
 		    @Override
 		    public void actionPerformed(ActionEvent e) {
@@ -420,6 +438,7 @@ public class Main extends JFrame {
 				if(funkcjaTextField.isUpToDate)
 					try {
 						funkcjaTextField.setText(wykres.function.write(ustawienia));
+						doTheTables();
 					} catch (FunctionExpectedException e1) {
 						nadFunkcja.setErrorText(e1.messageForUser);;
 					}
@@ -433,6 +452,7 @@ public class Main extends JFrame {
 				if(funkcjaTextField.isUpToDate)
 					try {
 						funkcjaTextField.setText(wykres.function.write(ustawienia));
+						doTheTables();
 					} catch (FunctionExpectedException e1) {
 						nadFunkcja.setErrorText(e1.messageForUser);
 					}
@@ -454,6 +474,7 @@ public class Main extends JFrame {
 				if(funkcjaTextField.isUpToDate)
 					try {
 						funkcjaTextField.setText(wykres.function.write(ustawienia));
+						doTheTables();
 					} catch (FunctionExpectedException e1) {
 						nadFunkcja.setErrorText(e1.messageForUser);
 					}
@@ -594,12 +615,13 @@ public class Main extends JFrame {
 		JLabel funkNazwLab = new JLabel("Nazwa funkcji:");
 		JTextField funkNazw = new JTextField();
 		JLabel funkjaDoZapLab = new JLabel("Funckja:");
-		JTextField funkcjaDoZap = new JTextField();
+		funkcjaDoZap = new JTextField();
+		funkcjaTextField.setConnected(funkcjaDoZap);
 		funkNazw.setFont(new Font(funkNazw.getFont().getName(), Font.PLAIN, funkNazw.getFont().getSize()+5));
 		funkNazw.setPreferredSize(new Dimension(70, funkNazw.getPreferredSize().height + 10));
 		funkcjaDoZap.setFont(new Font(funkcjaDoZap.getFont().getName(), Font.PLAIN, funkcjaDoZap.getFont().getSize()+5));
 		funkcjaDoZap.setPreferredSize(new Dimension(800, funkcjaDoZap.getPreferredSize().height + 10));
-		
+				
 		gora.add(zapisz);
 		gora.add(fCv);
 		gora.add(usun);
@@ -608,37 +630,162 @@ public class Main extends JFrame {
 		srodek.add(funkjaDoZapLab);
 		srodek.add(funkcjaDoZap);
 		
-		JPanel containsTable = new JPanel();
+		containsTable = new JPanel();
 		containsTable.setLayout(new CardLayout());
 		
-		String header[] = new String[] {"Nazwa", "Ilość argómentów", "Funkcja bazowa"};
-		Object[][] data = new Object[Functions.defaultFunctions.size() + Functions.userFunctions.size()][3];
-		try {
-			for(int i=0;i<Functions.defaultFunctions.size();i++) {
-				data[i][0] = Functions.defaultFunctions.getValues().get(i).name;
-				data[i][1] = Functions.defaultFunctions.getValues().get(i).nofArg;
-				data[i][2] = new FuncComp(Functions.defaultFunctions.getValues().get(i), FuncMethods.returnIdentities((int)data[i][1])).write(ustawienia);
-			}
-			for(int i=Functions.defaultFunctions.size();i<Functions.userFunctions.size()+Functions.defaultFunctions.size();i++) {
-				data[i][0] = Functions.userFunctions.getValues().get(i).name;
-				data[i][1] = Functions.userFunctions.getValues().get(i).nofArg;
-				data[i][2] = Functions.userFunctions.getValues().get(i).expand().putArguments(FuncMethods.returnIdentities((int)data[i][1])).write(ustawienia);
-			}
-
-		}catch(FunctionExpectedException e) {
-			throw new IllegalStateException(e);
-		}
+		doTheTables();
 		
-		JTable tabZapisanych = new JTable(data, header);
-		tabZapisanych.getColumnModel().getColumn(0).setPreferredWidth(100);
-		tabZapisanych.getColumnModel().getColumn(1).setPreferredWidth(110);
-		tabZapisanych.getColumnModel().getColumn(2).setPreferredWidth(1000);
-		containsTable.add(new JScrollPane(tabZapisanych));
+		funkcjaDoZap.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				zapisz.doClick();
+			}
+		});
+		
+		funkNazw.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				funkcjaDoZap.requestFocus();
+				funkcjaDoZap.selectAll();
+			}
+		});
+		
+		zapisz.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					FunctionPowloka fp = new FunctionPowloka(funkcjaDoZap.getText(), ustawienia);
+					FileOutputStream file;
+					if(scrlPnTablicaFunkcji.isVisible()) {
+						FunctionPowloka changed = fp.changeToNamed(funkNazw.getText());
+						file = new FileOutputStream(Functions.zapisaneFunkcjePlik);
+						DefaultTableModel model = (DefaultTableModel) tabZapisanychFunk.getModel();
+						model.addRow(doARow((FuncWthName)changed.getFunction()));
+					}else {
+						FunctionPowloka changed = fp.changeToVar(funkNazw.getText());
+						file = new FileOutputStream(Functions.zapisaneZmiennePlik);
+						DefaultTableModel model = (DefaultTableModel) tabZapisanychVar.getModel();
+						model.addRow(doARow((FuncWthName)changed.getFunction()));
+					}
+					ObjectOutputStream out = new ObjectOutputStream(file);
+					out.writeObject(Functions.userFunctions);
+					out.close();
+					file.close();
+					nadFunkcja.setText("Pomyślnie zapisano funkcję.");
+				} catch (FunctionExpectedException e1) {
+					nadFunkcja.setErrorText(e1.messageForUser);
+				} catch (IncorrectNameException e1) {
+					nadFunkcja.setErrorText(e1.messageForUser);
+				}catch(FileNotFoundException e1) { 
+					e1.printStackTrace();
+				}catch (IOException e1) {
+					e1.printStackTrace();
+					JOptionPane.showMessageDialog(null, "Nie udało się zapisać funkcji.", "Błąd!", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		
+		fCv.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				((CardLayout)containsTable.getLayout()).next(containsTable);
+				if(scrlPnTablicaFunkcji.isVisible()) {
+					fCv.setText("Zmienne");
+					tabZapisanychVar.clearSelection();
+				}
+				else {
+					fCv.setText("Funkcje");
+					tabZapisanychFunk.clearSelection();
+				}
+			}
+		});
+		
+		usun.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				for(int i : tabZapisanychFunk.getSelectedRows()) {
+					String nazwa = (String) tabZapisanychFunk.getValueAt(i, 0);
+					LinkedList<String> safe = Functions.chackIfSafeToRemove(nazwa);
+					if(safe.size() != 0) {
+						String listOfUnsafeFunc = "";
+						for(String str : safe) {
+							listOfUnsafeFunc += str + ", ";
+						}
+						int wybor = JOptionPane.showConfirmDialog(null, "Funkcje " + listOfUnsafeFunc + " zależą od funkcji " + nazwa+". Na pewno usunąć?", "Uwaga", JOptionPane.INFORMATION_MESSAGE);
+						if(wybor == 1)
+							return;
+						Functions.expandAllSpecific(nazwa);
+					}
+					boolean jestBazowe = Functions.defaultFunctions.checkIfContained(nazwa);
+					if(jestBazowe) {
+						JOptionPane.showMessageDialog(null, "Funkcja "+nazwa+"jest wbudowana. Nie można jej usunąć.", "Błąd", JOptionPane.ERROR_MESSAGE);
+						continue;
+					}
+					Functions.userFunctions.removeFunc(nazwa);
+					try {
+						FileOutputStream file = new FileOutputStream(Functions.zapisaneFunkcjePlik);
+						ObjectOutputStream out = new ObjectOutputStream(file);
+						out.writeObject(Functions.userFunctions);
+						file.close();
+						out.close();
+					}catch (IOException e1) {
+						JOptionPane.showMessageDialog(null, "Nie udało się usunąć pliku.", "Błąd", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+				for(int i : tabZapisanychVar.getSelectedRows()) {
+					String nazwa = (String) tabZapisanychVar.getValueAt(i, 0);
+					boolean jestBazowe = Functions.defaultVar.checkIfContained(nazwa);
+					if(jestBazowe) {
+						JOptionPane.showMessageDialog(null, "Funkcja "+nazwa+" jest wbudowana. Nie można jej usunąć.", "Błąd", JOptionPane.ERROR_MESSAGE);
+						continue;
+					}
+					Functions.userVar.removeFunc(nazwa);
+					try {
+						FileOutputStream file = new FileOutputStream(Functions.zapisaneZmiennePlik);
+						ObjectOutputStream out = new ObjectOutputStream(file);
+						out.writeObject(Functions.userVar);
+						file.close();
+						out.close();
+					}catch (IOException e1) {
+						JOptionPane.showMessageDialog(null, "Nie udało się usunąć pliku.", "Błąd", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+				
+				doTheTables();
+
+			}
+		});
+		
+		JPanel uwagi = new JPanel();
+		
+		JLabel czerwTlo = new JLabel("Kolor czerwony oznacza funkcję wbudowaną. Nie można ich usuwać.");
+		//JLabel usuwUwag = new JLabel("Można");
+		uwagi.add(czerwTlo);
 		
 		zapisFun.setLayout(new BoxLayout(zapisFun, BoxLayout.Y_AXIS));
 		zapisFun.add(gora);
 		zapisFun.add(srodek);
 		zapisFun.add(containsTable);
+		zapisFun.add(uwagi);
+	}
+
+	private void doTheTables() {
+		containsTable.removeAll();
+		
+		tabZapisanychFunk = doATable(Functions.defaultFunctions, Functions.userFunctions);
+		tabZapisanychVar = doATable(Functions.defaultVar, Functions.userVar);
+		
+		scrlPnTablicaFunkcji = new JScrollPane(tabZapisanychFunk);
+		scrlPaneTablicaVar = new JScrollPane(tabZapisanychVar);
+		
+		containsTable.add(scrlPnTablicaFunkcji, "funkcje");
+		containsTable.add(scrlPaneTablicaVar, "zmienne");
+		
+		containsTable.revalidate();
 	}
 
 	private void doTheLeft() {
@@ -705,10 +852,27 @@ public class Main extends JFrame {
 		});
 		JButton expand = new JButton("Rozwiń funkcje złożone");
 		JButton zapisaneF = new JButton("Zapisane");
+		
 		zapisaneF.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				((CardLayout)containsWykres.getLayout()).next(containsWykres);
+				if(wykres.isVisible())
+					zapisaneF.setText("Zapisz");
+				else
+					zapisaneF.setText("Wykres");
+			}
+		});
+		
+		expand.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wykres.function = wykres.function.expand();
+				try {
+					funkcjaTextField.setText(wykres.function.write(ustawienia));
+				} catch (FunctionExpectedException e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
 		
@@ -1010,9 +1174,9 @@ public class Main extends JFrame {
 		
 		lewStr.add(new JLabel("Legenda:"));
 		
-		left.add(Box.createRigidArea(new Dimension(0,30)));
+		left.add(Box.createRigidArea(new Dimension(0,5)));
 		left.add(przyciski);
-		left.add(Box.createRigidArea(new Dimension(0,30)));
+		left.add(Box.createRigidArea(new Dimension(0,5)));
 		left.add(lewStr);
 		lewStr.add(legenda);
 		add(left, BorderLayout.WEST);
@@ -1036,6 +1200,55 @@ public class Main extends JFrame {
 		wykres.coords.setPG(z2);
 		lewDolnyTxt.setZesp(z1);
 		prawyGornyTxt.setZesp(z2);
+	}
+	
+	private JTable doATable(NameAndValue def, NameAndValue user) {
+		String header[] = new String[] {"Nazwa", "Ilość argómentów", "Funkcja bazowa"};
+		Object[][] dataFunc = new Object[def.size() + user.size()][3];
+		for(int i=0;i<def.size();i++) {
+			dataFunc[i] = doARow(def.getValues().get(i));
+		}
+		int d = def.size();
+		for(int i=0;i<user.size();i++) {
+			dataFunc[i+d] = doARow(user.getValues().get(i));
+		}		
+		JTable tabZapisanych = new JTable(new DefaultTableModel(dataFunc, header));
+		tabZapisanych.getColumnModel().getColumn(0).setPreferredWidth(100);
+		tabZapisanych.getColumnModel().getColumn(1).setPreferredWidth(110);
+		tabZapisanych.getColumnModel().getColumn(2).setPreferredWidth(1000);
+		
+		tabZapisanych.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+		    @Override
+		    public Component getTableCellRendererComponent(JTable table, Object value,
+		            boolean isSelected, boolean hasFocus, int row, int column) {
+		        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+		        if(row >= def.size()) {
+			        if (!isSelected)
+			            c.setBackground(row % 2 == 0 ? new Color(220,220,220) : Color.WHITE);
+			        if(isSelected)
+			            c.setBackground(row % 2 == 0 ? new Color(164,187,209) : new Color(184,207,229));
+		        }else {
+			        if (!isSelected)
+			            c.setBackground(row % 2 == 0 ? new Color(220,180,180) : new Color(255,200,200));
+			        if(isSelected)
+			            c.setBackground(row % 2 == 0 ? new Color(169,140,189) : new Color(189,145,165));
+
+		        }
+		        return c;
+		    }
+
+		});
+		return tabZapisanych;
+
+	}
+	
+	private Object[] doARow(FuncWthName f) {
+		try {
+			return new Object[] {f.name, f.nofArg, f.expand().putArguments(FuncMethods.returnIdentities(f.nofArg)).write(ustawienia)};
+		} catch (FunctionExpectedException e) {
+			e.printStackTrace();
+			throw new IllegalStateException();
+		}
 	}
 	
  	private SwingWorker<Void, Void> changeFunc(Runnable r) {

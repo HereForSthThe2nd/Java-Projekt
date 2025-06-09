@@ -4,6 +4,8 @@
 
 package funkcja;
 
+import java.util.LinkedList;
+
 import Inne.Complex;
 
 //publiczne tymczasowo na cele testow
@@ -88,5 +90,15 @@ public class FuncNumConst extends Function {
 	@Override
 	Function removeDiff() {
 		return this;
+	}
+
+	@Override
+	protected Function expandSpecific(String name) {
+		return this;
+	}
+
+	@Override
+	protected LinkedList<String> checkDepecdencies() {
+		return new LinkedList<String>();
 	}	
 }

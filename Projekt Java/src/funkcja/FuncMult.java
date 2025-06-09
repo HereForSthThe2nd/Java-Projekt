@@ -416,4 +416,12 @@ class FuncMult extends Function {
 	Function removeDiff() {
 		return new FuncMult(FuncMethods.removeDiffInAll(f));
 	}
+	@Override
+	protected Function expandSpecific(String name) {
+		return new FuncMult(FuncMethods.expandSpecificAll(f, name));
+	}
+	@Override
+	protected LinkedList<String> checkDepecdencies() {
+		return FuncMethods.checkDepAll(f);
+	}
 }

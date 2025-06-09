@@ -81,8 +81,8 @@ class BlokList{
 	BlokList(){};
 	
 	BlokList(String str) throws FunctionExpectedException{
-		if(str.equals(""))
-			throw new FunctionExpectedException("Otwarte nawiasy muszą coś zawierać.");
+		/*if(str.equals(""))
+			throw new FunctionExpectedException("Otwarte nawiasy muszą coś zawierać.");*/
 		int index = 0;
 		while(index<str.length()) {
 			Blok blok = znajdzBlok(str, index);
@@ -214,6 +214,8 @@ class BlokList{
 	}
 	*/
 	LinkedList<BlokList> splitByComma() {
+		if(arr.size() == 0)
+			return new LinkedList<BlokList>();
 		LinkedList<BlokList> ret = new LinkedList<BlokList>();
 		ret.add(new BlokList());
 		for(Blok b : arr) {

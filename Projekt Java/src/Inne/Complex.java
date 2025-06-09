@@ -1,8 +1,9 @@
 package Inne;
 
+import java.io.Serializable;
 import java.text.DecimalFormat;
 
-public class Complex {
+public class Complex implements Serializable{
 	public double x;
 	public double y;
 	public static final Complex NaN = new Complex(Double.NaN, Double.NaN);

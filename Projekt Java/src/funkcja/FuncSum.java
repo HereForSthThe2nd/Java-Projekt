@@ -12,6 +12,7 @@ import Inne.Pair;
 
 class FuncSum extends Function {
 	final Function[] summands;
+	
 	protected FuncSum(Function[] f) {
 		super(Functions.ADD, FuncMethods.countArguments(f));
 		if(f.length == 0) 
@@ -232,5 +233,15 @@ class FuncSum extends Function {
 	@Override
 	Function removeDiff() {
 		return new FuncSum(FuncMethods.removeDiffInAll(summands));
+	}
+
+	@Override
+	protected Function expandSpecific(String name) {
+		return new FuncSum( FuncMethods.expandSpecificAll(summands, name) );
+	}
+
+	@Override
+	protected LinkedList<String> checkDepecdencies() {
+		return FuncMethods.checkDepAll(summands);
 	}
 }

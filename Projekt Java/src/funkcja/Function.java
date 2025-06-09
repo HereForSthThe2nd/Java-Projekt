@@ -7,6 +7,7 @@
 
 package funkcja;
 
+import java.io.Serializable;
 import java.lang.classfile.instruction.ReturnInstruction;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -25,7 +26,7 @@ class Bool<T>{
 	}
 }
 
-abstract public class Function implements FuncChecker
+abstract public class Function implements FuncChecker, Serializable
  {	
 		
 	final int type;
@@ -47,8 +48,14 @@ abstract public class Function implements FuncChecker
 	public abstract Function putArguments(Function[] args);
 	
 	public abstract Function expand();
+	
+	protected abstract Function expandSpecific(String name);
+	
 	//bardzo podstawowe
 	protected abstract Function simplify(Settings setting);
+	
+	//zwraca nazwy funkcji które są w tej funkcji zawarte
+	protected abstract LinkedList<String> checkDepecdencies();
 	
 	protected static String preliminaryChanges(String str) throws FunctionExpectedException {
 		if(str.equals("")) 
@@ -103,7 +110,6 @@ abstract public class Function implements FuncChecker
 				Function[] arg = new Function[argsOfFunction.size()];
 				for(int i=0; i<argsOfFunction.size();i++) {
 					arg[i] = read(argsOfFunction.get(i), settings);
-
 				}
 				TimeKeeping.endTimer("function");
 				return new FuncComp(((BlokWthDefFunction)blok).funkcja, arg);

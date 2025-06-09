@@ -7,6 +7,8 @@
 
 package funkcja;
 
+import java.util.LinkedList;
+
 import Inne.Complex;
 
 public class FuncComp extends Function {
@@ -128,6 +130,8 @@ public class FuncComp extends Function {
 			return Functions.xAndYchecker.returnStr("x", Functions.idChecker.returnNumber(((FuncWthName)g[0]).name));
 		if(settings.writeRealVar && checkComponents(Functions.Im, Functions.idChecker))
 			return Functions.xAndYchecker.returnStr("y", Functions.idChecker.returnNumber(((FuncWthName)g[0]).name));
+		if(g.length == 0)
+			return f.write(settings) + "()";
 		String str = f.write(settings) + "(" + g[0].write(settings);
 		for(int i=1; i<g.length;i++) {
 			str += ", " + g[i].write(settings);
@@ -458,5 +462,13 @@ public class FuncComp extends Function {
 			return g[0].diffY(1, new Settings());
 		}
 		return new FuncComp(f, FuncMethods.removeDiffInAll(g));
+	}
+	@Override
+	protected Function expandSpecific(String name) {
+		return f.expandSpecific(name).putArguments(FuncMethods.expandSpecificAll(g, name));
+	}
+	@Override
+	protected LinkedList<String> checkDepecdencies() {
+		return FuncMethods.checkDepAll(f, g);
 	}
 }

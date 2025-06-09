@@ -166,7 +166,7 @@ public class Graph extends JPanel{
 			
 			@Override
 			public String[] paramsNames() {
-				return new String[] {"Re punktu na granicy", "Im punktu na granicy", "Kąt"};
+				return new String[] {"Re punktu na granicy", "Im punktu na granicy", "Kąt[stopnie]"};
 			}
 			
 			@Override
@@ -177,7 +177,7 @@ public class Graph extends JPanel{
 			@Override
 			public Integer colorOf(Complex z, double... parameters) {
 				Complex z1 = Complex.subt(z, new Complex(parameters[0], parameters[1]));
-				Complex rotated = Complex.mult(z1, Complex.exp(new Complex(0,-parameters[2])));
+				Complex rotated = Complex.mult(z1, Complex.exp(new Complex(0,-parameters[2] * Math.PI / 180)));
 				return rgbToHex(rotated.y > 0 ? Color.black : Color.white);
 			}
 		};

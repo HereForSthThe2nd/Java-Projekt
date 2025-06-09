@@ -6,6 +6,13 @@
 
 package funkcja;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -17,7 +24,7 @@ import funkcja.Function;
 /*
  * NonStandardFuncStr do definiowania funkcji typu ln{α}, dla których istnieje nieskończona ilość możliwych nazw
  */
-interface NonStandardFuncStr extends FuncChecker{
+interface NonStandardFuncStr extends FuncChecker, Serializable{
 	Function returnFunc(String str);
 	boolean check(String str);
 	default boolean check(Function f) {
@@ -36,6 +43,8 @@ public class Functions {
 			MULT=4,
 			POW=5,
 			COMPOSITE=6;
+	public final static String zapisaneFunkcjePlik = "funkcje_Zapisane.ser";
+	public final static String zapisaneZmiennePlik = "zmienne_Zapisane.ser";
 	
 	static Log logChecker = new Log();
 	static Pow powChecker = new Pow();
@@ -43,6 +52,11 @@ public class Functions {
 	static Identities idChecker = new Identities();
 	
 	final private static FuncWthName Ln = new FunctionDefault(1, "Ln") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1110351581456933206L;
+
 		//przy upraszczaniu pamięta konkretną gałąz
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -75,6 +89,11 @@ public class Functions {
 		}
 	};
 	final static FuncWthName ln = new FunctionDefault(1,"ln") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -9012789967668241939L;
+
 		//przy upraszczaniu niekoniecznie pamięta gałąź
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -107,6 +126,11 @@ public class Functions {
 		}
 	};
 	final protected static FuncWthName arg = new FunctionDefault(1, "arg") {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -119639873404520635L;
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -146,6 +170,11 @@ public class Functions {
 		}
 	};
 	final protected static FuncWthName exp = new FunctionDefault(1, "exp") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2206176788336161425L;
+
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return Complex.exp(arg[0]);
@@ -179,6 +208,11 @@ public class Functions {
 	};
 	final protected static FuncWthName sin = new FunctionDefault(1, "sin") {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2937248837597662444L;
+
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return Complex.sin(arg[0]);
@@ -211,6 +245,11 @@ public class Functions {
 		
 	};
 	final protected static FuncWthName cos = new FunctionDefault(1, "cos") {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -696222417875775527L;
 
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -246,6 +285,11 @@ public class Functions {
 	};
 	final protected static FuncWthName sinh = new FunctionDefault(1, "sinh") {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -9157071374432234383L;
+
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return Complex.sinh(arg[0]);
@@ -280,6 +324,11 @@ public class Functions {
 	};
 	final protected static FuncWthName cosh = new FunctionDefault(1, "cosh") {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2153131662667491153L;
+
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return Complex.cosh(arg[0]);
@@ -312,6 +361,11 @@ public class Functions {
 		
 	};
 	final protected static FuncWthName Re = new FunctionDefault(1, "Re") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -8113154337037374698L;
+
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(arg[0].x);
@@ -338,6 +392,11 @@ public class Functions {
 	};
 	final protected static FuncWthName Im = new FunctionDefault(1, "Im") {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2012796293089506692L;
+
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(arg[0].y);
@@ -363,6 +422,10 @@ public class Functions {
 		}
 	};
 	final protected static FuncWthName pow = new FunctionDefault(2,"pow") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7981696045541250720L;
 		//przy upraszczaniu niekoniecznie pamięta gałąź
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -420,6 +483,11 @@ public class Functions {
 	};
 	
 	final protected static FuncWthName diffX = new FunctionDefault(1, "diffX") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 7955277656102383344L;
+
 		//zapewne w inny sposób powinno byc zaimplementowane, najlepiej zmienić całys sposób działania funkcji bazowych
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -444,6 +512,11 @@ public class Functions {
 	};
 	
 	final protected static FuncWthName diffY = new FunctionDefault(1, "diffY") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1450882303364199505L;
+
 		//zapewne w inny sposób powinno byc zaimplementowane, najlepiej zmienić całys sposób działania funkcji bazowych
 		@Override
 		protected Complex evaluate(Complex[] arg) {
@@ -468,6 +541,11 @@ public class Functions {
 
 	
 	final protected static FuncWthName e = new FuncConstDefault("e") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5738869165532584210L;
+
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(Math.E);
@@ -480,6 +558,10 @@ public class Functions {
 
 	};
 	final protected static FuncWthName pi = new FuncConstDefault("pi") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3394572557035232119L;
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex(Math.PI);
@@ -502,7 +584,11 @@ public class Functions {
 		};
 		
 	};
-	final protected static FuncWthName phi = new FuncConstDefault("phi") {
+	final protected static FuncWthName phi = new FuncConstDefault("PHI") {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8146831552882843232L;
 		@Override
 		protected Complex evaluate(Complex[] arg) {
 			return new Complex((Math.sqrt(5)+1)/2);
@@ -525,27 +611,62 @@ public class Functions {
 		};
 
 	};	
-	final protected static Function i = new FuncNumConst(Complex.i);
-		
+	final protected static Function i = new FuncNumConst(Complex.i);	
+	
 	protected static FuncWthName r = new VarGivenName("r", new FuncComp(pow, new Function[] {new FuncSum(new Function []{
 			new FuncComp(pow, new Function[] {xAndYchecker.returnFunc("x"), new FuncNumConst(new Complex(2))}),
 			new FuncComp(pow, new Function[] {xAndYchecker.returnFunc("y"), new FuncNumConst(new Complex(2))})
 			}),
 			new FuncNumConst(new Complex(0.5))}));// new VarGivenName("r", "(x^2+y^2)^1/2", 1);
-	protected static FuncWthName kat = new VarGivenName("\u03c6", new FuncComp(arg, new Function[] {idChecker.returnFunc("z")})) {
+	protected static FuncWthName kat = new VarGivenName("phi", new FuncComp(arg, new Function[] {idChecker.returnFunc("z")})) {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -6641376489766538468L;
 		@Override
 		protected Function[] reim() {
 			return new Function[] {this, new FuncNumConst(new Complex(0))};
 		};
+		@Override
+		public String write(Settings settings) {
+			if(settings.writeNeatVar)
+				return "\u03c6";
+			return super.write(settings);
+		};
 	};
-		
-	public final static nameAndValue defaultVar = new nameAndValue(/*new ArrayList<String>(List.of("e", "pi", "phi", "\u03c6", "r")),*/
+	
+	
+	
+	public final static NameAndValue defaultVar = new NameAndValue(/*new ArrayList<String>(List.of("e", "pi", "phi", "\u03c6", "r")),*/
 			new ArrayList<FuncWthName>(List.of(e ,pi, phi, kat, r)));
-	public final static nameAndValue defaultFunctions = new nameAndValue(
+	public final static NameAndValue defaultFunctions = new NameAndValue(
 			/*new ArrayList<String>(List.of("exp", "Ln","ln", "Re", "Im", "pow", "sin", "cos", "sinh", "cosh","arg", "diffX", "diffY")),*/
 			new ArrayList<FuncWthName>(List.of(exp, Ln, ln, Re, Im, pow, sin, cos, sinh, cosh, arg, diffX, diffY)));
-	public static nameAndValue userFunctions = new nameAndValue();
-	public static nameAndValue userVar = new nameAndValue();
+	public static NameAndValue userFunctions = new NameAndValue();
+	public static NameAndValue userVar = new NameAndValue();
+	static {
+		//opcja szybkiego i prostego zresetowania zapisanego pliku, jeśli coś z nim poszło nie tak
+		if(false)
+			try {
+				FileOutputStream file = new FileOutputStream(Functions.zapisaneFunkcjePlik);
+				ObjectOutputStream out = new ObjectOutputStream(file);
+				out.writeObject(Functions.userFunctions);
+				out.close();
+				file.close();
+			}catch (IOException e) {
+				e.printStackTrace();
+			}
+		try {
+            FileInputStream file = new FileInputStream(zapisaneFunkcjePlik);
+            ObjectInputStream in = new ObjectInputStream(file);
+            userFunctions = (NameAndValue)in.readObject();
+            in.close();
+            file.close();
+		}catch (ClassNotFoundException | IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 	static private void checkNameRequirements(String str) throws IncorrectNameException{
 		if(ckeckIfVar(str) || checkIfNmdFunc(str))
@@ -620,11 +741,43 @@ public class Functions {
 		throw new IllegalArgumentException(str + " nie jest nazwą rzadnej zdefiniowanej zmiennej");
 	}
 
-	public static class nameAndValue{
+	static public LinkedList<String> chackIfSafeToRemove(String name) {
+		//zwraca listę funkcji które od funkcji związanej z name zależą
+		
+		LinkedList<String> ret = new LinkedList<String>();
+		if(!checkIfNmdFunc(name) && !ckeckIfVar(name))
+			throw new IllegalArgumentException("Taka funkcja nie istnieje");
+		for(FuncWthName f : userVar.getValues()) {
+			if(!f.name.equals(name) && f.checkDepecdencies().contains(name))
+				ret.add(f.name);
+		}
+		for(FuncWthName f : userFunctions.getValues()) {
+			if(!f.name.equals(name) && f.checkDepecdencies().contains(name))
+				ret.add(f.name);
+		}
+		return ret;
+	}
+	
+	static public void expandAllSpecific(String name) {
+
+		for(FuncWthName f : userFunctions.getValues()) {
+			userFunctions.changeFunc(f.name, new FuncGivenName(((FuncSurrWthName)f).f.expandSpecific(name), f.name));
+		}
+		for(FuncWthName f : userVar.getValues()) {
+			userFunctions.changeFunc(f.name, new VarGivenName(f.name, ((FuncSurrWthName)f).f.expandSpecific(name)));
+		}
+	}
+
+	
+	public static class NameAndValue implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 7353690714676591302L;
 		LinkedList<String> names = new LinkedList<String>();
 		private ArrayList<FuncWthName> values = new ArrayList<FuncWthName>();
-		nameAndValue(){};
-		nameAndValue(ArrayList<FuncWthName> val){
+		NameAndValue(){};
+		NameAndValue(ArrayList<FuncWthName> val){
 			this.values = val;
 			for(FuncWthName i : values) {
 				names.add(i.name);
@@ -637,9 +790,26 @@ public class Functions {
 			}
 			return -1;
 		}
-		boolean checkIfContained(String str) {
+		public boolean checkIfContained(String str) {
 			return indexOf(str)!=-1;
 		}
+		
+		public void removeFunc(String str) {
+			int i = names.indexOf(str);
+			if(i==-1)
+				throw new IllegalArgumentException("Najpierw powinno się sprawdzić czy str wogóle jest zawarty metodą checkIfContained. str: " + str);
+			names.remove(i);
+			values.remove(i);
+		}
+		
+		public void changeFunc(String str, FuncWthName newFunc) {
+			int i = names.indexOf(str);
+			if(i==-1)
+				throw new IllegalArgumentException("Najpierw powinno się sprawdzić czy str wogóle jest zawarty metodą checkIfContained. str: " + str);
+			values.set(names.indexOf(str), newFunc);
+			names.set(names.indexOf(str), newFunc.name);
+		}
+		
 		FuncWthName functionOf(String str){
 			return values.get(indexOf(str));
 		}
@@ -647,6 +817,8 @@ public class Functions {
 			names.add(str);
 			values.add(val);
 		}
+		
+
 		public int size() {
 			return names.size();
 		}
@@ -656,6 +828,11 @@ public class Functions {
 	}
 
 	static class Log implements NonStandardFuncStr{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8222413127464547793L;
+
 		@Override
 		public boolean check(String str) {
 				if(str.equals("ln")||str.equals("Ln"))
@@ -724,6 +901,11 @@ public class Functions {
 	
 	static class Pow implements NonStandardFuncStr{
 	
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7582922422622201608L;
+
 		@Override
 		public FunctionDefault returnFunc(String str){
 			if(!check(str))
@@ -812,13 +994,22 @@ public class Functions {
 
 	}
 
-	static class Identities implements NonStandardFuncStr{
+	static class Identities implements NonStandardFuncStr, Serializable{
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6379234201053473498L;
 
 		@Override
 		public Function returnFunc(String str) {
 			if(str.equals("z") || str.equals("z[0]")) 
 				return new FuncWthName(1, "z") {
 
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 567997549838106631L;
 					@Override
 					protected Complex evaluate(Complex[] arg) {
 						return arg[0];
@@ -851,13 +1042,22 @@ public class Functions {
 					@Override
 					Function removeDiff() {
 						return this;
-					}	
+					}
+					@Override
+					protected LinkedList<String> checkDepecdencies() {
+						return new LinkedList<String>(List.of(this.name));
+					}
 			};
 			if(str.equals("w")) {
 				return returnFunc("z[1]");
 			}
 			int k = Integer.parseInt(str.substring(2, str.length()-1));
 			return new FuncWthName(k+1, k == 0 ? "z" : str) {
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = -6900464010257719472L;
+
 				@Override
 				protected Complex evaluate(Complex[] arg) {
 					return arg[k];
@@ -894,6 +1094,11 @@ public class Functions {
 				Function removeDiff() {
 					return this;
 				}
+
+				@Override
+				protected LinkedList<String> checkDepecdencies() {
+					return new LinkedList<String>(List.of(this.name));
+				}
 			};
 
 		}
@@ -912,6 +1117,11 @@ public class Functions {
 	}
 	
 	static class BscVariables implements NonStandardFuncStr{
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3865105473422732536L;
 
 		@Override
 		public Function returnFunc(String str) {
