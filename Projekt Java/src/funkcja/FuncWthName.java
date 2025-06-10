@@ -39,7 +39,7 @@ abstract public class FuncWthName extends Function{
 		return false;
 	}
 	@Override
-	final protected Function simplify(Settings setting) {
+	final protected Function simplify(Settings setting) throws FunctionExpectedException {
 		if(setting.evaluateConstants && nofArg == 0)
 			return new FuncNumConst( evaluate(new Complex[] {}) );
 		return this;
@@ -50,6 +50,11 @@ abstract public class FuncWthName extends Function{
 	@Override
 	protected Function expandSpecific(String name) {
 		return this.check(name) ? this.expand() : this;
+	}
+	
+	@Override
+	protected int size() {
+		return 1;
 	}
 }
 
@@ -122,6 +127,7 @@ abstract class FuncConstDefault extends FuncWthName{
 }
 
 abstract class FuncSurrWthName extends FuncWthName{
+	Function[] reimSaved;
 	/**
 	 * 
 	 */
@@ -143,7 +149,7 @@ abstract class FuncSurrWthName extends FuncWthName{
 	}
 	
 	@Override
-	protected Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) throws FunctionExpectedException {
 		return f.evaluate(arg);
 	}
 
@@ -153,18 +159,21 @@ abstract class FuncSurrWthName extends FuncWthName{
 	}
 
 	@Override
-	protected Function diffX(int arg, Settings set) {
+	protected Function diffX(int arg, Settings set) throws FunctionExpectedException {
 		return f.diffX(arg, set);
 	}
 	
 	@Override
-	protected Function diffY(int arg, Settings set) {
+	protected Function diffY(int arg, Settings set) throws FunctionExpectedException {
 		return f.diffY(arg, set);
 	}
 	
 	@Override
-	protected Function[] reim() { 
-		return f.reim();
+	protected Function[] reim() throws FunctionExpectedException { 
+		if(reimSaved == null) {
+			reimSaved = f.reim();
+		}
+		return reimSaved;
 	}	
 
 	@Override
@@ -253,7 +262,7 @@ final class FuncConstGivenName extends FuncSurrWthName{
 	
 
 	@Override
-	protected Function[] reim() { 
+	protected Function[] reim() throws FunctionExpectedException { 
 		if(evaluate(new Complex[] {}).y == 0)
 			return new Function[] {this, new FuncNumConst(new Complex(0))};
 		if(evaluate(new Complex[] {}).x == 0)

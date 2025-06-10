@@ -106,6 +106,13 @@ public class FuncMethods {
 		return ret;
 	}
 	
+	protected static int sizeOfAll(Function[] f) {
+		int ret = 0;
+		for(Function i : f)
+			ret += i.size();
+		return ret;
+	}
+	
 	protected static int countArguments(LinkedList<Function> f) {
 		int max=0;
 		for(int i=0;i<f.size(); i++) {
@@ -115,7 +122,7 @@ public class FuncMethods {
 		return max;
 	}
 	
-	protected static Function[] simplifyAll(Function[] g, Settings settings) {
+	protected static Function[] simplifyAll(Function[] g, Settings settings) throws FunctionExpectedException {
 		Function[] g2 = new Function[g.length];
 		for(int i = 0; i<g.length;i++) {
 			g2[i] = g[i].simplify(settings);
@@ -123,7 +130,7 @@ public class FuncMethods {
 		return g2;
 	}
 
-	protected static LinkedList<Function> simplifyAll(List<Function> g, Settings settings) {
+	protected static LinkedList<Function> simplifyAll(List<Function> g, Settings settings) throws FunctionExpectedException {
 		LinkedList<Function> g2 = new LinkedList<Function>();//[g.size()];
 		for(int i = 0; i<g.size();i++) {
 			g2.add(g.get(i).simplify(settings));
@@ -131,7 +138,7 @@ public class FuncMethods {
 		return g2;
 	}
 	
-	static Function[] removeDiffInAll(Function[] f) {
+	static Function[] removeDiffInAll(Function[] f) throws FunctionExpectedException {
 		Function[] ret = new Function[f.length];
 		for(int i=0;i<f.length;i++) {
 			ret[i] = f[i].removeDiff();
@@ -186,7 +193,7 @@ public class FuncMethods {
 		return g;
 	}
 
-	protected static Complex[] evaluate(Function[] functions, Complex[] args) {
+	protected static Complex[] evaluate(Function[] functions, Complex[] args) throws FunctionExpectedException {
 		Complex[] ret = new Complex[functions.length];
 		for(int i=0; i<functions.length;i++) {
 			ret[i] = functions[i].evaluate(args);

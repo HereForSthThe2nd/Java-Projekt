@@ -633,6 +633,10 @@ public class Functions {
 				return "\u03c6";
 			return super.write(settings);
 		};
+		@Override
+		boolean check(String str) {
+			return super.check(str) || str.equals("\u03c6");
+		};
 	};
 	
 	

@@ -124,7 +124,7 @@ class FuncSum extends Function {
 	};
 		
 	@Override
-	protected Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) throws FunctionExpectedException {
 		Complex sum = new Complex(0);
 		for(int i=0; i<summands.length; i++) {
 			sum.add(summands[i].evaluate(arg));
@@ -133,7 +133,7 @@ class FuncSum extends Function {
 	}
 	
 	@Override
-	protected Function[] reim() {
+	protected Function[] reim() throws FunctionExpectedException {
 		Function reArr[] = new Function[summands.length];
 		Function imArr[] = new Function[summands.length];
 		for(int i =0;i<summands.length;i++) {
@@ -179,7 +179,7 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function simplify(Settings settings) {
+	protected Function simplify(Settings settings) throws FunctionExpectedException {
 		//System.out.println("w funcsum zwróci .  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
@@ -225,7 +225,7 @@ class FuncSum extends Function {
 	}
 
 	@Override
-	protected Function diffX(int arg, Settings set) {
+	protected Function diffX(int arg, Settings set) throws FunctionExpectedException {
 		Function[] summandsMod = new Function[summands.length];
 		for(int i=0;i<summands.length;i++) {
 			summandsMod[i] = summands[i].diffX(arg, set);
@@ -233,7 +233,7 @@ class FuncSum extends Function {
 		return new FuncSum(summandsMod);
 	}
 	@Override
-	protected Function diffY(int arg, Settings set) {
+	protected Function diffY(int arg, Settings set) throws FunctionExpectedException {
 		Function[] summandsMod = new Function[summands.length];
 		for(int i=0;i<summands.length;i++) {
 			summandsMod[i] = summands[i].diffY(arg, set);
@@ -241,7 +241,7 @@ class FuncSum extends Function {
 		return new FuncSum(summandsMod);
 	}
 	@Override
-	Function removeDiff() {
+	Function removeDiff() throws FunctionExpectedException {
 		return new FuncSum(FuncMethods.removeDiffInAll(summands));
 	}
 
@@ -253,5 +253,10 @@ class FuncSum extends Function {
 	@Override
 	protected LinkedList<String> checkDepecdencies() {
 		return FuncMethods.checkDepAll(summands);
+	}
+
+	@Override
+	protected int size() {
+		return FuncMethods.sizeOfAll(summands)+1;
 	}
 }

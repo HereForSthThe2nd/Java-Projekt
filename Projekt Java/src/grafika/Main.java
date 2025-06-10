@@ -142,14 +142,14 @@ public class Main extends JFrame {
 			legenda = new Graph(300);
 			wykres = new Graph(600);
 			wykres.setBackground(new Color(55,200,0));
-			wykres.function = new FunctionPowloka("z^2", new Settings());
+			wykres.function = new FunctionPowloka("z", new Settings());
 			legenda.change(new FunctionPowloka("z", new Settings()), legenda.rect(new Complex(-4, -4), new Complex(4,4)),Graph.basic ,0.5);
 			wykres.change(wykres.function, wykres.rect(new Complex(-3,-3), new Complex(3,3)),Graph.basic, 0.5);
 		} catch (FunctionExpectedException e) {
 			throw new IllegalStateException(e);
 		}
 		JPanel zawieraTextFunckcji = new JPanel();
-		funkcjaTextField = new FunctionTextField("((((((((((((z^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z)^2+z");
+		funkcjaTextField = new FunctionTextField("z");
 		funkcjaTextField.setFont(new Font(funkcjaTextField.getFont().getName(), Font.ITALIC, 20));
 		zawieraTextFunckcji.setLayout(new BoxLayout(zawieraTextFunckcji, BoxLayout.X_AXIS));
 		JPanel panelMaly = new JPanel();
@@ -1025,8 +1025,10 @@ public class Main extends JFrame {
 		comp1 = new JPanel ();
 		comp1.add(new JLabel("Sposób pokolorowania legendy"));
 	
-		
-		JComboBox<String> colorCB= new JComboBox<String>(new String[] {"Podstawowy", "Moduł funkcji", "Półpłaszczyzna", "Koło"});
+		String[] nazwyKolorowan = new String[Graph.listaKolorowan.length];
+		for(int i=0;i<nazwyKolorowan.length;i++)
+			nazwyKolorowan[i] = Graph.listaKolorowan[i].name();
+		JComboBox<String> colorCB= new JComboBox<String>(nazwyKolorowan);
 		
 		JComboBox<String> colorParams = new JComboBox<String>();
 		
@@ -1064,24 +1066,8 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int wybrane = ((JComboBox<String>)colorCB).getSelectedIndex();
-				switch(wybrane) {
-				case 0:
-					wykres.colorMap = Graph.basic;
-					legenda.colorMap = Graph.basic;
-					break;
-				case 1:
-					wykres.colorMap = Graph.noArg;
-					legenda.colorMap = Graph.noArg;
-					break;
-				case 2:
-					wykres.colorMap = Graph.halfPlane;
-					legenda.colorMap = Graph.halfPlane;
-					break;
-				case 3:
-					wykres.colorMap = Graph.circle;
-					legenda.colorMap = Graph.circle;
-					break;
-				}
+				wykres.colorMap = Graph.listaKolorowan[wybrane];
+				legenda.colorMap = Graph.listaKolorowan[wybrane];
 				SwingUtilities.invokeLater(new Runnable() {
 					
 					@Override

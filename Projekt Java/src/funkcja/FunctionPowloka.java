@@ -39,11 +39,11 @@ public class FunctionPowloka {
 		this.f = f;
 	}
 	
-	public Complex evaluate(Complex[] z) {
+	public Complex evaluate(Complex[] z) throws FunctionExpectedException {
 		return f.evaluate(z);
 	}
 	
-	public FunctionPowloka removeDiff() {
+	public FunctionPowloka removeDiff() throws FunctionExpectedException {
 		return new FunctionPowloka(f.removeDiff());
 	}
 	
@@ -70,7 +70,7 @@ public class FunctionPowloka {
 			reim[0].write(set);
 			reim[1].write(set);
 		}catch(FunctionExpectedException e) {
-			throw new FunctionExpectedException("Funckja za długa.z");
+			throw new FunctionExpectedException("Funckja za długa.		");
 		}
 		Function re = (new FunctionPowloka(reim[0]).simplify(set)).getFunction();
 		Function im = (new FunctionPowloka(reim[1]).simplify(set)).getFunction();
@@ -85,11 +85,11 @@ public class FunctionPowloka {
 		return new FunctionPowloka(new FuncSum (new Function[] {re, new FuncMult(new FuncNumConst(Complex.i), im)}));
 	}
 	
-	public FunctionPowloka simplifyOnce(Settings settings) {
+	public FunctionPowloka simplifyOnce(Settings settings) throws FunctionExpectedException {
 		 return new FunctionPowloka(f.simplify(settings));
 	}
 	
-	public FunctionPowloka simplifyPom(Settings settings)  {
+	public FunctionPowloka simplifyPom(Settings settings) throws FunctionExpectedException  {
 		int i = 0;
 		Function fLast = f;
 		Function fNew = fLast.simplify(settings);
@@ -105,7 +105,7 @@ public class FunctionPowloka {
 		return new FunctionPowloka(fNew);
 	}
 	
-	public FunctionPowloka simplify(Settings settings)  {
+	public FunctionPowloka simplify(Settings settings) throws FunctionExpectedException  {
 		if(settings.evaluateConstants) {
 			Settings temp = settings.copy();
 			temp.evaluateConstants = false;

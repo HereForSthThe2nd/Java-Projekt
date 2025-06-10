@@ -41,7 +41,7 @@ public class FuncComp extends Function {
 		return g[k];
 	}
 	@Override
-	protected Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) throws FunctionExpectedException {
 		if(f == Functions.diffX) {
 			return g[0].diffX(1, new Settings()).evaluate(arg);
 		}
@@ -51,7 +51,7 @@ public class FuncComp extends Function {
 		return f.evaluate(FuncMethods.evaluate(g, arg));
 	}
 	@Override
-	protected Function[] reim() {
+	protected Function[] reim() throws FunctionExpectedException {
 		Function re;
 		Function im;
 		try {
@@ -80,7 +80,6 @@ public class FuncComp extends Function {
 					return (new FuncMult(pom)).reim();
 				}
 				else {
-					//TODO: chyba nie działa, sprawdzić to
 					Function[] pom = new Function[(int)g[1].evaluate(null).x];
 					Function pom2 = new FuncComp(f, new Function[] {g[0], new FuncNumConst(new Complex(-1))});
 					for(int i=0;i<pom.length;i++) {
@@ -92,14 +91,17 @@ public class FuncComp extends Function {
 		}catch(FunctionExpectedException e) {
 			throw new IllegalStateException(e);
 		}
-		Function[] retPom = f.reim();	
+		Function[] retPom = f.reim();
+		if(retPom[0].size() > Function.TOOBIG || retPom[1].size() > Function.TOOBIG)
+			throw new FunctionExpectedException("Funckja za długa.");
 		Function[] greim = new Function[f.nofArg*2];
 		for(int i = 0;i<f.nofArg;i++) {
 			Function[]greimi = g[i].reim();
 			greim[2*i] = greimi[0];
 			greim[2*i+1] = greimi[1];
 		}
-		return new Function[] {retPom[0].putArguments(greim), retPom[1].putArguments(greim)};
+		Function[] ret = new Function[] {retPom[0].putArguments(greim), retPom[1].putArguments(greim)};
+		return ret;
 	}
 
 	private String wypiszPotege(Settings settings) throws FunctionExpectedException {
@@ -341,9 +343,6 @@ public class FuncComp extends Function {
 			return new Bool<Function>(new FuncNumConst(new Complex(1)), true);
 		if(checkComponents(Functions.cosh, new FuncNumConst(new Complex(0))))
 			return new Bool<Function>(new FuncNumConst(new Complex(1)), true);
-		//zapomina o tym czy liczba rzeczywista jest dodatnia czy ujemna, ale może warto?
-		//TODO: kiedy wszystko inne bęzie zrobinone sprawdzić czy mogę usunąć poniższe
-		//o co mi chdziło jak pisałem powyższe komentarze?
 		if(checkComponents(Functions.arg, Functions.Re))
 			return new Bool<Function>(new FuncNumConst(new Complex(0)), true);
 		if(checkComponents(Functions.arg, Functions.Im))
@@ -373,7 +372,7 @@ public class FuncComp extends Function {
 	}
 	
 	@Override
-	protected Function simplify(Settings setting) {
+	protected Function simplify(Settings setting) throws FunctionExpectedException {
 		//System.out.println("w funccomp początek.  " + this.write(setting) + "   " + calledSimp);
 		//System.out.println("fueufufeu w  funccomp.simplify");
 		//System.out.println(f.write(new Settings()) + "  " + g[0].write(new Settings()));
@@ -425,7 +424,7 @@ public class FuncComp extends Function {
 		return new FuncComp(f, newArg);
 	}
 	@Override
-	protected Function diffX(int arg, Settings set) {
+	protected Function diffX(int arg, Settings set) throws FunctionExpectedException {
 		if(arg == 0)
 			throw new IllegalArgumentException("Numeracja zaczyna się od 1");
 		if(f.nofArg == 0)
@@ -447,7 +446,7 @@ public class FuncComp extends Function {
 		return new FuncSum(ret);
 	}
 	@Override
-	protected Function diffY(int arg, Settings set) {
+	protected Function diffY(int arg, Settings set) throws FunctionExpectedException {
 		if(f.nofArg == 0)
 			return new FuncNumConst(new Complex(0));
 		if(Functions.diffX.check(f))
@@ -465,7 +464,7 @@ public class FuncComp extends Function {
 		return new FuncSum(ret);
 	}
 	@Override
-	Function removeDiff() {
+	Function removeDiff() throws FunctionExpectedException {
 		if(f == Functions.diffX) {
 			return g[0].diffX(1, new Settings());
 		}
@@ -481,5 +480,9 @@ public class FuncComp extends Function {
 	@Override
 	protected LinkedList<String> checkDepecdencies() {
 		return FuncMethods.checkDepAll(f, g);
+	}
+	@Override
+	protected int size() {
+		return FuncMethods.sizeOfAll(g)+1;
 	}
 }

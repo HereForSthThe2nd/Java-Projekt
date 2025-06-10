@@ -68,11 +68,13 @@ public class Graph extends JPanel{
 	JPanel obraz;
 	Foreground foreGround;
 	static CmplxToColor basic;
-	static CmplxToColor noArg;
-	static CmplxToColor halfPlane;
-	static CmplxToColor circle;
+	private static CmplxToColor noArg;
+	private static CmplxToColor halfPlane;
+	private static CmplxToColor circle;
+	private static CmplxToColor poziomice;
+	public static CmplxToColor[] listaKolorowan;
 	
-	private static double przedNorm(double r) {
+	private static double normalizacja(double r) {
 		//zwraca liczbę z przedziału 0, 1
 		if(r<-0.00001) {
 			throw new IllegalArgumentException("r musi być nieuemne. podane r: " + r);
@@ -98,7 +100,7 @@ public class Graph extends JPanel{
 				HSL[0] = z.arg() + 2.0/3*Math.PI;
 				HSL[1] = 1;
 				//HSL[2] = 2/Math.PI*Math.atan( Math.log(Math.pow(z.mod(), 1/lSpeedChange)+1) );
-				HSL[2] = przedNorm( Math.pow(z.mod(), colorSpeedChange ));
+				HSL[2] = normalizacja( Math.pow(z.mod(), colorSpeedChange ));
 				if(HSL[2]>1 || HSL[2]<0) {
 					throw new IllegalStateException();
 				}
@@ -126,6 +128,11 @@ public class Graph extends JPanel{
 			public String[] paramsNames() {
 				return new String[] {"Szybkość zmiany koloru"};
 			}
+
+			@Override
+			public String name() {
+				return "Podstawowy";
+			}
 			
 		};
 
@@ -139,7 +146,7 @@ public class Graph extends JPanel{
 				HSL[1] = 1;
 				HSL[2] = 0.5;
 				HSL[3] = 255;
-				HSL[0] = 2*Math.PI * (przedNorm( Math.pow(z.mod(), colorChangeSpeed ))) - Math.PI/3;
+				HSL[0] = 2*Math.PI * (0.9*normalizacja( Math.pow(z.mod(), colorChangeSpeed ))) - Math.PI/3;
 				return HSL;
 			}
 			
@@ -164,6 +171,11 @@ public class Graph extends JPanel{
 			public String[] paramsNames() {
 				return new String[] {"Szybkość zmiany koloru"};
 			}
+
+			@Override
+			public String name() {
+				return "Moduł";
+			}
 		};
 	
 		halfPlane = new CmplxToColor() {
@@ -182,7 +194,12 @@ public class Graph extends JPanel{
 			public Integer colorOf(Complex z, double... parameters) {
 				Complex z1 = Complex.subt(z, new Complex(parameters[0], parameters[1]));
 				Complex rotated = Complex.mult(z1, Complex.exp(new Complex(0,-parameters[2] * Math.PI / 180)));
-				return rgbToHex(rotated.y > 0 ? Color.black : Color.white);
+				return rgbToHex(rotated.y > 0 ? Color.black : rotated.y == 0 ? Color.red : Color.WHITE);
+			}
+
+			@Override
+			public String name() {
+				return "Półpłaszczyzna";
 			}
 		};
 	
@@ -200,9 +217,50 @@ public class Graph extends JPanel{
 			
 			@Override
 			public Integer colorOf(Complex z, double... parameters) {
-				return Complex.subt(z, new Complex(parameters[0], parameters[1])).mod() < parameters[2] ? rgbToHex(Color.black) :rgbToHex(Color.white);
+				if(z == null)
+					return null;
+				double r = Complex.subt(z, new Complex(parameters[0], parameters[1])).mod();
+				if(r == parameters[2])
+					return rgbToHex(Color.red);
+				return r < parameters[2] ? rgbToHex(Color.black) :rgbToHex(Color.white);
+			}
+
+			@Override
+			public String name() {
+				return "Koło";
 			}
 		};
+	
+		poziomice = new CmplxToColor() {
+			
+			@Override
+			public String[] paramsNames() {
+				return new String[] {"Gęstość poziomic", "Grubość poziomic"};
+			}
+			
+			@Override
+			public double[] defaultParams() {
+				return new double[] {2, 0.3};
+			}
+			
+			@Override
+			public Integer colorOf(Complex z, double... parameters) {
+				if(Double.isNaN(z.x) || Double.isNaN(z.y) || z == null) {
+					return null;
+				}
+				int l;
+				double rNorm = normalizacja(z.mod());
+				l = (int)(240*rNorm);
+				return rgbToHex( Math.abs(Math.log(z.mod()+1)% (1 / parameters[0])) < parameters[1]/10 ? new Color(l,0,l) : new Color(0,200,0));
+			}
+
+			@Override
+			public String name() {
+				return "Poziomice";
+			}
+		};
+	
+		listaKolorowan = new CmplxToColor[] {basic, noArg, halfPlane, circle, poziomice};
 	}
 	
 	public Complex getValueAt(int x, int y) {
@@ -408,7 +466,11 @@ public class Graph extends JPanel{
 		for(int xI=0; xI<img.getWidth();xI++) {
 			for(int yI=0;yI<img.getHeight();yI++) {
 				Complex z = coords.pointToCmplx(new Point(xI,yI));
-				values[xI][yI] = f.evaluate(new Complex[] {z});
+				try {
+					values[xI][yI] = f.evaluate(new Complex[] {z});
+				} catch (FunctionExpectedException e) {
+					values[xI][yI] = null;
+				}
 			}
 		}
 		setColor(colorMap, parameters);
@@ -487,7 +549,7 @@ public class Graph extends JPanel{
 	}
 	
 	static int rgbToHex(Color color) {
-		return (color.getAlpha() << 24) | (color.getBlue() << 16) | (color.getGreen() << 8) | color.getRed();
+		return (color.getAlpha() << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
 	}
 
 	public Complex integralOfCurve() {
@@ -661,6 +723,7 @@ public class Graph extends JPanel{
 		Integer colorOf(Complex z, double... parameters);
 		double[] defaultParams();
 		String[] paramsNames();
+		String name();
 	}
 	 
 	interface Coordinates{

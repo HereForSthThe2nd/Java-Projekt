@@ -104,5 +104,10 @@ public class FuncNumConst extends Function {
 	@Override
 	protected LinkedList<String> checkDepecdencies() {
 		return new LinkedList<String>();
+	}
+
+	@Override
+	protected int size() {
+		return 1;
 	}	
 }

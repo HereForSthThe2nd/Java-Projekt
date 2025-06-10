@@ -34,15 +34,22 @@ abstract public class Function implements FuncChecker, Serializable
 	 */
 	private static final long serialVersionUID = 1650548978200084729L;
 	final int type;
+	
+	final static int TOOBIG = 1000;//dla tej wartości .size() już nie warto wykonywac obliczeń
+	
 	final public int nofArg;
 	protected Function(int type, int nofArg) {
 		this.type=type;
 		this.nofArg = nofArg;
 	}
-	protected abstract Complex evaluate(Complex[] arg);
+	
+	//zwraca ocene wielkości funkcji
+	protected abstract int size();
+	
+	protected abstract Complex evaluate(Complex[] arg) throws FunctionExpectedException;
 	
 	//w zwróconej funkcji z[2k] reprezentuje część rzeczywistą k-tej zmiennej, a z[2k+1] zmienną urojoną k-tej zmiennej
-	protected abstract Function[] reim();
+	protected abstract Function[] reim() throws FunctionExpectedException;
 	
 	//write nie musi wyglądać dobrze przed uproszczeniem funkcji
 	public abstract String write(Settings settings) throws FunctionExpectedException;
@@ -56,7 +63,7 @@ abstract public class Function implements FuncChecker, Serializable
 	protected abstract Function expandSpecific(String name);
 	
 	//bardzo podstawowe
-	protected abstract Function simplify(Settings setting);
+	protected abstract Function simplify(Settings setting) throws FunctionExpectedException;
 	
 	//zwraca nazwy funkcji które są w tej funkcji zawarte
 	protected abstract LinkedList<String> checkDepecdencies();
@@ -76,10 +83,10 @@ abstract public class Function implements FuncChecker, Serializable
 	
 	//arg - względem którego argumentu brana jest pochodna
 	//dla funkcji zdefiniowanych przez użytkownika liczenie pochodnych może być bardzo wolne, ale naprawienie tego wymagaoby dużo pracy
-	protected abstract Function diffX(int arg, Settings set);
-	protected abstract Function diffY(int arg, Settings set);
+	protected abstract Function diffX(int arg, Settings set) throws FunctionExpectedException;
+	protected abstract Function diffY(int arg, Settings set) throws FunctionExpectedException;
 	
-	abstract Function removeDiff();
+	abstract Function removeDiff() throws FunctionExpectedException;
 	
   	private static BlokList removeParenthases(BlokList bloki) throws FunctionExpectedException {
 		if(bloki.arr.size() == 1 && bloki.arr.get(0).type != Blok.FUNCTION) {

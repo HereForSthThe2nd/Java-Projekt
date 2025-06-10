@@ -229,7 +229,7 @@ class FuncMult extends Function {
 	}*/
 	
 	@Override
-	protected Complex evaluate(Complex[] arg) {
+	protected Complex evaluate(Complex[] arg) throws FunctionExpectedException {
 		Complex mult = new Complex(1);
 		for(int i=0; i<f.length; i++) {
 			mult.mult(f[i].evaluate(arg));
@@ -238,7 +238,7 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function[] reim() {
+	protected Function[] reim() throws FunctionExpectedException {
 		Function[] f0reim = f[0].reim();
 		if(f.length == 1)
 			return f[0].reim();
@@ -354,7 +354,7 @@ class FuncMult extends Function {
 	}
 	
 	@Override
-	protected Function simplify(Settings settings) { 
+	protected Function simplify(Settings settings) throws FunctionExpectedException { 
 		//System.out.println("w funccomp mult.  " + this.write(settings) + "   " + calledSimp);
 		//jest dziwna kombinacja arraylist i array, zapewne najlepiej byłoby po prostu wszystko zmienić na arraylist, ale mi się nie chce
 		//trochę niezręczny kod, ale działa
@@ -400,7 +400,7 @@ class FuncMult extends Function {
 		return new FuncMult((Function[])(organisedMult.toArray(new Function[organisedMult.size()])));
 	}
 	@Override
-	protected Function diffX(int arg, Settings set) {
+	protected Function diffX(int arg, Settings set) throws FunctionExpectedException {
 		if(f.length == 1)
 			return f[0].diffX(arg, set);
 		if(f.length == 2) 
@@ -413,7 +413,7 @@ class FuncMult extends Function {
 		return fP.diffX(arg, set);
 	}
 	@Override
-	protected Function diffY(int arg, Settings set) {
+	protected Function diffY(int arg, Settings set) throws FunctionExpectedException {
 		if(f.length == 1)
 			return f[0].diffY(arg, set);
 		if(f.length == 2) 
@@ -426,7 +426,7 @@ class FuncMult extends Function {
 		return fP.diffY(arg, set);
 	}
 	@Override
-	Function removeDiff() {
+	Function removeDiff() throws FunctionExpectedException {
 		return new FuncMult(FuncMethods.removeDiffInAll(f));
 	}
 	@Override
@@ -436,5 +436,9 @@ class FuncMult extends Function {
 	@Override
 	protected LinkedList<String> checkDepecdencies() {
 		return FuncMethods.checkDepAll(f);
+	}
+	@Override
+	protected int size() {
+		return FuncMethods.sizeOfAll(f) + 1;
 	}
 }
