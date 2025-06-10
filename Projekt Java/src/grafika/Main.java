@@ -930,6 +930,8 @@ public class Main extends JFrame {
 						public void run() {
 							if(xn >= prawyGornyTxt.getWart().x)
 								nadFunkcja.setWarningText("Część rzeczywista lewego dolnego rogu powinna być mniejsza od części rzeczywistej prawego górnego rogu. Obliczono funkcję.");
+							else
+								nadFunkcja.setText("Zmieniono granice obszaru.");
 						}
 					});
 					lewDolnyTxt.ur.requestFocus();
@@ -954,6 +956,8 @@ public class Main extends JFrame {
 						public void run() {
 							if(yn >= prawyGornyTxt.getWart().y)
 								nadFunkcja.setWarningText("Część urojona lewego dolnego rogu powinna być mniejsza od części urojonej prawego górnego rogu. Obliczono funkcję.");
+							else
+								nadFunkcja.setText("Zmieniono granice obszaru.");
 						}
 					});
 					prawyGornyTxt.rzecz.requestFocus();
@@ -977,7 +981,9 @@ public class Main extends JFrame {
 						@Override
 						public void run() {
 							if(xn <= lewDolnyTxt.getWart().x)
-								nadFunkcja.setWarningText("Część rzeczywista prawego górnego rogu powinna być większa od części rzeczywistej lewego  dolnego rogu. Obliczono funkcję.");							
+								nadFunkcja.setWarningText("Część rzeczywista prawego górnego rogu powinna być większa od części rzeczywistej lewego  dolnego rogu. Obliczono funkcję.");
+							else
+								nadFunkcja.setText("Zmieniono granice obszaru.");
 						}
 					});
 					prawyGornyTxt.ur.requestFocus();
@@ -1002,6 +1008,7 @@ public class Main extends JFrame {
 						public void run() {
 							if(yn <= lewDolnyTxt.getWart().y)
 								nadFunkcja.setWarningText("Część urojona prawego górnego rogu powinna być większa od części urojonej lewego dolnego rogu. Obliczono funkcję.");
+							nadFunkcja.setText("Zmieniono granice obszaru");
 						}
 					});
 				}catch(NumberFormatException e1) {
@@ -1304,6 +1311,7 @@ public class Main extends JFrame {
 	
  	private SwingWorker<Void, Void> changeFunc() {
  		return changeFunc(() -> {
+ 			nadFunkcja.setForeground(Color.black);
  			nadFunkcja.setText("Obliczono i pokazano funkcję.");
  		});
 	}

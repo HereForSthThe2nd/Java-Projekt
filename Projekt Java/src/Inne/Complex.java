@@ -115,6 +115,8 @@ public class Complex implements Serializable{
 		return Math.atan2(y, x);
 	}
 	static public Complex mult(Complex a, Complex b) {
+		if(a == null || b == null)
+			return new Complex(Double.NaN, Double.NaN);
 		double s1 = a.x*b.x;
 		double s2 = a.y*b.y;
 		double s3 = (a.x+a.y)*(b.x+b.y);
@@ -130,6 +132,9 @@ public class Complex implements Serializable{
 		if(b.x == 0 && b.y == 0) {
 			return Complex.NaN;
 		}
+		if(a == null || b == null)
+			return new Complex(Double.NaN, Double.NaN);
+
 		double d = b.x*b.x + b.y*b.y;
 		Complex l = Complex.mult(a, b.conj());
 		return new Complex(l.x/d, l.y/d);
@@ -141,6 +146,9 @@ public class Complex implements Serializable{
 		this.y = cmplx.y;
 	}
 	static public Complex add(Complex a, Complex b) {
+		if(a == null || b == null)
+			return new Complex(Double.NaN, Double.NaN);
+
 		return new Complex(a.x+b.x, a.y+b.y);
 	}
 	public void add(Complex b) {
@@ -148,6 +156,9 @@ public class Complex implements Serializable{
 		this.y += b.y;
 	}
 	public static Complex subt(Complex a, Complex b) {
+		if(a == null || b == null)
+			return new Complex(Double.NaN, Double.NaN);
+
 		return new Complex(a.x-b.x, a.y-b.y);
 	}
 	public void subt(Complex b) {

@@ -146,7 +146,7 @@ public class Graph extends JPanel{
 				HSL[1] = 1;
 				HSL[2] = 0.5;
 				HSL[3] = 255;
-				HSL[0] = 2*Math.PI * (0.9*normalizacja( Math.pow(z.mod(), colorChangeSpeed ))) - Math.PI/3;
+				HSL[0] = 2*Math.PI * (0.97*normalizacja( Math.pow(z.mod(), colorChangeSpeed ))) - Math.PI/3;
 				return HSL;
 			}
 			
@@ -250,7 +250,7 @@ public class Graph extends JPanel{
 				}
 				int l;
 				double rNorm = normalizacja(z.mod());
-				l = (int)(240*rNorm);
+				l = (int)(235*rNorm+10);
 				return rgbToHex( Math.abs(Math.log(z.mod()+1)% (1 / parameters[0])) < parameters[1]/10 ? new Color(l,0,l) : new Color(0,200,0));
 			}
 
@@ -553,12 +553,17 @@ public class Graph extends JPanel{
 	}
 
 	public Complex integralOfCurve() {
+		final int div = 1000;
 		Complex ret = new Complex(0);
 		for(LinkedList<Complex> i: foreGround.krzywa) {
 			Complex z0 = i.getFirst();
 			for(Complex z : i) {
-				if(getValueAt(coords.cmplxToPoint(z)) != null && getValueAt(coords.cmplxToPoint(z0)) != null)
-					ret.add(Complex.mult(Complex.subt(z, z0), getValueAt(coords.cmplxToPoint(z))));
+				for(int j = 0;j<div;j++) {
+					Complex val = getValueAt(coords.cmplxToPoint( Complex.add(z0, Complex.mult(Complex.subt(z, z0), new Complex(((double)j)/div)) )));
+					Complex delta = Complex.mult(Complex.subt(z, z0), new Complex(1.0/div));
+					if(! (val == null))
+						ret.add(Complex.mult(delta,val ));
+					}
 				z0 = z;
 			}
 		}
