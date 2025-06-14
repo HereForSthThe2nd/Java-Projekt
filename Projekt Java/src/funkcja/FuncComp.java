@@ -9,6 +9,7 @@ package funkcja;
 
 import java.util.LinkedList;
 
+import Inne.Bool;
 import Inne.Complex;
 
 public class FuncComp extends Function {

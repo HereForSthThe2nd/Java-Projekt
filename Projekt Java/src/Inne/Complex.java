@@ -2,6 +2,8 @@ package Inne;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 public class Complex implements Serializable{
 	/**
@@ -46,8 +48,9 @@ public class Complex implements Serializable{
 	}
 	
 	public String print(int doubleAcc) {
-		DecimalFormat noplus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"));
-		DecimalFormat plus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"));
+		
+		DecimalFormat noplus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"), DecimalFormatSymbols.getInstance(Locale.US));
+		DecimalFormat plus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"), DecimalFormatSymbols.getInstance(Locale.US));
 		plus.setPositivePrefix("+");
 		if(equals(new Complex(0)))
 			return "0";

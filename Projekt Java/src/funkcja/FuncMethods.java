@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import Inne.Bool;
 import Inne.Complex;
 
 public class FuncMethods {

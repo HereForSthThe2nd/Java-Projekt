@@ -90,7 +90,6 @@ import funkcja.FunctionPowloka;
 import funkcja.Functions;
 import funkcja.IncorrectNameException;
 import funkcja.Settings;
-import funkcja.TimeKeeping;
 import funkcja.Functions.NameAndValue;
 import funkcja.FunctionExpectedException;
 import grafika.Graph.CmplxToColor;
@@ -161,34 +160,49 @@ public class Main extends JFrame {
 		zawieraTextFunckcji.add(panelMaly);
 		
 		funkcjaTextField.addActionListener(new ActionListener() {
+			boolean finishedWthError = false;
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>(){
-
+					FunctionPowloka funcTemp;
 					@Override
 					protected Void doInBackground() throws Exception {
+						finishedWthError = false;
 						try {
-							FunctionPowloka funcTemp = new FunctionPowloka(e.getActionCommand(), ustawienia);
-							if(funcTemp.nofArg() > 1) {
+							wykres.function = new FunctionPowloka(e.getActionCommand(), ustawienia);
+							if(wykres.function.nofArg() > 1) {
 								nadFunkcja.setErrorText("Podana funkcja powinna zależeć od jednej zmiennej, a zależy od " + funcTemp.nofArg() + ".");
 								return null;
 							}
-							wykres.function = funcTemp;
-							changeFunc(wykres.function.removeDiff());
-							wykres.function = funcTemp;
+							funcTemp = wykres.function.removeDiff();
 							int caretPosition = funkcjaTextField.getCaretPosition();
 							funkcjaTextField.setText(wykres.function.write(ustawienia));
 							if(caretPosition < funkcjaTextField.getText().length())
 								funkcjaTextField.setCaretPosition(caretPosition);//funkcjaTextField.getText().length());
 							else
 								funkcjaTextField.setCaretPosition(funkcjaTextField.getText().length());
-							
 						} catch (FunctionExpectedException e1) {
 							nadFunkcja.setErrorText(e1.messageForUser);
+							finishedWthError = true;
 						} catch(Exception e) {
 							e.printStackTrace();
+							nadFunkcja.setErrorText("Coś poszło nie tak podczas wczytywania funkcji.");
+							finishedWthError = true;
 						}
 						return null;
+					}
+					@Override
+					protected void done() {
+						super.done();
+						if(!finishedWthError)
+							changeFunc(new Runnable() {
+							@Override
+							public void run() {
+								nadFunkcja.setText("Obliczono i pokazano funkcję.");
+							}
+							
+						}, funcTemp);
+
 					}
 					
 				};
@@ -511,16 +525,16 @@ public class Main extends JFrame {
 		wykresILegendaMenu.add(legendaMenu);
 		wykresILegendaMenu.add(wykresMenu);
 		JCheckBoxMenuItem osieLegendy = new JCheckBoxMenuItem("Osie legendy");
-		JRadioButtonMenuItem legendaTyp = new JRadioButtonMenuItem("Normalna skala");
+		JRadioButtonMenuItem legendaCoTypowe = new JRadioButtonMenuItem("Normalna skala");
 		JRadioButtonMenuItem legendaLogSkala = new JRadioButtonMenuItem("Moduł w skali logarytmicznej");
 		JRadioButtonMenuItem legndaInf = new JRadioButtonMenuItem("Wokół nieksończoności");
 		ButtonGroup legBG = new ButtonGroup();
 		
-		legBG.add(legendaTyp);
+		legBG.add(legendaCoTypowe);
 		legBG.add(legndaInf);
 		legBG.add(legendaLogSkala);
 		legendaMenu.add(osieLegendy);
-		legendaTyp.setSelected(true);
+		legendaCoTypowe.setSelected(true);
 		
 		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie wykresu");
 		JRadioButtonMenuItem wykresTyp = new JRadioButtonMenuItem("Normalna skala");
@@ -533,7 +547,7 @@ public class Main extends JFrame {
 		wykBG.add(wykresLogSkala);
 		wykresTyp.setSelected(true);
 		
-		legendaMenu.add(legendaTyp);
+		legendaMenu.add(legendaCoTypowe);
 		legendaMenu.add(legendaLogSkala);
 		legendaMenu.add(legndaInf);
 
@@ -544,7 +558,7 @@ public class Main extends JFrame {
 		
 		menuBar.add(wykresILegendaMenu);
 		
-		legendaTyp.addActionListener(new ActionListener() {
+		legendaCoTypowe.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -557,15 +571,9 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(legndaInf.isSelected()) {
-					legenda.coords = legenda.aroundInf(legenda.coords.getLD(), legenda.coords.getPG());
-					legenda.change();
+				legenda.coords = legenda.aroundInf(legenda.coords.getLD(), legenda.coords.getPG());
+				legenda.change();
 				}
-				else {
-					legenda.coords = legenda.rect(legenda.coords.getLD(), legenda.coords.getPG());
-					legenda.change();
-				}
-			}
 		});
 	
 		legendaLogSkala.addActionListener(new ActionListener() {
@@ -591,7 +599,7 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wykres.coords = wykres.rect(wykres.coords.getLD(), wykres.coords.getPG());
-				changeFunc();
+				wykres.change();
 			}
 		});
 		
@@ -599,14 +607,8 @@ public class Main extends JFrame {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(wykresInf.isSelected()) {
-					wykres.coords = wykres.aroundInf(wykres.coords.getLD(), wykres.coords.getPG());
-					changeFunc();
-				}
-				else {
-					wykres.coords = wykres.rect(wykres.coords.getLD(), wykres.coords.getPG());
-					changeFunc();
-				}
+				wykres.coords = wykres.aroundInf(wykres.coords.getLD(), wykres.coords.getPG());
+				wykres.change();
 			}
 		});
 
@@ -615,7 +617,7 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wykres.coords = wykres.logarithmic(wykres.coords.getLD(), wykres.coords.getPG());
-				changeFunc();
+				wykres.change();
 			}
 		});
 		
@@ -824,23 +826,29 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 					
 					SwingWorker<Void,Void> uprosc = new SwingWorker<Void, Void>(){
-
+						boolean finishedWthError;
 						@Override
 						protected Void doInBackground() throws Exception {
+							finishedWthError = false;
 							try {
 								nadFunkcja.setTextAnimated("Wczytywanie funkcji");
-								wykres.function = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
+								FunctionPowloka fTemp = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
 								nadFunkcja.setTextAnimated("Upraszczanie funckji");
-								FunctionPowloka fch = wykres.function.simplify(ustawienia);
-								funkcjaTextField.setText(fch.write(ustawienia));
-								changeFunc(fch);
+								wykres.function = fTemp.simplify(ustawienia);
+								funkcjaTextField.setText(wykres.function.write(ustawienia));
 								return null;
 							} catch (FunctionExpectedException e) {
+								finishedWthError = true;
 								nadFunkcja.setErrorText(e.messageForUser);
 								return null;
 							}
 						}
-						
+						@Override
+						protected void done() {
+							super.done();
+							if(!finishedWthError)
+								changeFunc();
+						}
 					};
 					uprosc.execute();
 			}
@@ -851,24 +859,28 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 					SwingWorker<Void,Void> rozbijFunc = new SwingWorker<Void,Void>(){
-
+						boolean finisheWthErrors;
 						@Override
 						protected Void doInBackground() throws Exception {
+							finisheWthErrors = false;
 							try {
 								nadFunkcja.setTextAnimated("Wczytywanie funkcji");
 								FunctionPowloka f = new FunctionPowloka(funkcjaTextField.getText(), ustawienia);
-	
 								nadFunkcja.setTextAnimated("Rozbijanie funkcji");
 								wykres.function = f.splitByRealAndImaginery(ustawienia);
 								funkcjaTextField.setText(wykres.function.write(ustawienia));
-								changeFunc();
 							} catch (FunctionExpectedException e1) {
 								nadFunkcja.setErrorText(e1.messageForUser);
 							} catch(Exception e) {
 								e.printStackTrace();
 							}
-
 							return null;
+						}
+						@Override
+						protected void done() {
+							super.done();
+							if(!finisheWthErrors)
+								changeFunc();
 						}
 					};
 					rozbijFunc.execute();
@@ -933,7 +945,7 @@ public class Main extends JFrame {
 							else
 								nadFunkcja.setText("Zmieniono granice obszaru.");
 						}
-					});
+					}, wykres.function);
 					lewDolnyTxt.ur.requestFocus();
 					lewDolnyTxt.ur.selectAll();
 				}catch(NumberFormatException e1) {
@@ -959,7 +971,7 @@ public class Main extends JFrame {
 							else
 								nadFunkcja.setText("Zmieniono granice obszaru.");
 						}
-					});
+					}, wykres.function);
 					prawyGornyTxt.rzecz.requestFocus();
 					prawyGornyTxt.rzecz.selectAll();
 				}catch(NumberFormatException e1) {
@@ -985,7 +997,7 @@ public class Main extends JFrame {
 							else
 								nadFunkcja.setText("Zmieniono granice obszaru.");
 						}
-					});
+					}, wykres.function);
 					prawyGornyTxt.ur.requestFocus();
 					prawyGornyTxt.ur.selectAll();
 				}catch(NumberFormatException e1) {
@@ -1010,7 +1022,7 @@ public class Main extends JFrame {
 								nadFunkcja.setWarningText("Część urojona prawego górnego rogu powinna być większa od części urojonej lewego dolnego rogu. Obliczono funkcję.");
 							nadFunkcja.setText("Zmieniono granice obszaru");
 						}
-					});
+					}, wykres.function);
 				}catch(NumberFormatException e1) {
 					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
 					lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
@@ -1268,18 +1280,20 @@ public class Main extends JFrame {
 			throw new IllegalStateException();
 		}
 	}
-	
- 	private SwingWorker<Void, Void> changeFunc(Runnable r) {
+
+	WorkerWthFinish<Void,Void> current;
+	private WorkerWthFinish<Void, Void> changeFunc(Runnable r, FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
-		SwingWorker<Void,Void> narysuj = new SwingWorker<Void, Void>(){
-
+		WorkerWthFinish<Void,Void> narysuj = new WorkerWthFinish<Void, Void>(){
+			boolean finish = false;
 			@Override
 			protected Void doInBackground() throws Exception {
 				try {
 					
-					wykres.change(wykres.function, wykres.coords ,wykres.colorMap, wykres.colorMapParams);
-					
+					wykres.change(f, wykres.coords ,wykres.colorMap, wykres.colorMapParams);
+					if(finish)
+						return null;
 					legenda.foreGround.resetCurve();
 					for(LinkedList<Complex> krzywa : wykres.foreGround.krzywa) {
 						legenda.foreGround.addNewCurve();
@@ -1303,8 +1317,18 @@ public class Main extends JFrame {
 				super.done();
 				r.run();
 			}
+			@Override
+			public void finish() {
+				if(wykres.instancesOfChange.size() > 0) {
+					wykres.instancesOfChange.set(wykres.instancesOfChange.size()-1, false);
+				}
+				finish = true;
+			}
 			
 		};
+		if(current != null)
+			current.finish();
+		current = narysuj;
 		narysuj.execute();
 		return narysuj;
 	}
@@ -1313,9 +1337,11 @@ public class Main extends JFrame {
  		return changeFunc(() -> {
  			nadFunkcja.setForeground(Color.black);
  			nadFunkcja.setText("Obliczono i pokazano funkcję.");
- 		});
+ 		}, wykres.function);
 	}
+
  	
+ 	/*
 	private void changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
 		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
@@ -1341,7 +1367,7 @@ public class Main extends JFrame {
 				e.printStackTrace();
 			}
 	}
-
+	*/
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			

@@ -59,6 +59,7 @@ public class Graph extends JPanel{
 	 * 
 	 */
 	private static final long serialVersionUID = 8436283896706339087L;
+	private static int PODZIALRYSOWANIA = 10;
 	BufferedImage img;
 	private Complex[][] values; //może trochę overkill, zajmuje z 5 razy więcej miejsca niż obraz, może np. zrobić by co 3 - 10 ^ 2 pikseli obliczało wartości po funkcji (i je tylko wtedy zapisywało) a reszę jakoś interpolowało
 	Coordinates coords;
@@ -308,6 +309,7 @@ public class Graph extends JPanel{
 		foreGround.setBorder(obrBorder);
 		setPreferredSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
 		setSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
+		values = new Complex[img.getWidth()][img.getHeight()];
 		
 	}
 	
@@ -457,19 +459,51 @@ public class Graph extends JPanel{
 		};
 	}
 	
+	LinkedList<Boolean> instancesOfChange = new LinkedList<Boolean>();
 	public void change(FunctionPowloka f, Coordinates coords ,CmplxToColor colorMap, double...parameters) {
+		int thisInstanceOfChange = instancesOfChange.size();
+		instancesOfChange.add(true);
 		this.function = f;
 		this.coords = coords;
 		this.colorMap = colorMap;
 		this.colorMapParams = parameters;
-		values = new Complex[img.getWidth()][img.getHeight()];
+		Complex[] z = new Complex[1];
+		int X = img.getWidth() / PODZIALRYSOWANIA;
+		int Y = img.getHeight() / PODZIALRYSOWANIA;
+		int xPI;
+		int yPI;
+		for(int n=0; n<PODZIALRYSOWANIA*2-1;n++) {
+			boolean przekrPrz = (n > (PODZIALRYSOWANIA-1));
+			for(int i = 0;i < (przekrPrz ? 2*PODZIALRYSOWANIA-n-1 : n+1); i++) {
+				xPI = (przekrPrz ? n+1 - PODZIALRYSOWANIA : 0)+i;
+				yPI = (przekrPrz ? 0 : PODZIALRYSOWANIA - (n+1))+i;
+				//System.out.println(xPI + ", " + yPI + ", " + n + ", " + i);
+				for(int xI=X*xPI;xI<X*(xPI+1);xI++) {
+					for(int yI = Y*yPI;yI<Y*(yPI+1);yI++) {
+						if(!instancesOfChange.get(thisInstanceOfChange))
+							return;
+						z[0] = coords.pointToCmplx(new Point(xI,yI));
+						try {
+							values[xI][yI] = f.evaluate(z);
+						} catch (FunctionExpectedException e) {
+							values[xI][yI] = null;
+						}
+					}
+				}
+				setColor(colorMap, new  Point(X*xPI, Y*yPI), new Point(X*(xPI+1), Y*(yPI+1)), parameters);
+			}
+		}
 		for(int xI=0; xI<img.getWidth();xI++) {
 			for(int yI=0;yI<img.getHeight();yI++) {
-				Complex z = coords.pointToCmplx(new Point(xI,yI));
-				try {
-					values[xI][yI] = f.evaluate(new Complex[] {z});
-				} catch (FunctionExpectedException e) {
-					values[xI][yI] = null;
+				if(!instancesOfChange.get(thisInstanceOfChange))
+					return;
+				if(xI >= X*PODZIALRYSOWANIA || yI >= Y*PODZIALRYSOWANIA) {
+					z[0] = coords.pointToCmplx(new Point(xI,yI));
+					try {
+						values[xI][yI] = f.evaluate(z);
+					} catch (FunctionExpectedException e) {
+						values[xI][yI] = null;
+					}
 				}
 			}
 		}
@@ -480,38 +514,40 @@ public class Graph extends JPanel{
 		change(function, coords, colorMap, colorMapParams);
 	}
 	
-	public void setColor(CmplxToColor colorMap, double... parameters) {
-		SwingWorker<Void,Void> draw = new SwingWorker<Void, Void>() {
-			boolean finish = false;
-			@Override
-			protected Void doInBackground() throws Exception {
-
+	private void setColor(CmplxToColor colorMap, Point LDBound, Point PGBound, double... parameters) {
+		//SwingWorker<Void,Void> draw = new SwingWorker<Void, Void>() {
+		//	@Override
+		//	protected Void doInBackground() throws Exception {
+				Integer color;
 				try {
-					for(int xI=0; xI<img.getWidth();xI++) {
-						if(!finish)
-							for(int yI=0;yI<img.getHeight();yI++) {
-								Integer color = colorMap.colorOf(values[xI][yI], parameters);
-								if(color == null) {
-									img.setRGB(xI, yI, rgbToHex((xI+yI)%40<20 ? Color.MAGENTA : new Color(230,230,230)));
-									continue;
-								}
-								img.setRGB(xI, yI, color);
+					for(int xI=LDBound.x; xI<PGBound.x;xI++) {
+						for(int yI=LDBound.y;yI<PGBound.y;yI++) {
+							color = colorMap.colorOf(values[xI][yI], parameters);
+							if(color == null) {
+								img.setRGB(xI, yI, rgbToHex((xI+yI)%40<20 ? Color.MAGENTA : new Color(230,230,230)));
+								continue;
 							}
+							img.setRGB(xI, yI, color);
+						}
 					}
-					return null;
+		//			return null;
 				} catch (Exception e) {
 					e.printStackTrace();
-					return null;
+		//			return null;
 				}
-			}
+		//	}
 			
-			@Override
-			protected void done() {
+		//	@Override
+		//	protected void done() {
 				repaint();
-			}
-		};
-		draw.execute();
+		//	}
+		//};
+		//draw.execute();
 
+	}
+	
+	public void setColor(CmplxToColor colorMap, double... parameters) {
+		setColor(colorMap, new Point(0,0), new Point(img.getWidth(), img.getHeight()), parameters);
 	}
 	
 	static int[] HSLToRGB(double[] HSL) {
@@ -551,9 +587,9 @@ public class Graph extends JPanel{
 	static int rgbToHex(Color color) {
 		return (color.getAlpha() << 24) | (color.getRed() << 16) | (color.getGreen() << 8) | color.getBlue();
 	}
-
+	
 	public Complex integralOfCurve() {
-		final int div = 1000;
+		final int div = 100;
 		Complex ret = new Complex(0);
 		for(LinkedList<Complex> i: foreGround.krzywa) {
 			Complex z0 = i.getFirst();
@@ -745,4 +781,4 @@ public class Graph extends JPanel{
 			return cmplxToPoint(z, getLD(), getPG());
 		};
 	}
-}
+	}
