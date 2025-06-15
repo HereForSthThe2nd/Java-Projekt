@@ -90,7 +90,6 @@ import funkcja.FunctionPowloka;
 import funkcja.Functions;
 import funkcja.IncorrectNameException;
 import funkcja.Settings;
-import funkcja.TimeKeeping;
 import funkcja.Functions.NameAndValue;
 import funkcja.FunctionExpectedException;
 import grafika.Graph.CmplxToColor;
@@ -687,16 +686,20 @@ public class Main extends JFrame {
 						file = new FileOutputStream(Functions.zapisaneFunkcjePlik);
 						DefaultTableModel model = (DefaultTableModel) tabZapisanychFunk.getModel();
 						model.addRow(doARow((FuncWthName)changed.getFunction()));
+						ObjectOutputStream out = new ObjectOutputStream(file);
+						out.writeObject(Functions.userFunctions);
+						out.close();
+						file.close();
 					}else {
 						FunctionPowloka changed = fp.changeToVar(funkNazw.getText());
 						file = new FileOutputStream(Functions.zapisaneZmiennePlik);
 						DefaultTableModel model = (DefaultTableModel) tabZapisanychVar.getModel();
 						model.addRow(doARow((FuncWthName)changed.getFunction()));
+						ObjectOutputStream out = new ObjectOutputStream(file);
+						out.writeObject(Functions.userVar);
+						out.close();
+						file.close();
 					}
-					ObjectOutputStream out = new ObjectOutputStream(file);
-					out.writeObject(Functions.userFunctions);
-					out.close();
-					file.close();
 					nadFunkcja.setText("Pomyślnie zapisano funkcję.");
 				} catch (FunctionExpectedException e1) {
 					nadFunkcja.setErrorText(e1.messageForUser);
@@ -798,6 +801,10 @@ public class Main extends JFrame {
 	}
 
 	private void doTheTables() {
+		boolean varWasV = false;
+		if(scrlPaneTablicaVar != null && scrlPaneTablicaVar.isVisible()) {
+			varWasV = true;
+		}
 		containsTable.removeAll();
 		
 		tabZapisanychFunk = doATable(Functions.defaultFunctions, Functions.userFunctions);
@@ -808,9 +815,10 @@ public class Main extends JFrame {
 		
 		containsTable.add(scrlPnTablicaFunkcji, "funkcje");
 		containsTable.add(scrlPaneTablicaVar, "zmienne");
-		
 		containsTable.revalidate();
-	}
+		if(varWasV)
+			((CardLayout)containsTable.getLayout()).next(containsTable);
+		}
 
 	private void doTheLeft() {
 		JPanel left = new JPanel();

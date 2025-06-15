@@ -104,11 +104,9 @@ class BlokList{
 	}
 	
 	protected int find(String str, int side) {
-		TimeKeeping.startTimer("BlokList");
 		if(side == 1) {
 			for(int i=0;i<arr.size();i++) {
 				if(arr.get(i).str.equals(str)) {
-					TimeKeeping.endTimer("BlokList");
 					return i;
 				}
 			}
@@ -116,18 +114,15 @@ class BlokList{
 		if(side == -1) {
 			for(int i=arr.size()-1;i>-1;i--) {
 				if(arr.get(i).str.equals(str)) {
-					TimeKeeping.endTimer("BlokList");
 					return i;
 				}
 			}
 		}
-		TimeKeeping.endTimer("BlokList");
 		return -1;
 	}
 	
 	protected int findConcatenation(int side) {
 		//jak są dwa nie-operatory napisane z rzędu, daje indeks pierwszego z nich, side = +-1
-		TimeKeeping.startTimer("BlokList");
 		boolean ostatniNieOperator = false;
 		if(side == 1) {
 			for(int i=0;i<arr.size();i++) {
@@ -136,7 +131,6 @@ class BlokList{
 					continue;
 				}
 				if(ostatniNieOperator) {
-					TimeKeeping.endTimer("BlokList");
 					return i-1;
 				}
 				ostatniNieOperator = true;
@@ -149,13 +143,11 @@ class BlokList{
 					continue;
 				}
 				if(ostatniNieOperator) {
-					TimeKeeping.endTimer("BlokList");
 					return i;
 				}
 				ostatniNieOperator = true;
 			}
 		}
-		TimeKeeping.endTimer("BlokList");
 		return -1;
 
 	}
@@ -175,10 +167,8 @@ class BlokList{
  	}
 	
 	protected BlokList subList(int begin, int end) {
-		TimeKeeping.startTimer("BlokList");
 		//kreuje podlistę od indeksu begin do end-1 włącznie
 		if(begin >= arr.size() || end <= 0 || end <= begin) {
-			TimeKeeping.endTimer("BlokList");
 			return new BlokList();
 		}
 		if(begin < 0 || end > arr.size())
@@ -186,7 +176,6 @@ class BlokList{
 		BlokList sub = new BlokList();
 		for(int i=begin;i<end;i++) 
 			sub.arr.add(arr.get(i));
-		TimeKeeping.endTimer("BlokList");
 		return sub;
 	}
 	
@@ -233,18 +222,15 @@ class BlokList{
 	}		
 	
 	protected static String configureStr(String str) {
-		TimeKeeping.startTimer("BlokList");
 		//usuwa zewnętrzne nawiasy
 		int[] konce = wNawiasach(str, 0);
 		while(konce[0]==0 && konce[1] == str.length()-1) {
 			str = str.substring(1, str.length()-1);
 			if(str.equals("")) {
-				TimeKeeping.endTimer("BlokList");
 				return "";
 			}
 			konce = wNawiasach(str, 0);
 		}
-		TimeKeeping.endTimer("BlokList");
 		return str;
 	}
 
@@ -384,7 +370,6 @@ class BlokList{
 	} 
 	
 	private static int[] wNawiasach(String str, int index) {
-		TimeKeeping.startTimer("BlokList");
 		//sprawdza czy pole o indeksie index jest zawarte pomiędzy dwoma nawiasami ()
 		//jeśli tak zwraca ich położenia jeśli nie zwraca -1 dla odpowiednich stron. wynik {-1, (.)!=-1} lub odwrotnie oznacza błędną składnię
 		//zwraca położenia najbardzei jwewnętrznych nawiasów możliwych
@@ -422,7 +407,6 @@ class BlokList{
 				break;
 			}
 		}
-		TimeKeeping.endTimer("BlokList");
 		return konce;
 	} 
 	
@@ -459,13 +443,11 @@ class BlokList{
 	}
 	
 	private static Blok znajdzBlokPom(String str, int index) throws FunctionExpectedException {
-		TimeKeeping.startTimer("BlokList");
 		//zwraca położenia końców bloku wokół index. Zwraca indeks lewej strony oraz indeks+1 prawej.
 		//nie włącza funkcji i ich argumentów w jeden blok
 		if(index < 0)
 			throw new IllegalArgumentException("Niepoprawne argumenty. Indeks musi być >= 0. Indeks: "+index + " str: " + str);
 		if(index >= str.length()) {
-			TimeKeeping.endTimer("BlokList");
 			return new Blok(str, new int[] {index+1,index+1}, Blok.NULL);
 		}
 		int[] konce = {index, index};
@@ -498,7 +480,6 @@ class BlokList{
 			}
 		if(isOperation) {
 			type = Blok.OPERATION;
-			TimeKeeping.endTimer("BlokList");
 			return new Blok(str, index, index+1, type);
 		}
 		if(isWord) {
@@ -526,7 +507,6 @@ class BlokList{
 					konce[0] -= 1;
 			}
 			konce[0]++;
-			TimeKeeping.endTimer("BlokList");
 			return new Blok(str, konce[0], konce[1], type);
 		}
 		
@@ -550,7 +530,6 @@ class BlokList{
 				throw new FunctionExpectedException("Liczba \"" + str.substring(konce[0], konce[1]) + "\" zawiera w sobie więcej niż jedną kropkę.");
 			if(countCommas == 1 && str.length() == 1)
 				throw new FunctionExpectedException("Występuje kropka, która nie jest wewnątrz liczby.");
-			TimeKeeping.endTimer("BlokList");
 			return new Blok(str, konce, type);
 		}
 		if(isParenthases) {
@@ -562,11 +541,9 @@ class BlokList{
 								"\n caly str: " + str);
 			konce[0] = temp[0];
 			konce[1] = temp[1]+1;
-			TimeKeeping.endTimer("BlokList");
 			return new Blok(str, konce, type);
 		}
 		if(str.charAt(index) == ',') {
-			TimeKeeping.endTimer("BlokList");
 			return new Blok(str, new int[] {index, index+1}, Blok.PRZECINEK);
 		}
 		else {

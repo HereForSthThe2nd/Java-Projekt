@@ -652,9 +652,9 @@ public class Functions {
 		//opcja szybkiego i prostego zresetowania zapisanego pliku, jeśli coś z nim poszło nie tak
 		if(false)
 			try {
-				FileOutputStream file = new FileOutputStream(Functions.zapisaneFunkcjePlik);
+				FileOutputStream file = new FileOutputStream(Functions.zapisaneZmiennePlik);
 				ObjectOutputStream out = new ObjectOutputStream(file);
-				out.writeObject(Functions.userFunctions);
+				out.writeObject(Functions.userVar);
 				out.close();
 				file.close();
 			}catch (IOException e) {
@@ -664,6 +664,12 @@ public class Functions {
             FileInputStream file = new FileInputStream(zapisaneFunkcjePlik);
             ObjectInputStream in = new ObjectInputStream(file);
             userFunctions = (NameAndValue)in.readObject();
+            in.close();
+            file.close();
+            
+            file = new FileInputStream(zapisaneZmiennePlik);
+            in = new ObjectInputStream(file);
+            userVar = (NameAndValue)in.readObject();
             in.close();
             file.close();
 		}catch (ClassNotFoundException | IOException e) {

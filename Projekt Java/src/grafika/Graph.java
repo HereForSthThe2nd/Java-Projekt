@@ -553,7 +553,7 @@ public class Graph extends JPanel{
 	}
 
 	public Complex integralOfCurve() {
-		final int div = 1000;
+		final int div = 50;
 		Complex ret = new Complex(0);
 		for(LinkedList<Complex> i: foreGround.krzywa) {
 			Complex z0 = i.getFirst();
