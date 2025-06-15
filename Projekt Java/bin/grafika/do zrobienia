@@ -1,0 +1,9 @@
+do zrobienia:
+
+ - ? zabezpieczenie przed obliczaniem wielu funkcji naraz, a potem wyświetlaniu ich w kolejności w której się akurat obliczyły
+
+ - Możliwość wybrania granic wykresu i legendy
+ - ? obliczanie funkcji co parę pikseli z interpolacją pomiędzy, z ustawieniem aby to zmienić
+ - ? kiedy użytkownik ponownie kliknie że chce pokazać funkcję która już się oblicza ignoruje polecenie i mu mówi że już robi
+ - różne sposoby pokolorowania legendy
+ - ogólnie dokończenie lub usunięcie niezrobionych rzeczy
