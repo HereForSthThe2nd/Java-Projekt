@@ -467,11 +467,14 @@ public class FuncComp extends Function {
 	@Override
 	Function removeDiff() throws FunctionExpectedException {
 		if(f == Functions.diffX) {
-			return g[0].diffX(1, new Settings());
+			Function func = g[0].diffX(1, new Settings());
+			System.out.println(func.write(new Settings()));
+			return func;
 		}
 		if(f == Functions.diffY) {
 			return g[0].diffY(1, new Settings());
 		}
+		
 		return new FuncComp(f, FuncMethods.removeDiffInAll(g));
 	}
 	@Override

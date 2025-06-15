@@ -25,6 +25,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -124,6 +126,16 @@ public class Main extends JFrame {
 	Settings ustawienia = new Settings();
 	
 	public Main() {
+		JSlider temp = new JSlider(0, 10, 0);
+		temp.addChangeListener(new ChangeListener() {
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				wykres.colorMapParams[0] = temp.getValue();
+				wykres.obraz.repaint();
+			}
+		});
+		zapisFun.add(temp);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600,500));
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -210,13 +222,22 @@ public class Main extends JFrame {
 			}
 		});
 		
+		wykres.obraz.addMouseWheelListener(new MouseWheelListener() {
+			
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				wykres.coords.noweZewn(e.getPoint(), Math.pow(1.2, e.getWheelRotation()));
+				changeFunc();
+			}
+		});
+		
 		legenda.obraz.addMouseMotionListener(new MouseMotionListener() {
 			
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				//Complex val = Complex.add(legenda.coords.getLD(), new Complex (e.getX()/rec.getWidth()*(legenda.prawyGorny.x-legenda.coords.getLD().x), (1-e.getY()/rec.getHeight())*(legenda.prawyGorny.y-legenda.coords.getLD().y)));
 				Complex val = legenda.coords.pointToCmplx(e.getPoint());
-				wartosc.setText(val.printE(2, 2));
+				wartosc.setText(val.printE(3, 3));
 				legenda.foreGround.marker = val;
 				legenda.repaint();
 			}
@@ -244,11 +265,11 @@ public class Main extends JFrame {
 				Complex arg = wykres.coords.pointToCmplx(e.getPoint());
 				Complex val = wykres.getValueAt(e.getX(), e.getY());
 				if(arg!=null)
-					argument.setText(arg.printE(2, 2));
+					argument.setText(arg.printE(3, 3));
 				else
 					argument.setText("Jeszcze nie obliczone");
 				if(val != null)
-					wartosc.setText(val.printE(2, 2));
+					wartosc.setText(val.printE(3, 3));
 				else
 					wartosc.setText("Jeszcze nie obliczone");
 				wykres.foreGround.marker = arg;
@@ -264,8 +285,8 @@ public class Main extends JFrame {
 					//Complex arg = Complex.add(wykres.coords.getLD(), new Complex (e.getX()/rec.getWidth()*(wykres.prawyGorny.x-wykres.coords.getLD().x), (1-e.getY()/rec.getHeight())*(wykres.prawyGorny.y-wykres.coords.getLD().y)));
 					Complex arg = wykres.coords.pointToCmplx(e.getPoint());
 					Complex val = wykres.getValueAt(e.getX(), e.getY());
-					argument.setText(arg.printE(2, 2));
-					wartosc.setText(val.printE(2, 2));
+					argument.setText(arg.printE(3, 3));
+					wartosc.setText(val.printE(3, 3));
 					wykres.foreGround.marker = arg;
 					legenda.foreGround.marker = val;
 					if(rysowanie.isSelected() && wykres.foreGround.krzywa.size() != 0) {
@@ -304,17 +325,11 @@ public class Main extends JFrame {
 					wykres.foreGround.rect = null;
 					wykres.foreGround.szyba = new Color(0,0,0,50);
 					wykres.foreGround.repaint();
-					SwingWorker<Void,Void> work = changeFunc();
-					work.addPropertyChangeListener(new PropertyChangeListener() {
-						@Override
-						public void propertyChange(PropertyChangeEvent evt) {
-						    if (evt.getPropertyName().equals("state") &&
-						        evt.getNewValue() == SwingWorker.StateValue.DONE) {
-								wykres.foreGround.szyba = new Color(0,0,0,0);
-								wykres.foreGround.repaint();
-						    }
-						}
-					});
+					changeFunc(()->{
+						nadFunkcja.setText("Obliczono i pokazano funkcję.");
+						wykres.foreGround.szyba = new Color(0,0,0,0);
+						wykres.foreGround.repaint();
+					}, wykres.function);
 				}
 			}
 			
@@ -599,7 +614,7 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wykres.coords = wykres.rect(wykres.coords.getLD(), wykres.coords.getPG());
-				wykres.change();
+				changeFunc();
 			}
 		});
 		
@@ -608,7 +623,7 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wykres.coords = wykres.aroundInf(wykres.coords.getLD(), wykres.coords.getPG());
-				wykres.change();
+				changeFunc();
 			}
 		});
 
@@ -617,7 +632,7 @@ public class Main extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wykres.coords = wykres.logarithmic(wykres.coords.getLD(), wykres.coords.getPG());
-				wykres.change();
+				changeFunc();
 			}
 		});
 		
@@ -1282,15 +1297,16 @@ public class Main extends JFrame {
 	}
 
 	WorkerWthFinish<Void,Void> current;
+	int timeIndTemp=0;
 	private WorkerWthFinish<Void, Void> changeFunc(Runnable r, FunctionPowloka f) {
-		nadFunkcja.setForeground(Color.black);
-		nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
+		int thisInd = timeIndTemp++;
+		//nadFunkcja.setForeground(Color.black);
+		//nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
 		WorkerWthFinish<Void,Void> narysuj = new WorkerWthFinish<Void, Void>(){
 			boolean finish = false;
 			@Override
 			protected Void doInBackground() throws Exception {
 				try {
-					
 					wykres.change(f, wykres.coords ,wykres.colorMap, wykres.colorMapParams);
 					if(finish)
 						return null;
@@ -1306,7 +1322,7 @@ public class Main extends JFrame {
 						}
 					}
 					calkaTxtArea.setText(wykres.integralOfCurve().printE(2, 2));
-					legenda.repaint();
+					//legenda.repaint();
 				}catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -1316,20 +1332,31 @@ public class Main extends JFrame {
 			protected void done() {
 				super.done();
 				r.run();
+				if(executeWhenDone != null)
+					executeWhenDone.run();
 			}
 			@Override
 			public void finish() {
-				if(wykres.instancesOfChange.size() > 0) {
-					wykres.instancesOfChange.set(wykres.instancesOfChange.size()-1, false);
-				}
 				finish = true;
-			}
-			
+			}			
 		};
-		if(current != null)
-			current.finish();
-		current = narysuj;
-		narysuj.execute();
+		synchronized(this) {
+			if(current != null && !current.isDone()) {
+				current.executeWhenDone = new Runnable() {
+					
+					@Override
+					public void run() {
+						narysuj.execute();
+						current = narysuj;
+					}
+				};
+				wykres.stopAllOngoingChangeMethods();
+				current.finish();
+			}else {
+				current = narysuj;
+				current.execute();
+			}
+		}
 		return narysuj;
 	}
 	

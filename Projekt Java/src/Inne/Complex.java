@@ -21,7 +21,7 @@ public class Complex implements Serializable{
 	
 	static public String toStr(double a, int doubleAcc, int whenToShorten) {
 		//dla doubla
-		String format = "%."+whenToShorten;
+		String format = "%."+doubleAcc;
 		if((Math.abs(a) < Math.pow(10, whenToShorten) && Math.abs(a) >= Math.pow(10, -whenToShorten)) || a == 0) {
 			format += "f";
 			return String.format(format, a);
@@ -91,8 +91,6 @@ public class Complex implements Serializable{
 			return toStr(x, doubleAcc, whenToShorten)+" - i"+toStr(-y, doubleAcc, whenToShorten);
 		return x + ", i" + y;
 	}
-
-
 	
 	public Complex(double x, double y){
 
@@ -125,6 +123,10 @@ public class Complex implements Serializable{
 		double s3 = (a.x+a.y)*(b.x+b.y);
 		return new Complex(s1-s2, s3-s1-s2);
 	}
+	static public Complex mult(Complex a, double b) {
+		return new Complex(a.x*b, a.y*b);
+	}
+
 	public void mult(Complex b) {
 		Complex cmplx = mult(this,b);
 		this.x = cmplx.x;
@@ -154,6 +156,18 @@ public class Complex implements Serializable{
 
 		return new Complex(a.x+b.x, a.y+b.y);
 	}
+	static public Complex add(Complex[] zL) {
+		double xRet = 0;
+		double yRet = 0;
+		for(Complex z : zL) {
+			if(z == null)
+				return null;
+			xRet += z.x;
+			yRet += z.y;
+		}
+		return new Complex(xRet, yRet);
+	}
+
 	public void add(Complex b) {
 		this.x += b.x;
 		this.y += b.y;
@@ -230,9 +244,6 @@ public class Complex implements Serializable{
 	}
 	public Complex pow(Complex b, double d) {
 		return pow(this,b, d);
-	}
-	public static void main(String[] args) {
-
 	}
 }
 
