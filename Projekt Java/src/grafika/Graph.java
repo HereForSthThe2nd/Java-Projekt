@@ -69,12 +69,12 @@ public class Graph extends JPanel{
 	private static final long serialVersionUID = 8436283896706339087L;
 	//w zmianie funkcji na ile bloków dzieli graf (w poziomie * w pionie)
 	private static final int PODZIALRYSOWANIA = 10;
-	//co ile pikseli oblicza wartość funkcji
-	private static final int DELTA = 4;
 	BufferedImage img;
-	BufferedImage imgSmaller;
-	private Complex[][] values; //może trochę overkill, zajmuje z 5 razy więcej miejsca niż obraz, może np. zrobić by co 3 - 10 ^ 2 pikseli obliczało wartości po funkcji (i je tylko wtedy zapisywało) a reszę jakoś interpolowało
+	private final int ROZ;
+	private Complex[][] values;
 	Coordinates coords;
+	private Complex lewyDolnyImg;//może być inny niż ten w coords: kiedy obszar jest większy/mniejszy od obszaru w którym znane są wartości funckji
+	private Complex prawyGornyImg;//może być inny niż ten w coords: kiedy obszar jest większy/mniejszy od obszaru w którym znane są wartości funckji
 	FunctionPowloka function;
 	CmplxToColor colorMap;
 	double[] colorMapParams;
@@ -101,15 +101,24 @@ public class Graph extends JPanel{
 	}
 		
 	public Graph(int bok) {
+		ROZ = bok;
 		img = new BufferedImage(bok,bok,BufferedImage.TYPE_INT_ARGB);
-		imgSmaller = new BufferedImage(bok/DELTA, bok/DELTA, BufferedImage.TYPE_INT_ARGB);
+		//imgSmaller = new BufferedImage(bok/DELTA, bok/DELTA, BufferedImage.TYPE_INT_ARGB);
 		obraz = new JPanel() {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void paint(Graphics g) {
 				super.paintComponent(g);
-				g.drawImage(img, 0, 0, this);
-            }
+				Graphics2D g2D = (Graphics2D)g;
+				//Complex diagF = Complex.subt(prawyGornyImg, lewyDolnyImg);
+				//Complex diagRz = Complex.subt(coords.getPG(), coords.getLD());
+				//Image res = img.getScaledInstance((int)(img.getWidth() * (diagF.x / diagRz.x)), (int)(img.getHeight() * (diagF.x / diagRz.x)), Image.SCALE_SMOOTH);
+				//g2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+				//g2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+				//g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				//Point bounds = coords.cmplxToPoint(new Complex(lewyDolnyImg.x, prawyGornyImg.y));
+				g2D.drawImage(img, 0, 0, null);
+			}
 		};
 		obraz.setSize(bok, bok);
 		obraz.setPreferredSize(new Dimension(bok,bok));
@@ -122,9 +131,7 @@ public class Graph extends JPanel{
 		foreGround.setBorder(obrBorder);
 		setPreferredSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
 		setSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
-		int dodValX = (DELTA - (getWidth() - 1) % DELTA) % DELTA;
-		int dodValY = (DELTA - (getHeight() - 1) % DELTA) % DELTA;
-		values = new Complex[img.getWidth() + dodValX][img.getHeight() + dodValY];
+		values = new Complex[ROZ][ROZ];
 	}
 	
 	static {
@@ -309,10 +316,16 @@ public class Graph extends JPanel{
 	}
 	
 	public Complex getValueAt(Point p) {
+		//Point ld = coords.cmplxToPoint(lewyDolnyImg);
+		//Point pg = coords.cmplxToPoint(prawyGornyImg);
+		Complex z = coords.pointToCmplx(p);
+		Point pOnImg = coords.cmplxToPoint(z, lewyDolnyImg, prawyGornyImg);
 		try {
-			return values[p.x][p.y];
-		}catch(ArrayIndexOutOfBoundsException e) {
-			return null;
+			//int xOnImg = (p.x-ld.x) * ROZ / (pg.x - ld.x);
+			//int yOnImg = (p.y-pg.y) * ROZ/ (ld.y - pg.y);
+			return values[pOnImg.x * ROZ / img.getWidth()][pOnImg.y * ROZ / img.getHeight()];
+		}catch(ArrayIndexOutOfBoundsException | ArithmeticException e) {
+			return Complex.NaN;
 		}
 	}
 	
@@ -339,10 +352,10 @@ public class Graph extends JPanel{
 	public Coordinates rect(Complex lewyDolny, Complex prawyGorny) {
 		return new Coordinates() {
 			private Complex lewDolny = lewyDolny;
-			private Complex prawDolny = prawyGorny;
+			private Complex prawGorny = prawyGorny;
 			@Override
 			public Complex pointToCmplx(Point p, Complex argLewDolny, Complex argPrawGorny) {
-				Complex diag = Complex.subt(prawDolny, argLewDolny);
+				Complex diag = Complex.subt(argPrawGorny, argLewDolny);
 				Complex ret = Complex.add(argLewDolny, new Complex(	diag.x * p.x/img.getWidth(), diag.y * (img.getHeight()-p.y)/img.getHeight()));
 				//System.out.println(p + "  " + ret.print(2) + " " + prawyGorny.print(2) + " " + lewyDolny.print(2) + " " + width);
 				return ret;
@@ -350,7 +363,7 @@ public class Graph extends JPanel{
 			
 			@Override
 			public Point cmplxToPoint(Complex z, Complex argLewDolny, Complex argPrawGorny) {
-				Complex diag = Complex.subt(prawDolny, argLewDolny);
+				Complex diag = Complex.subt(argPrawGorny, argLewDolny);
 				Complex zWzgl = Complex.subt(z, argLewDolny);
 				Point ret = new Point((int)(img.getWidth()*zWzgl.x/diag.x), (int)(img.getHeight() - img.getHeight()*zWzgl.y/diag.y));
 				return ret;
@@ -358,7 +371,7 @@ public class Graph extends JPanel{
 
 			@Override
 			public Complex getPG() {
-				return prawDolny;
+				return prawGorny;
 			}
 
 			@Override
@@ -368,7 +381,7 @@ public class Graph extends JPanel{
 
 			@Override
 			public void setPG(Complex PG) {
-				prawDolny = PG;
+				prawGorny = PG;
 			}
 
 			@Override
@@ -377,7 +390,7 @@ public class Graph extends JPanel{
 			}
 
 			@Override
-			public Complex[] noweZewn(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
+			public Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
 				Complex z0 = pointToCmplx(p);
 				Complex[] ret = new Complex[] {Complex.add(z0, Complex.mult(new Complex(alpha), Complex.subt(getLD(), z0))), 
 						Complex.add(z0, Complex.mult(new Complex(alpha), Complex.subt(getPG(), z0)))};
@@ -429,14 +442,14 @@ public class Graph extends JPanel{
 			}
 
 			@Override
-			public Complex[] noweZewn(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
+			public Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
 				Complex a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(prawyGorny, lewyDolny));
 				Complex b = Complex.mult(new Complex(1.0/2), Complex.add(lewyDolny, prawyGorny));
 				Complex z = pointToCmplx(p);
 				Complex zeta = Complex.div(a, Complex.subt(z, b));
 				Complex aNow = Complex.mult(new Complex(alpha), a);
 				Complex bNow = Complex.add(Complex.div(Complex.mult(a, new Complex(1-alpha)), zeta), b);
-				return new Complex[] {Complex.subt(Complex.div(aNow, new Complex(1,1)), bNow), Complex.add(Complex.div(aNow, new Complex(1,1)), bNow)};
+				return new Complex[] {Complex.subt(bNow, Complex.div(aNow, new Complex(1,1))), Complex.add(Complex.div(aNow, new Complex(1,1)), bNow)};
 			}
 
 		};
@@ -490,7 +503,7 @@ public class Graph extends JPanel{
 			}
 
 			@Override
-			public Complex[] noweZewn(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
+			public Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
 				// TODO Auto-generated method stub
 				return null;
 			}
@@ -498,84 +511,18 @@ public class Graph extends JPanel{
 		};
 	}
 	
-	private void calculateAllVal(FunctionPowloka f, Point lewyDolny, Point prawyGorny, boolean[] alrCalculatedSides) {
-		//jest w stanie obliczyć jeśli różnica pr.gornego i lewego dolnego jest niewygodna względem DELTA, al preferowane jest aby tak nie było
-		//dol i gora jako odpowiednio mniejsze i większe y: na końcowym obrazie jest odwrotnie
-		//nie jest maksymalnie zoptymalizowane, ale powinno być okej
-		int xD = (lewyDolny.x / DELTA) * DELTA;
-		int xG = (prawyGorny.x / DELTA) * DELTA;
-		int yD = (lewyDolny.y / DELTA) * DELTA;
-		int yG = (prawyGorny.y / DELTA) * DELTA;
-		xD = alrCalculatedSides[0] ? xD + DELTA : xD;
-		xG = alrCalculatedSides[2] ? xG - DELTA : xG;
-		yD = alrCalculatedSides[1] ? yD + DELTA : yD;
-		yG = alrCalculatedSides[2] ? yG - DELTA : yG;
-		System.out.println(xD +", " + xG +", " + yD + ", " +yG );
-		System.out.println(lewyDolny + ", " + prawyGorny);
-		System.out.println(alrCalculatedSides[0] + ", " + alrCalculatedSides[1]+ ", "+alrCalculatedSides[2]+ ", "+alrCalculatedSides[3]);
-		for(int xI = xD; xI <= xG; xI += DELTA) {
-			for(int yI = yD; yI <= yG; yI += DELTA) {
-				try {
-					values[xI][yI] = f.evaluate(new Complex[] {coords.pointToCmplx(new Point(xI,yI))});
-				} catch (FunctionExpectedException e) {
-					values[xI][yI] = Complex.NaN;
-				}
-			}
-		}
-		int a = 0;
-		//liczy w niektórych punktach podwójnie
-		for(int xI = lewyDolny.x;xI<prawyGorny.x;xI++) {
-			for(int yI=lewyDolny.y;yI<prawyGorny.y;yI++) {
-				int xDok = xI - xI%DELTA;
-				int yDok = yI - yI%DELTA;
-				try {
-					values[xI][yI] = Complex.div(Complex.add(new Complex[] {
-						Complex.mult(values[xDok][yDok], taxMetric(xI,yI,xDok,yDok)),
-						Complex.mult(values[xDok+DELTA][yDok], taxMetric(xI,yI,xDok+DELTA,yDok)),
-						Complex.mult(values[xDok][yDok+DELTA], taxMetric(xI,yI,xDok,yDok+DELTA)),
-						Complex.mult(values[xDok+DELTA][yDok+DELTA], taxMetric(xI,yI,xDok+DELTA,yDok+DELTA)) 
-					}), new Complex(4*DELTA));
-				}catch (NullPointerException e) {
-					if(a++<1)
-						System.out.println(xI + ", " + yI + ", " + xDok + ", " + yDok + ", (null)" + ", " + values[xDok][yDok]+ ", " +values[xDok+DELTA][yDok] + ", " +values[xDok][yDok+DELTA] + ", " + values[xDok+DELTA][yDok+DELTA]);
-				}
-			}
-		}
-	}
-	
-	private int taxMetric(int x1, int y1, int x2, int y2) {
-		return Math.abs(x1-x2) + Math.abs(y1-y2);
-	}
-	
-	//raczej okropnie zrobione...
-	LinkedList<Bool<Integer>> instancesOfChange = new LinkedList<Bool<Integer>>();
-	private synchronized int addCorrectly(){
-		instancesOfChange.add(new Bool<Integer>(instancesOfChange.size(), true));
-		return instancesOfChange.size()-1;
-	}
-	public synchronized void stopAllOngoingChangeMethods() {
-		instancesOfChange = new LinkedList<Bool<Integer>>();
-	}
-	private synchronized boolean checkIfThisChangeISStillActive(int i) {
-		for(Bool<Integer> inst : instancesOfChange) {
-			if(inst.f.equals(i)) {
-				if(!inst.bool)
-					return false;
-				else
-					return true;
-			}
-		}
-		return false;
-	}
+	InstanceManager changeM = new InstanceManager();
 	public void change(FunctionPowloka f, Coordinates coords ,CmplxToColor colorMap, double...parameters) {
-		int thisInstanceOfChange = addCorrectly();
+		int thisInstanceOfChange = changeM.addInstance();
 		this.function = f;
 		this.coords = coords;
+		lewyDolnyImg = coords.pointToCmplx( new Point(0,img.getHeight()) );
+		prawyGornyImg = coords.pointToCmplx( new Point(img.getWidth(),0) );
 		this.colorMap = colorMap;
 		this.colorMapParams = parameters;
 		Complex[] z = new Complex[1];
-		int X = img.getWidth() / PODZIALRYSOWANIA;
-		int Y = img.getHeight() / PODZIALRYSOWANIA;
+		int X = ROZ / PODZIALRYSOWANIA;
+		int Y = ROZ / PODZIALRYSOWANIA;
 		int xPI;
 		int yPI;
 		for(int n=0; n<PODZIALRYSOWANIA*2-1;n++) {
@@ -586,10 +533,11 @@ public class Graph extends JPanel{
 				if(true)
 					for(int xI=X*xPI;xI<X*(xPI+1);xI++) {
 						for(int yI = Y*yPI;yI<Y*(yPI+1);yI++) {
-							if(!checkIfThisChangeISStillActive(thisInstanceOfChange)) {
+							if(!changeM.stillActive(thisInstanceOfChange)) {
 								return;
 							}
-							z[0] = coords.pointToCmplx(new Point(xI,yI));
+							Point point = new Point(img.getWidth()*xI/ROZ, img.getHeight()*yI/ROZ);
+							z[0] = coords.pointToCmplx(point);
 							try {
 								values[xI][yI] = f.evaluate(z);
 							} catch (FunctionExpectedException e) {
@@ -597,12 +545,7 @@ public class Graph extends JPanel{
 							}
 						}
 					}
-				else {
-					boolean[] juzObl;
-					juzObl = new boolean[] {xPI != 0, false, false, yPI != PODZIALRYSOWANIA - 1}; 
-					calculateAllVal(f, new Point(X*xPI, Y*yPI),  new Point(X*(xPI+1), Y*(yPI+1)), juzObl);
-				}
-				//setColor(this.colorMap, new  Point(X*xPI, Y*yPI), new Point(X*(xPI+1), Y*(yPI+1)), parameters);
+				setColor(this.colorMap, new  Point(X*xPI, Y*yPI), new Point(X*(xPI+1), Y*(yPI+1)), parameters);
 			}
 		}
 		/*
@@ -623,34 +566,40 @@ public class Graph extends JPanel{
 				}
 			}
 		}*/
-		setColor(this.colorMap, parameters);
+		//setColor(this.colorMap, parameters);
 	}
 	
 	public void change() {
 		change(function, coords, colorMap, colorMapParams);
 	}
 	
+	InstanceManager scM = new InstanceManager();
 	private void setColor(CmplxToColor colorMap, Point LDBound, Point PGBound, double... parameters) {
+		int thisI = scM.addInstance();
 		//SwingWorker<Void,Void> draw = new SwingWorker<Void, Void>() {
 		//	@Override
 		//	protected Void doInBackground() throws Exception {
 				Integer color;
 				try {
-					for(int xI=LDBound.x; xI<PGBound.x;xI+=DELTA) {
-						for(int yI=LDBound.y;yI<PGBound.y;yI+=DELTA) {
-							color = colorMap.colorOf(values[xI][yI], parameters);
+					for(int xI=LDBound.x; xI<PGBound.x;xI+=1) {
+						for(int yI=LDBound.y;yI<PGBound.y;yI+=1) {
+							//if(!scM.stillActive(thisI))
+								//return;
+							color = colorMap.colorOf(getValueAt(xI, yI), parameters);
 							if(color == null) {
-								imgSmaller.setRGB(xI/DELTA, yI/DELTA, rgbToHex((xI+yI)%40<20 ? Color.MAGENTA : new Color(230,230,230)));
+								img.setRGB(xI, yI, rgbToHex((xI+yI)%40<20 ? Color.MAGENTA : new Color(230,230,230)));
 								continue;
 							}
-							img.setRGB(xI/DELTA, yI/DELTA, color);
+							img.setRGB(xI, yI, color);
 						}
 					}
-					Graphics2D g2D = img.createGraphics();
-					
-					g2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-					g2D.drawImage(imgSmaller.getScaledInstance(img.getWidth()*2, img.getHeight(), 0), 0, 0, img.getWidth(), img.getHeight(), null);
-					g2D.dispose();
+					//Graphics2D g2D = img.createGraphics();
+					//Image res = imgSmaller.getScaledInstance(img.getWidth(), img.getHeight(), Image.SCALE_SMOOTH);
+			        //g2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+			        //g2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			        //g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					//g2D.drawImage(imgSmaller, 0, 0,img.getWidth(),img.getHeight(), null);
+					//g2D.dispose();
 		//			return null;
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -715,9 +664,9 @@ public class Graph extends JPanel{
 		for(LinkedList<Complex> i: foreGround.krzywa) {
 			Complex z0 = i.getFirst();
 			for(Complex z : i) {
+				Complex delta = Complex.mult(Complex.subt(z, z0), new Complex(1.0/div));
 				for(int j = 0;j<div;j++) {
 					Complex val = getValueAt(coords.cmplxToPoint( Complex.add(z0, Complex.mult(Complex.subt(z, z0), new Complex(((double)j)/div)) )));
-					Complex delta = Complex.mult(Complex.subt(z, z0), new Complex(1.0/div));
 					if(! (val == null))
 						ret.add(Complex.mult(delta,val ));
 					}
@@ -816,15 +765,20 @@ public class Graph extends JPanel{
 			if(rect != null) {
 				g2D.setColor(Color.BLACK);
 				g2D.setStroke(new BasicStroke(2));
-				Point[] rectP = new Point[] {coords.cmplxToPoint(rect[0]), coords.cmplxToPoint(rect[1])};
+				//Point[] rectP = new Point[] {coords.cmplxToPoint(rect[0]), coords.cmplxToPoint(rect[1])};
 				/*g2D.drawLine(rectP[0].x,rectP[0].y, rectP[0].x, rectP[1].y);
 				g2D.drawLine(rectP[0].x, rectP[1].y, rectP[1].x, rectP[1].y);
 				g2D.drawLine(rectP[1].x, rectP[1].y, rectP[1].x, rectP[0].y);
 				g2D.drawLine(rectP[1].x, rectP[0].y, rectP[0].x, rectP[0].y);*/
+				g2D.setColor(Color.red);
 				drawWillBeLine(g2D, rect[0], new Complex(rect[0].x, rect[1].y), 100);
+				g2D.setColor(Color.yellow);
 				drawWillBeLine(g2D, rect[0], new Complex(rect[1].x, rect[0].y), 100);
+				g2D.setColor(Color.black);
 				drawWillBeLine(g2D, rect[1], new Complex(rect[1].x, rect[0].y), 100);
+				g2D.setColor(Color.blue);
 				drawWillBeLine(g2D, rect[1], new Complex(rect[0].x, rect[1].y), 100);
+				g2D.setColor(Color.black);
 			}
 			
 			if(osie) {
@@ -858,11 +812,24 @@ public class Graph extends JPanel{
 
 		}
 
+		private String temp(Color r) {
+			if(r.equals(Color.red))
+				return "\033[0;31m";
+			if(r.equals(Color.yellow))
+				return "\033[0;33m";
+			if(r.equals(Color.black))
+				return "\033[0;30m";
+			if(r.equals(Color.blue))
+				return "\033[0;34m";
+			return "\033[0m";
+		}
+		
 		private void drawWillBeLine(Graphics2D g2D, Complex begginig, Complex end, int dok) {
 			//rysuje coś co po zmienieniu granic wykresu przez przeciągnięcie będzie odcinkiem
 			Complex[] krzyw = new Complex[dok+1];
 			Point beggAf = coords.cmplxToPoint(begginig, rect[0], rect[1]);
 			Point endAf = coords.cmplxToPoint(end, rect[0], rect[1]);
+			//System.out.println(temp(g2D.getColor()) +  begginig + ", " + end + ", "+ rect[0] +", "+ rect[1]+", "+beggAf+", "+endAf + temp(new Color(2,3,5)));
 			for(int i = 0;i<dok+1;i++) {
 				int onLinex = (int)(beggAf.x + ((double)i)/dok * (endAf.x - beggAf.x));
 				int onLiney = (int)(beggAf.y + ((double)i)/dok * (endAf.y - beggAf.y));
@@ -899,7 +866,7 @@ public class Graph extends JPanel{
 		Complex pointToCmplx(Point p, Complex lewyDolny, Complex prawyGorny);
 		Point cmplxToPoint(Complex z, Complex lewyDolny, Complex prawyGorny);
 		//wykorzystywane przy powiększaniu / pomniejszaniu
-		Complex[] noweZewn(Point p, Complex lewyDolny, Complex prawyGorny, double alpha);
+		Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha);
 		Complex getPG();
 		Complex getLD();
 		void setPG(Complex PG);
@@ -911,9 +878,10 @@ public class Graph extends JPanel{
 			return cmplxToPoint(z, getLD(), getPG());
 		};
 		default void noweZewn(Point p, double alpha) {
-			Complex[] noweRogi = noweZewn(p, getLD(), getPG(), alpha);
+			Complex[] noweRogi = powiekszenie(p, getLD(), getPG(), alpha);
 			setLD(noweRogi[0]);
 			setPG(noweRogi[1]);
 		}
 	}
-	}
+
+}

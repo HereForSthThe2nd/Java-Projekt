@@ -30,6 +30,11 @@ public class Complex implements Serializable{
 		return String.format(format, a);
 	}
 	
+	@Override
+	public String toString() {
+		return print(2);
+	}
+	
 	//TODO: chyba usunąć
 	static public Double readStr(String str) {
 		try {

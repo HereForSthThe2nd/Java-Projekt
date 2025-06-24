@@ -105,7 +105,7 @@ public class Main extends JFrame {
 	Graph wykres;
 	JPanel zapisFun = new JPanel();
 	
-	JPanel containsWykres;
+	JPanel wykresAndZap;
 	JTable tabZapisanychFunk;
 	JTable tabZapisanychVar;
 	JScrollPane scrlPnTablicaFunkcji;
@@ -128,11 +128,10 @@ public class Main extends JFrame {
 	public Main() {
 		JSlider temp = new JSlider(0, 10, 0);
 		temp.addChangeListener(new ChangeListener() {
-			
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				wykres.colorMapParams[0] = temp.getValue();
-				wykres.obraz.repaint();
+				wykres.setColor(wykres.colorMap, wykres.colorMapParams);;
 			}
 		});
 		zapisFun.add(temp);
@@ -223,11 +222,28 @@ public class Main extends JFrame {
 		});
 		
 		wykres.obraz.addMouseWheelListener(new MouseWheelListener() {
-			
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				wykres.coords.noweZewn(e.getPoint(), Math.pow(1.2, e.getWheelRotation()));
-				changeFunc();
+				//wykres.zoomIn(e.getPoint(), Math.pow(1.2, e.getWheelRotation()));
+				wykres.scM.keepLast(0);
+				wykres.scM.executeAfter(300, 2000, new Runnable() {
+					
+					@Override
+					public void run() {
+						changeFunc();
+					}
+				});
+				
+				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>(){
+					@Override
+					protected Void doInBackground() throws Exception {
+						wykres.setColor(wykres.colorMap, wykres.colorMapParams);
+						wykres.scM.done();
+						return null;
+					}
+				};
+				worker.execute();
 			}
 		});
 		
@@ -331,6 +347,7 @@ public class Main extends JFrame {
 						wykres.foreGround.repaint();
 					}, wykres.function);
 				}
+				wykres.repaint();
 			}
 			
 			@Override
@@ -364,15 +381,15 @@ public class Main extends JFrame {
 			}
 		});
 		
-		containsWykres = new JPanel();
-		containsWykres.setLayout(new CardLayout());
-		containsWykres.add(wykres, "wykres");
-		containsWykres.add(zapisFun, "zapis");
+		wykresAndZap = new JPanel();
+		wykresAndZap.setLayout(new CardLayout());
+		wykresAndZap.add(wykres, "wykres");
+		wykresAndZap.add(zapisFun, "zapis");
 		
 		doZapisane();
 		
 		add(zawieraTextFunckcji, BorderLayout.NORTH);
-		add(containsWykres, BorderLayout.CENTER);
+		add(wykresAndZap, BorderLayout.CENTER);
 		
 		doTheLeft();
 
@@ -907,7 +924,7 @@ public class Main extends JFrame {
 		zapisaneF.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				((CardLayout)containsWykres.getLayout()).next(containsWykres);
+				((CardLayout)wykresAndZap.getLayout()).next(wykresAndZap);
 				if(wykres.isVisible())
 					zapisaneF.setText("Zapisz");
 				else
@@ -1350,7 +1367,7 @@ public class Main extends JFrame {
 						current = narysuj;
 					}
 				};
-				wykres.stopAllOngoingChangeMethods();
+				wykres.changeM.stopAll();
 				current.finish();
 			}else {
 				current = narysuj;
