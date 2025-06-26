@@ -19,6 +19,8 @@ import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -27,6 +29,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -37,6 +41,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Executable;
 import java.util.LinkedList;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -51,8 +56,10 @@ import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
@@ -84,6 +91,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
 import Inne.Complex;
+import Inne.KeyBeingPressed;
 import funkcja.FuncComp;
 import funkcja.FuncMethods;
 import funkcja.FuncWthName;
@@ -96,56 +104,55 @@ import funkcja.Functions.NameAndValue;
 import funkcja.FunctionExpectedException;
 import grafika.Graph.CmplxToColor;
 import grafika.Graph.Coordinates;
+import grafika.Main.TxtFieldForZes;
 
 public class Main extends JFrame {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 6184366862447560671L;
-	Graph wykres;
-	JPanel zapisFun = new JPanel();
+	Graph wykres;	
+	FunctionTextField funkcjaTextField;
+	boolean txtFuncUpToDate = false;
+	Graph legenda;
+	LabelAboveFunction nadFunkcja;
 	
+	JPanel zapisFun = new JPanel();
 	JPanel wykresAndZap;
+	JPanel containsTable;
 	JTable tabZapisanychFunk;
 	JTable tabZapisanychVar;
 	JScrollPane scrlPnTablicaFunkcji;
 	JScrollPane scrlPaneTablicaVar;
-	
-	FunctionTextField funkcjaTextField;
 	JTextField funkcjaDoZap;
-	JPanel containsTable;
-	boolean txtFuncUpToDate = false;
-	Graph legenda;
-	LabelAboveFunction nadFunkcja;
+	
 	JTextField argument;
 	JTextField wartosc;
 	TxtFieldForZes lewDolnyTxt;
 	TxtFieldForZes prawyGornyTxt;
+	
 	JCheckBox rysowanie;
 	JTextArea calkaTxtArea;
+	
 	Settings ustawienia = new Settings();
+	JCheckBoxMenuItem graphIsSquare;
+	
+	KeyBeingPressed kbp = new KeyBeingPressed(this);
 	
 	public Main() {
-		JSlider temp = new JSlider(0, 10, 0);
-		temp.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				wykres.colorMapParams[0] = temp.getValue();
-				wykres.setColor(wykres.colorMap, wykres.colorMapParams);;
-			}
-		});
-		zapisFun.add(temp);
+		doTempStuff();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600,500));
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
+		kbp.add("CONTROL", "ctrl");
 		setLayout(new BorderLayout());
-		//ImageIcon a = new 
 		try {
 			BufferedImage buff = ImageIO.read(new File("logo.jpg"));
 			setIconImage((new ImageIcon(buff)).getImage());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 		doTheShortcuts();
 		doTheMenu();
 		try {
@@ -221,20 +228,27 @@ public class Main extends JFrame {
 			}
 		});
 		
+		wykres.scM.executeAfter(300, 1200, new Runnable() {
+			
+			@Override
+			public void run() {
+				changeFunc();
+			}
+		});
+		
 		wykres.obraz.addMouseWheelListener(new MouseWheelListener() {
 			@Override
 			public void mouseWheelMoved(MouseWheelEvent e) {
-				wykres.coords.noweZewn(e.getPoint(), Math.pow(1.2, e.getWheelRotation()));
-				//wykres.zoomIn(e.getPoint(), Math.pow(1.2, e.getWheelRotation()));
+				wykres.changeM.stopAll();
+				if(current != null)
+					current.finish();
+				if(kbp.isPressed("ctrl"))
+					wykres.coords.noweZewn(e.getPoint(), Math.pow(1.05, e.getWheelRotation()));
+				else
+					wykres.coords.noweZewn(e.getPoint(), Math.pow(1.2, e.getWheelRotation()));
+				lewDolnyTxt.setZesp(wykres.coords.getLD());
+				prawyGornyTxt.setZesp(wykres.coords.getPG());
 				wykres.scM.keepLast(0);
-				wykres.scM.executeAfter(300, 2000, new Runnable() {
-					
-					@Override
-					public void run() {
-						changeFunc();
-					}
-				});
-				
 				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>(){
 					@Override
 					protected Void doInBackground() throws Exception {
@@ -315,7 +329,8 @@ public class Main extends JFrame {
 					else {
 						if(wykres.foreGround.rect != null) {
 							wykres.foreGround.rect[1] = wykres.coords.pointToCmplx( e.getPoint() );
-							legenda.repaint();
+							wykres.foreGround.rect = correctGraphBounds(wykres.foreGround.rect[0], wykres.foreGround.rect[1], false);
+;							legenda.repaint();
 							wykres.repaint();
 						}
 					}
@@ -327,17 +342,7 @@ public class Main extends JFrame {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				if(!rysowanie.isSelected() && wykres.foreGround.rect != null) {
-					Complex lewyDolny =  new Complex(
-						wykres.foreGround.rect[0].x < wykres.foreGround.rect[1].x ? 
-						wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
-						wykres.foreGround.rect[0].y < wykres.foreGround.rect[1].y ? 
-						wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y);
-					Complex prawyGorny = new Complex(
-							wykres.foreGround.rect[0].x > wykres.foreGround.rect[1].x ? 
-							wykres.foreGround.rect[0].x : wykres.foreGround.rect[1].x,
-							wykres.foreGround.rect[0].y > wykres.foreGround.rect[1].y ? 
-							wykres.foreGround.rect[0].y : wykres.foreGround.rect[1].y);
-					setWykresBounds(lewyDolny, prawyGorny);
+					setWykresBounds(wykres.foreGround.rect[0], wykres.foreGround.rect[1]);
 					wykres.foreGround.rect = null;
 					wykres.foreGround.szyba = new Color(0,0,0,50);
 					wykres.foreGround.repaint();
@@ -395,6 +400,65 @@ public class Main extends JFrame {
 
 	}
 
+	private void doTempStuff() {
+		
+		JSlider temp = new JSlider(0, 50, 0);
+		temp.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				wykres.colorMapParams[0] = temp.getValue();
+				wykres.setColor(wykres.colorMap, wykres.colorMapParams);
+			}
+		});
+		JButton temp2 = new JButton("anuluj");
+		temp2.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wykres.changeM.stopAll();
+				if(current != null)
+					current.finish();
+			}
+		});
+		
+		JTextField temp3 = new JTextField(10);
+		temp3.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					wykres.setRES(Integer.parseInt(temp3.getText()));
+					changeFunc();
+				} catch (NumberFormatException e1) {
+					System.err.println(temp3.getText());
+				}
+			}
+		});
+		
+		JFrame tempFrm = new JFrame();
+		JPanel panel = new JPanel();
+		panel.add(temp2);
+		panel.add(temp);
+		panel.add(temp3);
+		tempFrm.add(panel);
+		
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl F3"), "technical");
+		rootPane.getActionMap().put("technical", new AbstractAction() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 8874345292635390481L;
+
+			@Override
+		    public void actionPerformed(ActionEvent e) {
+				tempFrm.setSize(300,300);
+				tempFrm.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				tempFrm.setVisible(true);
+		    }
+		});
+	}
+	
 	private void doTheShortcuts() {
 		JComponent rootPane = getRootPane();
 		Object rysowanieToggleKey = 0;
@@ -556,7 +620,7 @@ public class Main extends JFrame {
 		JMenu wykresMenu = new JMenu("Wykres");
 		wykresILegendaMenu.add(legendaMenu);
 		wykresILegendaMenu.add(wykresMenu);
-		JCheckBoxMenuItem osieLegendy = new JCheckBoxMenuItem("Osie legendy");
+		JCheckBoxMenuItem osieLegendy = new JCheckBoxMenuItem("Osie");
 		JRadioButtonMenuItem legendaCoTypowe = new JRadioButtonMenuItem("Normalna skala");
 		JRadioButtonMenuItem legendaLogSkala = new JRadioButtonMenuItem("Moduł w skali logarytmicznej");
 		JRadioButtonMenuItem legndaInf = new JRadioButtonMenuItem("Wokół nieksończoności");
@@ -568,7 +632,8 @@ public class Main extends JFrame {
 		legendaMenu.add(osieLegendy);
 		legendaCoTypowe.setSelected(true);
 		
-		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie wykresu");
+		JCheckBoxMenuItem osieWykresu = new JCheckBoxMenuItem("Osie");
+		graphIsSquare = new JCheckBoxMenuItem("Musi być kwadratem");
 		JRadioButtonMenuItem wykresTyp = new JRadioButtonMenuItem("Normalna skala");
 		JRadioButtonMenuItem wykresLogSkala = new JRadioButtonMenuItem("Moduł w skali logarytmicznej");
 		JRadioButtonMenuItem wykresInf = new JRadioButtonMenuItem("Wokół nieskończoności");
@@ -584,6 +649,7 @@ public class Main extends JFrame {
 		legendaMenu.add(legndaInf);
 
 		wykresMenu.add(osieWykresu);
+		wykresMenu.add(graphIsSquare);
 		wykresMenu.add(wykresTyp);
 		wykresMenu.add(wykresLogSkala);
 		wykresMenu.add(wykresInf);
@@ -659,6 +725,14 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				wykres.foreGround.osie = osieWykresu.isSelected();
 				wykres.foreGround.repaint();
+			}
+		});
+		
+		graphIsSquare.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setWykresBounds(wykres.coords.getLD(), wykres.coords.getPG());
 			}
 		});
 	}
@@ -848,6 +922,8 @@ public class Main extends JFrame {
 
 	private void doTheLeft() {
 		JPanel left = new JPanel();
+		JScrollPane scroll = new JScrollPane(left);
+		//scroll.add(left);
 		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
 		JPanel przyciski = new JPanel();
 		przyciski.setLayout(new GridLayout(2, 2));
@@ -954,117 +1030,9 @@ public class Main extends JFrame {
 		lewStr.setLayout(new BoxLayout(lewStr, BoxLayout.Y_AXIS));
 		lewStr.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 		
-		JPanel obszarWykres = new JPanel();
-		obszarWykres.setLayout(new GridLayout(2,2));
-		//obszarWykres.add(new JLabel("róg lewy dolny"));
-		//obszarWykres.add(new JLabel("róg prawy górny"));
-		lewDolnyTxt = new TxtFieldForZes(wykres.coords.getLD(), "Róg lewy dolny:");
-		prawyGornyTxt = new TxtFieldForZes(wykres.coords.getPG(), "Róg prawy górny:");
-		lewDolnyTxt.rzecz.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					double xn = Double.parseDouble(lewDolnyTxt.rzecz.getText());
-					setWykresBounds(new Complex(xn, lewDolnyTxt.getWart().y), prawyGornyTxt.getWart());
-					if(xn >= prawyGornyTxt.getWart().x)
-						nadFunkcja.setWarningText("Część rzeczywista lewego dolnego rogu powinna być mniejsza od części rzeczywistej prawego górnego rogu.");
-					changeFunc(new Runnable() {
-						
-						@Override
-						public void run() {
-							if(xn >= prawyGornyTxt.getWart().x)
-								nadFunkcja.setWarningText("Część rzeczywista lewego dolnego rogu powinna być mniejsza od części rzeczywistej prawego górnego rogu. Obliczono funkcję.");
-							else
-								nadFunkcja.setText("Zmieniono granice obszaru.");
-						}
-					}, wykres.function);
-					lewDolnyTxt.ur.requestFocus();
-					lewDolnyTxt.ur.selectAll();
-				}catch(NumberFormatException e1) {
-					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
-					lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
-				}
-			}
-		});
-		lewDolnyTxt.ur.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					double yn = Double.parseDouble(lewDolnyTxt.ur.getText());
-					setWykresBounds(new Complex(lewDolnyTxt.getWart().x, yn), prawyGornyTxt.getWart());
-					if(yn >= prawyGornyTxt.getWart().y)
-						nadFunkcja.setWarningText("Część urojona lewego dolnego rogu powinna być mniejsza od części urojonej prawego górnego rogu.");
-					changeFunc(new Runnable() {
-						
-						@Override
-						public void run() {
-							if(yn >= prawyGornyTxt.getWart().y)
-								nadFunkcja.setWarningText("Część urojona lewego dolnego rogu powinna być mniejsza od części urojonej prawego górnego rogu. Obliczono funkcję.");
-							else
-								nadFunkcja.setText("Zmieniono granice obszaru.");
-						}
-					}, wykres.function);
-					prawyGornyTxt.rzecz.requestFocus();
-					prawyGornyTxt.rzecz.selectAll();
-				}catch(NumberFormatException e1) {
-					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
-					lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
-				}
-			}
-		});
-		prawyGornyTxt.rzecz.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					double xn = Double.parseDouble(prawyGornyTxt.rzecz.getText());
-					setWykresBounds(lewDolnyTxt.getWart(), new Complex(xn, prawyGornyTxt.getWart().y));
-					if(xn <= lewDolnyTxt.getWart().x)
-						nadFunkcja.setWarningText("Część rzeczywista prawego górnego rogu powinna być większa od części rzeczywistej lewego  dolnego rogu.");
-					changeFunc(new Runnable() {
-						
-						@Override
-						public void run() {
-							if(xn <= lewDolnyTxt.getWart().x)
-								nadFunkcja.setWarningText("Część rzeczywista prawego górnego rogu powinna być większa od części rzeczywistej lewego  dolnego rogu. Obliczono funkcję.");
-							else
-								nadFunkcja.setText("Zmieniono granice obszaru.");
-						}
-					}, wykres.function);
-					prawyGornyTxt.ur.requestFocus();
-					prawyGornyTxt.ur.selectAll();
-				}catch(NumberFormatException e1) {
-					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
-					prawyGornyTxt.setZesp(prawyGornyTxt.getWart());
-				}
-			}
-		});
-		prawyGornyTxt.ur.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					double yn = Double.parseDouble(prawyGornyTxt.ur.getText());
-					if(yn <= lewDolnyTxt.getWart().y)
-						nadFunkcja.setWarningText("Część urojona prawego górnego rogu powinna być większa od części urojonej lewego dolnego rogu.");
-					setWykresBounds(lewDolnyTxt.getWart(), new Complex(prawyGornyTxt.getWart().x, yn));
-					changeFunc(new Runnable() {
-						
-						@Override
-						public void run() {
-							if(yn <= lewDolnyTxt.getWart().y)
-								nadFunkcja.setWarningText("Część urojona prawego górnego rogu powinna być większa od części urojonej lewego dolnego rogu. Obliczono funkcję.");
-							nadFunkcja.setText("Zmieniono granice obszaru");
-						}
-					}, wykres.function);
-				}catch(NumberFormatException e1) {
-					nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
-					lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
-				}
-			}
-		});
-
-		obszarWykres.add(lewDolnyTxt);
-		obszarWykres.add(prawyGornyTxt);
-		lewStr.add(obszarWykres);
+		BoundsTxt boundsTxt = new BoundsTxt();
+		
+		lewStr.add(boundsTxt);
 		
 		JComponent comp1;
 		JComponent comp2;
@@ -1088,28 +1056,56 @@ public class Main extends JFrame {
 		}
 		
 		JTextField paramValTxt = new JTextField(""+legenda.colorMapParams[colorParams.getSelectedIndex()]);
+		paramValTxt.setColumns(4);
 		paramValTxt.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					double[] newParams = new double[legenda.colorMap.paramsNames().length];
-					for(int j = 0;j<legenda.colorMap.paramsNames().length;j++) {
-						if(j != colorParams.getSelectedIndex()) {
-							newParams[j] = wykres.colorMapParams[j];
-							continue;
-						}
-						newParams[colorParams.getSelectedIndex()] = Double.parseDouble(paramValTxt.getText());
-					}
-					legenda.colorMapParams = newParams;
-					wykres.colorMapParams = newParams;
-					legenda.setColor(wykres.colorMap, newParams);
-					wykres.setColor(wykres.colorMap, newParams);
-					nadFunkcja.setText("Zmieniono kolor.");
+					wykres.colorMapParams[colorParams.getSelectedIndex()] = Double.parseDouble(paramValTxt.getText());
 				}catch (NumberFormatException e1) {
 					nadFunkcja.setErrorText("Nie można rozczytać wartości ze wprowadzonej liczby.");
 				}
+				legenda.colorMapParams = wykres.colorMapParams;
+				legenda.setColor(wykres.colorMap, legenda.colorMapParams);
+				wykres.setColor(wykres.colorMap, wykres.colorMapParams);
+				nadFunkcja.setText("Zmieniono kolor.");
+
 			}
 		});
+		paramValTxt.addMouseWheelListener(new MouseWheelListener() {
+			
+			@Override
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				wykres.scM.keepLast(1);
+				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>(){
+
+					@Override
+					protected Void doInBackground() throws Exception {
+						double paramToChange = wykres.colorMapParams[colorParams.getSelectedIndex()];
+						if(kbp.isPressed("ctrl")) {
+							if(Math.abs(paramToChange) > 1)
+								wykres.colorMapParams[colorParams.getSelectedIndex()] -= 0.1 * e.getWheelRotation();
+							if(Math.abs(paramToChange) <= 1)
+								wykres.colorMapParams[colorParams.getSelectedIndex()] = changeByStep(paramToChange, -e.getWheelRotation());
+						}
+						else {
+							if(Math.abs(paramToChange) >= 10)
+								wykres.colorMapParams[colorParams.getSelectedIndex()] = changeByStep(paramToChange, -e.getWheelRotation());
+							if(Math.abs(paramToChange) < 10)
+								wykres.colorMapParams[colorParams.getSelectedIndex()] -= 1 * e.getWheelRotation();
+						}
+						legenda.colorMapParams = wykres.colorMapParams;
+						paramValTxt.setText(Complex.toStr(wykres.colorMapParams[colorParams.getSelectedIndex()], 2, 2));
+						wykres.setColor(wykres.colorMap, wykres.colorMapParams);
+						legenda.setColor(legenda.colorMap, legenda.colorMapParams);
+						nadFunkcja.setText("Zmieniono kolor.");
+						return null;
+					}
+				};
+				worker.execute();
+			}
+		});
+		
 		paramValTxt.setPreferredSize(new Dimension(40, paramValTxt.getPreferredSize().height));
 		
 		colorCB.addActionListener(new ActionListener() {
@@ -1231,12 +1227,8 @@ public class Main extends JFrame {
 		
 		lewStr.add(new JLabel("Legenda:"));
 		
-		left.add(Box.createRigidArea(new Dimension(0,5)));
-		left.add(przyciski);
-		left.add(Box.createRigidArea(new Dimension(0,5)));
-		left.add(lewStr);
 		lewStr.add(legenda);
-		add(left, BorderLayout.WEST);
+		add(scroll, BorderLayout.WEST);
 
 		
 		JLabel argumentLabel = new JLabel("Argument:");
@@ -1250,9 +1242,17 @@ public class Main extends JFrame {
 		lewStr.add(wartoscLabel);
 		lewStr.add(wartosc);
 		
+		left.add(Box.createRigidArea(new Dimension(0,5)));
+		left.add(przyciski);
+		left.add(Box.createRigidArea(new Dimension(0,5)));
+		left.add(lewStr);
+		
 	}
 	
 	private void setWykresBounds(Complex z1, Complex z2){
+		Complex[] newBounds = correctGraphBounds(z1, z2, true);
+		z1 = newBounds[0];
+		z2 = newBounds[1];
 		wykres.coords.setLD(z1);
 		wykres.coords.setPG(z2);
 		lewDolnyTxt.setZesp(z1);
@@ -1316,13 +1316,13 @@ public class Main extends JFrame {
 	WorkerWthFinish<Void,Void> current;
 	int timeIndTemp=0;
 	private WorkerWthFinish<Void, Void> changeFunc(Runnable r, FunctionPowloka f) {
-		int thisInd = timeIndTemp++;
+		//int thisInd = timeIndTemp++;
 		//nadFunkcja.setForeground(Color.black);
 		//nadFunkcja.setTextAnimated("W trakcie obliczania funkcji");
 		WorkerWthFinish<Void,Void> narysuj = new WorkerWthFinish<Void, Void>(){
 			boolean finish = false;
 			@Override
-			protected Void doInBackground() throws Exception {
+			protected Void doInBackground() {
 				try {
 					wykres.change(f, wykres.coords ,wykres.colorMap, wykres.colorMapParams);
 					if(finish)
@@ -1384,7 +1384,41 @@ public class Main extends JFrame {
  		}, wykres.function);
 	}
 
+ 	private double changeByStep(double d, int step) {
+ 		int order = (int)Math.floor(Math.log10(Math.abs(d)));
+ 		int subOrder = 1;
+ 		if(Math.abs(d) <= 2 * Math.pow(10, order))
+ 			subOrder = 1;
+ 		if(2 * Math.pow(10, order) < Math.abs(d) && Math.abs(d) <= 5 * Math.pow(10, order))
+ 			subOrder = 2;
+ 		if(5 * Math.pow(10, order) < Math.abs(d))
+ 			subOrder = 5;
+ 		return d + Math.pow(10, order-1)*step*subOrder;
+ 	}
  	
+ 	private Complex[] correctGraphBounds(Complex z1, Complex z2, boolean changeOrder) {
+ 		if(changeOrder) {
+	 		Complex zMin = new Complex(Math.min(z1.x, z2.x), Math.min(z1.y, z2.y));
+	 		Complex zMax = new Complex(Math.max(z1.x, z2.x), Math.max(z1.y, z2.y));
+	 		if(graphIsSquare.isSelected()) {
+		 		double bok1 = z2.x - z1.x;
+		 		double bok2 = z2.y - z1.y;
+		 		double bok = Math.min(bok1, bok2);
+		 		zMax = Complex.add(zMin, new Complex(bok,bok));
+	 		}
+	 		return new Complex[] {zMin, zMax};
+ 		}
+ 		if(graphIsSquare.isSelected()) {
+	 		double bok1 = z2.x - z1.x;
+	 		double bok2 = z2.y - z1.y;
+	 		double bok = Math.min(Math.abs(bok1), Math.abs(bok2));
+	 		z2 = Complex.add(z1, new Complex(bok * (bok1 < 0? -1:1),bok * (bok2 < 0 ? -1 : 1)));
+ 		}
+ 		return new Complex[] {z1, z2};
+
+ 		
+ 		
+ 	}
  	/*
 	private void changeFunc(FunctionPowloka f) {
 		nadFunkcja.setForeground(Color.black);
@@ -1420,6 +1454,8 @@ public class Main extends JFrame {
 				try {
 					Main main = new Main();
 					main.setVisible(true);
+					//main.doTempStuff().setVisible(true);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -1427,6 +1463,137 @@ public class Main extends JFrame {
 		});
 	}
 
+	class BoundsTxt extends JPanel {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1692883746308365709L;
+		private FocusListener whenLosesFocus = new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				
+				//if(!prawyGornyTxt.rzecz.hasFocus() && ! lewDolnyTxt.rzecz.hasFocus() && !lewDolnyTxt.ur.hasFocus() && !prawyGornyTxt.ur.hasFocus()) {
+				if(e.getOppositeComponent() != null && 	!(e.getOppositeComponent().equals(lewDolnyTxt.rzecz) || e.getOppositeComponent().equals(lewDolnyTxt.ur) ||
+						e.getOppositeComponent().equals(prawyGornyTxt.rzecz) || e.getOppositeComponent().equals(prawyGornyTxt.ur))) {
+					lewDolnyTxt.setZesp(wykres.coords.getLD());
+					prawyGornyTxt.setZesp(wykres.coords.getPG());
+					prawyGornyTxt.setEditable(false);
+					lewDolnyTxt.setEditable(false);
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		};
+		
+		public BoundsTxt() {
+			Complex z1 = wykres.coords.getLD().copy();
+			Complex z2 = wykres.coords.getPG().copy();
+			JPanel txt = new JPanel();
+			txt.setLayout(new BoxLayout(txt, BoxLayout.Y_AXIS));
+			//obszarWykres.add(new JLabel("róg lewy dolny"));
+			//obszarWykres.add(new JLabel("róg prawy górny"));
+			lewDolnyTxt = new TxtFieldForZes(wykres.coords.getLD(), "Róg lewy dolny:");
+			prawyGornyTxt = new TxtFieldForZes(wykres.coords.getPG(), "Róg prawy górny:");
+			
+			JButton zmienGranice = new JButton("Zmień obszar");
+			
+			txt.add(lewDolnyTxt);
+			txt.add(prawyGornyTxt);
+			add(txt);
+			add(zmienGranice);
+			
+			lewDolnyTxt.setEditable(false);
+			prawyGornyTxt.setEditable(false);
+
+			zmienGranice.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					lewDolnyTxt.setEditable(true);
+					prawyGornyTxt.setEditable(true);
+					lewDolnyTxt.rzecz.requestFocus();
+					lewDolnyTxt.rzecz.selectAll();
+				}
+			});
+			
+			lewDolnyTxt.rzecz.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						z1.x = Double.parseDouble(lewDolnyTxt.rzecz.getText());
+						lewDolnyTxt.setZesp(new Complex(z1.x, lewDolnyTxt.getWart().y));
+						lewDolnyTxt.ur.requestFocus();
+						lewDolnyTxt.ur.selectAll();
+
+					}catch(NumberFormatException e1) {
+						nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+						lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
+						lewDolnyTxt.rzecz.selectAll();
+					}
+		
+		
+				}
+			});
+			lewDolnyTxt.ur.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						z1.y = Double.parseDouble(lewDolnyTxt.ur.getText());
+						prawyGornyTxt.rzecz.requestFocus();
+						prawyGornyTxt.rzecz.selectAll();
+						lewDolnyTxt.setZesp(new Complex(lewDolnyTxt.getWart().x, z1.y));
+					}catch(NumberFormatException e1) {
+						lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
+						lewDolnyTxt.ur.selectAll();
+						nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+					}
+				}
+			});
+			prawyGornyTxt.rzecz.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						z2.x = Double.parseDouble(prawyGornyTxt.rzecz.getText());
+						prawyGornyTxt.setZesp(new Complex(z2.x, prawyGornyTxt.getWart().y));
+						prawyGornyTxt.ur.requestFocus();
+						prawyGornyTxt.ur.selectAll();
+					}catch(NumberFormatException e1) {
+						nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+						prawyGornyTxt.setZesp(prawyGornyTxt.getWart());
+						prawyGornyTxt.rzecz.selectAll();
+					}
+				}
+			});
+			prawyGornyTxt.ur.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						z2.y = Double.parseDouble(prawyGornyTxt.ur.getText());
+						lewDolnyTxt.setEditable(false);
+						prawyGornyTxt.setEditable(false);
+						setWykresBounds(z1, z2);
+						changeFunc();
+					}catch(NumberFormatException e1) {
+						nadFunkcja.setErrorText("Wpisana wartość nie mogła zostać zamieniona na liczbę.");
+						lewDolnyTxt.setZesp(lewDolnyTxt.getWart());
+						prawyGornyTxt.ur.selectAll();
+					}
+				}
+			});
+			lewDolnyTxt.rzecz.addFocusListener(whenLosesFocus);
+			lewDolnyTxt.ur.addFocusListener(whenLosesFocus);
+			prawyGornyTxt.rzecz.addFocusListener(whenLosesFocus);
+			prawyGornyTxt.ur.addFocusListener(whenLosesFocus);
+		}
+		
+	}
+
+	
 	static class TxtFieldForZes extends JPanel{
 		/**
 		 * 
@@ -1455,7 +1622,12 @@ public class Main extends JFrame {
 			ur.setText(Complex.toStr(wart.y, 2, 2));
 			
 		}
-				
+		
+		public void setEditable(boolean value) {
+			rzecz.setEditable(value);
+			ur.setEditable(value);
+		}
+		
 		public Complex getWart(){
 			return wart;
 		}

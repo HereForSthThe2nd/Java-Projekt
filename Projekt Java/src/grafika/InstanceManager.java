@@ -61,19 +61,14 @@ public class InstanceManager {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(System.currentTimeMillis() - lastAdded >= delay || System.currentTimeMillis() - lastExec >= longestWait ) {
-					System.out.println("a");
+				if(System.currentTimeMillis() - lastAdded >= delay || ( lastExec != null && System.currentTimeMillis() - lastExec >= longestWait )) {
 					if(run != null) {
-						if(lastExec != null)
-							System.out.println(System.currentTimeMillis() - lastExec);
-						lastExec= System.currentTimeMillis();
 						run.run();
 					}
 				}
 			}
 		});
 		t.setRepeats(false);
-		System.out.println("b");
 		t.start();
 	}
 }

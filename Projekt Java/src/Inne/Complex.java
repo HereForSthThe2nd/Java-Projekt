@@ -15,6 +15,10 @@ public class Complex implements Serializable{
 	public static final Complex NaN = new Complex(Double.NaN, Double.NaN);
 	public static final Complex i = new Complex(0,1);
 	
+	public Complex copy() {
+		return new Complex(x, y);
+	}
+	
 	public void print() {
 		System.out.println(x + " + i" + y);
 	}
