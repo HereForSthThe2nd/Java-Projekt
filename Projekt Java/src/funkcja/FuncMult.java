@@ -9,7 +9,7 @@ package funkcja;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import Inne.Complex;
+import inne.Complex;
 
 class FuncMult extends Function {
 	/**

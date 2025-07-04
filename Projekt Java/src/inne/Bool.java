@@ -1,4 +1,4 @@
-package Inne;
+package inne;
 
 /*
  * ta klasa zazwyczj używana kiedy z metody chcemy też zwrócić informację czy coś się udało zrobić

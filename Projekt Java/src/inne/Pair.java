@@ -1,4 +1,4 @@
-package Inne;
+package inne;
 
 //podobnie jak Bool<T>
 public class Pair<E1, E2> {

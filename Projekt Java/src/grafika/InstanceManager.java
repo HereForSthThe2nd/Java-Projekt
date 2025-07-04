@@ -8,19 +8,91 @@ import java.util.List;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
-public class InstanceManager {
+import inne.Runn;
+
+//zakłada że nawet jak metoda ma parametry, to w danym momencie wywołania te parametry zawsze będą takie same, i dlatego nie ma znaczenia którą funkcję się przepuści, a którą nie
+public class InstanceManager<E> {
 	static int total = 0;
 	private LinkedList<Integer> instances = new LinkedList<Integer>();
 	Timer t;
-	Runnable afterExecution = null;
 	Long lastExec = null;
-	long lastAdded;
+	private long lastAdded;
 	private int delay;
-	private LinkedList<Integer> runAferKeys = new LinkedList<Integer>();
-	private Runnable run;
-	private int longestWait;
 	
-	public synchronized int addInstance(){
+	private LinkedList<Integer> runAferKeys = new LinkedList<Integer>();
+	private long minWait;
+	private long lastRun = System.currentTimeMillis();
+	private Runn<E> run;
+	private Runnable afterExecution;
+	SwingWorker<Void, Void> worker;
+	
+	private int longestWait;
+	private Runnable afterExecutionSlow;
+	public boolean currentlyWaiting;
+	
+	public InstanceManager(int minimumWait){
+		currentlyWaiting = false;
+		this.minWait = minimumWait;
+	};
+	
+	public InstanceManager(Runn<E> r, int minWait) {
+		currentlyWaiting = false;
+		this.run = r;
+		this.minWait = minWait;
+	}
+	
+	public void setRunnable(Runn<E> r) {
+		this.run = r;
+	}
+	
+	public void whenDone(Runnable r) {
+		this.afterExecution = r;
+	}
+	
+	public void run() {
+		System.out.println("run");
+		worker = new SwingWorker<Void, Void>(){
+			@Override
+			protected Void doInBackground() throws Exception {
+				int key = addInstance();
+				run.run(key);
+				return null;
+			}
+			
+			@Override
+			protected void done() {
+				if(afterExecution != null)
+					afterExecution.run();
+				if(doSlowAfter) {
+					doSlowAfter = false;
+					InstanceManager.this.doneInn();
+				}
+			}
+		};
+		if(currentlyWaiting)
+			return;
+		long now = System.currentTimeMillis();
+		if(now - lastRun > minWait) {
+			worker.execute();
+			lastRun = now;
+		}
+		else {
+			currentlyWaiting = true;
+			Timer t = new Timer((int)(minWait - (System.currentTimeMillis() - lastRun)), new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					worker.execute();
+					currentlyWaiting = false;
+					lastRun = System.currentTimeMillis();
+				}
+			});
+			t.setRepeats(false);
+			t.start();
+		}
+	}
+	
+	private synchronized int addInstance(){
 		instances.add(total);
 		lastAdded = System.currentTimeMillis();
 		return total++;
@@ -34,8 +106,8 @@ public class InstanceManager {
 		runAferKeys.add(key);
 	}
 	
-	public void executeAfter(int delay, int longestWait, Runnable run) {
-		this.run = run;
+	public void executeAfterDone(int delay, int longestWait, Runnable run) {
+		this.afterExecutionSlow = run;
 		this.delay = delay;
 		this.longestWait = longestWait;
 	}
@@ -48,6 +120,8 @@ public class InstanceManager {
 	}
 	
 	public synchronized boolean stillActive(int key) {
+		if(key == -1)
+			return true;
 		for(Integer inst : instances) {
 			if(inst.equals(key)) {
 				return true;
@@ -56,14 +130,24 @@ public class InstanceManager {
 		return false;
 	}
 
-	public void done() {
+	static public void executeSparingly(Runnable r) {
+		
+	}
+	
+	private boolean doSlowAfter = false;
+	public void doSlowAfter() {
+		doSlowAfter = true;
+	}
+	
+	private void doneInn() {
 		Timer t = new Timer(delay, new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(System.currentTimeMillis() - lastAdded >= delay || ( lastExec != null && System.currentTimeMillis() - lastExec >= longestWait )) {
-					if(run != null) {
-						run.run();
+					if(afterExecutionSlow != null) {
+						afterExecutionSlow.run();
+						lastExec = System.currentTimeMillis();
 					}
 				}
 			}

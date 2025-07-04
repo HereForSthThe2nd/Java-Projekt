@@ -18,8 +18,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import Inne.Complex;
+import inne.*;
+
 import funkcja.Function;
+import inne.Complex;
 
 /*
  * NonStandardFuncStr do definiowania funkcji typu ln{α}, dla których istnieje nieskończona ilość możliwych nazw

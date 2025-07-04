@@ -31,6 +31,8 @@ public class CentralLayout implements LayoutManager {
 	
 	private JPanel tempLine1, tempLine2;
 	
+	private Dimension prefferedSize = new Dimension(100,100);
+	
 	public CentralLayout(Container parent) {
 		this.parent = parent;
 		tempLine1 = new JPanel();
@@ -44,6 +46,8 @@ public class CentralLayout implements LayoutManager {
 	}
 	
 	public void add(Component m, int i, int xPad, int yPad) {
+		if(m == null)
+			return;
 		//usuwanie nie zostało przewidziane
 		switch (i) {
 		case CENTER: 
@@ -104,7 +108,7 @@ public class CentralLayout implements LayoutManager {
 			
 			int i = right.size()-1;
 			child = parent.getComponent(right.get(i));
-			child.setLocation(parent.getWidth() - child.getPreferredSize().width - xPadL.get(i), yRight);
+			child.setLocation(parent.getWidth() - child.getPreferredSize().width - xPadR.get(i), yRight);
 			if(minXr > child.getX())
 				minXr = child.getX();
 		}
@@ -124,6 +128,7 @@ public class CentralLayout implements LayoutManager {
 		tempLine2.setBackground(Color.red);
 		tempLine1.setLocation(maxXl, 0);
 		tempLine2.setLocation(minXr, 0);
+
 	}
 	
 	@Override
@@ -138,14 +143,15 @@ public class CentralLayout implements LayoutManager {
 
 	@Override
 	public Dimension preferredLayoutSize(Container parent) {
-		// TODO Auto-generated method stub
-		new IllegalStateException().printStackTrace();
-		return null;//new Dimension(0,0);
+		return prefferedSize;
 	}
 
+	public void setPrefferedSize(Dimension prefferedSize) {
+		this.prefferedSize = prefferedSize;
+	}
+	
 	@Override
 	public Dimension minimumLayoutSize(Container parent) {
-		// TODO Auto-generated method stub
 		return new Dimension(0,0);
 	}
 

@@ -6,7 +6,7 @@ package funkcja;
 
 import java.util.Random;
 
-import Inne.Complex;
+import inne.Complex;
 
 public class FunctionPowloka {
 		

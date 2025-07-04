@@ -9,8 +9,8 @@ package funkcja;
 
 import java.util.LinkedList;
 
-import Inne.Bool;
-import Inne.Complex;
+import inne.Bool;
+import inne.Complex;
 
 public class FuncComp extends Function {
 	/**

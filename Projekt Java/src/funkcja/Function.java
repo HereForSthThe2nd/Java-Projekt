@@ -12,7 +12,7 @@ import java.lang.classfile.instruction.ReturnInstruction;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import Inne.Complex;
+import inne.Complex;
 
 abstract public class Function implements FuncChecker, Serializable
  {	

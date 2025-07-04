@@ -31,11 +31,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.ImageObserver;
+import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
 import java.text.AttributedCharacterIterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
+import java.util.TimerTask;
 import java.util.concurrent.CompletionException;
 
 import javax.swing.JLabel;
@@ -49,9 +52,13 @@ import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Inne.Bool;
-import Inne.Complex;
 import funkcja.*;
+import inne.Bool;
+import inne.Complex;
+import inne.ComplexCurve;
+import inne.ComplexPolyCurve;
+import inne.PolyCurve;
+import inne.Runn;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -67,21 +74,20 @@ public class Graph extends JPanel{
 	 * 
 	 */
 	
-	CentralLayout layout = new CentralLayout(this);
+	CentralLayout layout;
 	
 	private static final long serialVersionUID = 8436283896706339087L;
 	//w zmianie funkcji na ile bloków dzieli graf (w poziomie * w pionie)
-	private static final int PODZIALRYSOWANIA = 10;
+	int PODZIALRYSOWANIA = 1;
 	BufferedImage img;
-	private int RES;
-	private Complex[][] values;
-	Coordinates coords;
-	private Complex lewyDolnyImg;//może być inny niż ten w coords: kiedy obszar jest większy/mniejszy od obszaru w którym znane są wartości funckji
-	private Complex prawyGornyImg;//może być inny niż ten w coords: kiedy obszar jest większy/mniejszy od obszaru w którym znane są wartości funckji
+	private Values values;
+	
+	//private Complex[][] valBuffer;
+	
 	FunctionPowloka function;
 	CmplxToColor colorMap;
 	double[] colorMapParams;
-	JPanel obraz;
+	CoordPanel obraz;
 	Foreground foreGround;
 	static CmplxToColor basic;
 	private static CmplxToColor noArg;
@@ -89,6 +95,9 @@ public class Graph extends JPanel{
 	private static CmplxToColor circle;
 	private static CmplxToColor poziomice;
 	public static CmplxToColor[] listaKolorowan;
+	
+	InstanceManager<Void> changeM = new InstanceManager<Void>(50);
+	InstanceManager<Void> scM = new InstanceManager<Void>(10);
 	
 	private static double normalizacja(double r) {
 		//zwraca liczbę z przedziału 0, 1
@@ -102,18 +111,20 @@ public class Graph extends JPanel{
 		}
 		return 2/Math.PI * (Math.atan(Math.log(r+1)));
 	}
-		
+	
+	
 	public Graph(int bok) {
+		layout = new CentralLayout(this);
 		setLayout(layout);
-		RES = bok / 2;
 		img = new BufferedImage(bok,bok,BufferedImage.TYPE_INT_ARGB);
 		//imgSmaller = new BufferedImage(bok/DELTA, bok/DELTA, BufferedImage.TYPE_INT_ARGB);
-		obraz = new JPanel() {
+		obraz = new CoordPanel() {
 			private static final long serialVersionUID = 1L;
 			@Override
-			public void paint(Graphics g) {
+			public void paintComponent(Graphics g) {
 				super.paintComponent(g);
 				Graphics2D g2D = (Graphics2D)g;
+				//g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				//Complex diagF = Complex.subt(prawyGornyImg, lewyDolnyImg);
 				//Complex diagRz = Complex.subt(coords.getPG(), coords.getLD());
 				//Image res = img.getScaledInstance((int)(img.getWidth() * (diagF.x / diagRz.x)), (int)(img.getHeight() * (diagF.x / diagRz.x)), Image.SCALE_SMOOTH);
@@ -131,23 +142,37 @@ public class Graph extends JPanel{
 		foreGround.setPreferredSize(new Dimension(bok, bok));
 		layout.add(foreGround);
 		layout.add(obraz);
-		layout.add(new JLabel("abcd"), CentralLayout.LEFT, 10, 10);
-		layout.add(new JLabel("2222"), CentralLayout.LEFT, 15, 5);
-		layout.add(new JLabel("3333"), CentralLayout.LEFT, 20, 5);
-		layout.add(new JLabel("44444"), CentralLayout.LEFT, 10, 10);
-		layout.add(new JLabel("a1111"), CentralLayout.RIGHT, 10, 10);
-		layout.add(new JLabel("a22"), CentralLayout.RIGHT, 200, 0);
-		layout.add(new JLabel("a3333"), CentralLayout.RIGHT, 0, 0);
 		Border obrBorder = BorderFactory.createLineBorder(Color.black, 3);
 		foreGround.setBorder(obrBorder);
 		setPreferredSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
 		setSize(new Dimension(img.getWidth()+10, img.getHeight()+10));
-		values = new Complex[RES][RES];
+		values = new Values(bok/2, obraz);
+		
+		changeM.setRunnable(new Runn<Void>() {
+			
+			@Override
+			public Void run(int key) {
+				change(key);
+				return null;
+			}
+		});
+	}
+
+	public Graph(int bok, FunctionPowloka f, Coordinates coords ,CmplxToColor colorMap, double...parameters) {
+		this(bok);
+		change(-1, f, coords, colorMap, parameters);
 	}
 	
-	public Graph(int bok, FunctionPowloka f, Coordinates coords,CmplxToColor colorMap, double...parameters) {
-		this(bok);
-		change(f, coords, colorMap, parameters);
+	public Coordinates rect(Complex lewyDolny, Complex prawyGorny) {
+		return CoordsFactory.rect(lewyDolny, prawyGorny, img.getWidth(), img.getHeight());
+	}
+	
+	public Coordinates aroundInf(Complex lewyDolny, Complex prawyGorny) {
+		return CoordsFactory.aroundInf(lewyDolny, prawyGorny, img.getWidth(), img.getHeight());
+	}
+	
+	public Coordinates logarithmic(Complex lewyDolny, Complex prawyGorny) {
+		return CoordsFactory.logarithmic(lewyDolny, prawyGorny, img.getWidth(), img.getHeight());
 	}
 	
 	static {
@@ -326,227 +351,62 @@ public class Graph extends JPanel{
 		listaKolorowan = new CmplxToColor[] {basic, noArg, halfPlane, circle, poziomice};
 	}
 	
-	
 	public Complex getValueAt(Point p) {
-		//Point ld = coords.cmplxToPoint(lewyDolnyImg);
-		//Point pg = coords.cmplxToPoint(prawyGornyImg);
-
-		Complex z = coords.pointToCmplx(p);
-		Point pOnImg = coords.cmplxToPoint(z, lewyDolnyImg, prawyGornyImg);
-		try {
-			return values[pOnImg.x * RES / img.getWidth()][pOnImg.y * RES / img.getHeight()];
-		}catch(ArrayIndexOutOfBoundsException e) {
-			return Complex.NaN;
-		}
+		return values.getValueAt(p);
 	}
 	
 	public Complex getValueAt(int x, int y) {
 		//x oraz y to współrzędne piksela
-		return getValueAt(new Point(x, y));
+		return values.getValueAt(x, y);
 	}
 	
-		
+	private Complex getValueAt(int xI, int yI, Coordinates oldCoords) {
+		return values.getValueAt(xI, yI, oldCoords);
+	}
 	
 	public void save(File imgfile) throws IOException {
 		ImageIO.write(img, "png", imgfile);
 	}
 	
-	public Coordinates rect(Complex lewyDolny, Complex prawyGorny) {
-		return new Coordinates() {
-			private Complex lewDolny = lewyDolny;
-			private Complex prawGorny = prawyGorny;
-			@Override
-			public Complex pointToCmplx(Point p, Complex argLewDolny, Complex argPrawGorny) {
-				Complex diag = Complex.subt(argPrawGorny, argLewDolny);
-				Complex ret = Complex.add(argLewDolny, new Complex(	diag.x * p.x/img.getWidth(), diag.y * (img.getHeight()-p.y)/img.getHeight()));
-				//System.out.println(p + "  " + ret.print(2) + " " + prawyGorny.print(2) + " " + lewyDolny.print(2) + " " + width);
-				return ret;
-			}
-			
-			@Override
-			public Point cmplxToPoint(Complex z, Complex argLewDolny, Complex argPrawGorny) {
-				Complex diag = Complex.subt(argPrawGorny, argLewDolny);
-				Complex zWzgl = Complex.subt(z, argLewDolny);
-				Point ret = new Point((int)(img.getWidth()*zWzgl.x/diag.x), (int)(img.getHeight() - img.getHeight()*zWzgl.y/diag.y));
-				return ret;
-			}
-
-			@Override
-			public Complex getPG() {
-				return prawGorny;
-			}
-
-			@Override
-			public Complex getLD() {
-				return lewDolny;
-			}
-
-			@Override
-			public void setPG(Complex PG) {
-				prawGorny = PG;
-			}
-
-			@Override
-			public void setLD(Complex LD) {
-				lewDolny = LD;
-			}
-
-			@Override
-			public Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
-				Complex z0 = pointToCmplx(p);
-				Complex[] ret = new Complex[] {Complex.add(z0, Complex.mult(new Complex(alpha), Complex.subt(getLD(), z0))), 
-						Complex.add(z0, Complex.mult(new Complex(alpha), Complex.subt(getPG(), z0)))};
-				return ret;
-			}
-		};
-
- 
-	}
-	
-	public Coordinates aroundInf(Complex lewyDolny, Complex prawyGorny) {
-		//tworzy koordynaty w których środku znajduje się nieskończoność
-		return new Coordinates() {
-			private Complex lewDolny = lewyDolny;
-			private Complex prawGorny = prawyGorny;		
-			@Override
-			public Complex pointToCmplx(Point p, Complex argLewDol, Complex argPrawGorny) {
-				Complex a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argPrawGorny, argLewDol));
-				Complex b = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
-				Complex zeta = rect(new Complex(-1,-1), new Complex(1,1)).pointToCmplx(p);
-				return Complex.div(Complex.add(a, Complex.mult(b, zeta)), zeta);
-			}
-			
-			@Override
-			public Point cmplxToPoint(Complex z, Complex argLewDol, Complex argPrawGorny) {
-				Complex a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(argPrawGorny, argLewDol));
-				Complex b = Complex.mult(new Complex(1.0/2), Complex.add(argLewDol, argPrawGorny));
-				Complex zeta = Complex.div(a, Complex.subt(z, b));
-				return rect(new Complex(-1,-1), new Complex(1,1)).cmplxToPoint(zeta);
-			}
-			
-			@Override
-			public Complex getPG() {
-				return prawGorny;
-			}
-			
-			@Override
-			public Complex getLD() {
-				return lewDolny;
-			}
-			@Override
-			public void setPG(Complex PG) {
-				prawGorny = PG;
-			}
-			
-			@Override
-			public void setLD(Complex LD) {
-				lewDolny = LD;
-			}
-
-			@Override
-			public Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
-				Complex a = Complex.mult(new Complex(1.0/2,1.0/2), Complex.subt(prawyGorny, lewyDolny));
-				Complex b = Complex.mult(new Complex(1.0/2), Complex.add(lewyDolny, prawyGorny));
-				Complex z = pointToCmplx(p);
-				Complex zeta = Complex.div(a, Complex.subt(z, b));
-				Complex aNow = Complex.mult(new Complex(alpha), a);
-				Complex bNow = Complex.add(Complex.div(Complex.mult(a, new Complex(1-alpha)), zeta), b);
-				return new Complex[] {Complex.subt(bNow, Complex.div(aNow, new Complex(1,1))), Complex.add(Complex.div(aNow, new Complex(1,1)), bNow)};
-			}
-
-		};
-	}
-	
-	public Coordinates  logarithmic(Complex lewyDolny, Complex prawyGorny) {
-		return new Coordinates() {
-			Complex lDolny = lewyDolny;
-			Complex pGorny = prawyGorny;
-			@Override
-			public Complex pointToCmplx(Point p, Complex lewyDolny, Complex prawyGorny) {
-				Complex aKsi = Complex.mult(lewyDolny, new Complex ((Math.exp(lewyDolny.mod())-1) / lewyDolny.mod()));
-				Complex bKsi = Complex.mult(prawyGorny, new Complex ((Math.exp(prawyGorny.mod())-1) / prawyGorny.mod()));
-				Complex ksi = rect(aKsi, bKsi).pointToCmplx(p);
-				if(ksi.x == 0 && ksi.y == 0)
-					return new Complex(0);
-				return Complex.mult(ksi, new Complex(Math.log(ksi.mod()+1)/ksi.mod()));
-			}
-			
-			@Override
-			public Point cmplxToPoint(Complex z, Complex lewyDolny, Complex prawyGorny) {
-				Complex aKsi = Complex.mult(lewyDolny, new Complex ((Math.exp(lewyDolny.mod())-1) / lewyDolny.mod()));
-				Complex bKsi = Complex.mult(prawyGorny, new Complex ((Math.exp(prawyGorny.mod())-1) / prawyGorny.mod()));
-				Complex ksi;
-				if(z.x == 0 && z.y == 0)
-					ksi = new Complex(0);
-				else
-					ksi = Complex.mult(z, new Complex ((Math.exp(z.mod())-1) / z.mod()));
-				return rect(aKsi, bKsi).cmplxToPoint(ksi);
-			}
-
-			
-			@Override
-			public Complex getPG() {
-				return pGorny;
-			}
-			
-			@Override
-			public Complex getLD() {
-				return lDolny;
-			}
-			
-			@Override
-			public void setPG(Complex PG) {
-				pGorny = PG;
-			}
-			
-			@Override
-			public void setLD(Complex LD) {
-				lDolny = LD;
-			}
-
-			@Override
-			public Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			
-		};
-	}
-	
-	InstanceManager changeM = new InstanceManager();
-	public void change(FunctionPowloka f, Coordinates coords ,CmplxToColor colorMap, double...parameters) {
-		int thisInstanceOfChange = changeM.addInstance();
+	private void change(int key, FunctionPowloka f, Coordinates coords ,CmplxToColor colorMap, double...parameters) {
 		this.function = f;
-		this.coords = coords;
-		lewyDolnyImg = coords.pointToCmplx( new Point(0,img.getHeight()) );
-		prawyGornyImg = coords.pointToCmplx( new Point(img.getWidth(),0) );
+		this.obraz.coords = coords;
+		values.setLewyDolnyPanel(coords.pointToCmplx( new Point(0,img.getHeight()) ));
+		values.setPrawyGornyPanel(coords.pointToCmplx( new Point(img.getWidth(),0) ));
 		this.colorMap = colorMap;
 		this.colorMapParams = parameters;
 		Complex[] z = new Complex[1];
-		int X = RES / PODZIALRYSOWANIA;
-		int Y = RES / PODZIALRYSOWANIA;
+				
+		int X = values.getRES()/ PODZIALRYSOWANIA;
+		int Y = values.getRES() / PODZIALRYSOWANIA;
 		int xPI;
 		int yPI;
 		for(int n=0; n<PODZIALRYSOWANIA*2-1;n++) {
 			boolean przekrPrz = (n > (PODZIALRYSOWANIA-1));
 			for(int i = 0;i < (przekrPrz ? 2*PODZIALRYSOWANIA-n-1 : n+1); i++) {
-				if(!changeM.stillActive(thisInstanceOfChange)) {
+				if(!changeM.stillActive(key)) {
 					return;
 				}
 				xPI = (przekrPrz ? n+1 - PODZIALRYSOWANIA : 0)+i;
 				yPI = (przekrPrz ? 0 : PODZIALRYSOWANIA - (n+1))+i;
 				for(int xI=X*xPI;xI<X*(xPI+1);xI++) {
 					for(int yI = Y*yPI;yI<Y*(yPI+1);yI++) {
-						Point point = new Point(img.getWidth()*xI/RES, img.getHeight()*yI/RES);
+						Point point = new Point(img.getWidth()*xI/values.getRES(), img.getHeight()*yI/values.getRES());
 						z[0] = coords.pointToCmplx(point);
 						try {
-							values	[xI][yI] = f.evaluate(z);
+							values.setValue(xI, yI, f.evaluate(z));
 						} catch (FunctionExpectedException e) {
-							values[xI][yI] = null;
+							values.setValue(xI, yI, null);
 						}
 					}
 				}
-				setColor(this.colorMap, new Point(img.getWidth() / RES *X*xPI, img.getHeight() / RES *Y*yPI), new Point(img.getWidth() / RES * X*(xPI+1), img.getHeight() / RES * Y*(yPI+1)), parameters);
+				setColor(-1, this.colorMap, new Point(img.getWidth() / values.getRES() *X*xPI, img.getHeight() / values.getRES() *Y*yPI), new Point(img.getWidth() / values.getRES() * X*(xPI+1), img.getHeight() / values.getRES() * Y*(yPI+1)), parameters);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						repaint();
+					}
+				});
 			}
 		}
 		/*
@@ -570,56 +430,51 @@ public class Graph extends JPanel{
 		//setColor(this.colorMap, parameters);
 	}
 	
-	public void change() {
-		change(function, coords, colorMap, colorMapParams);
-	}
-	
-	InstanceManager scM = new InstanceManager();
-	private void setColor(CmplxToColor colorMap, Point LDBound, Point PGBound, double... parameters) {
-		scM.addInstance();
-		//SwingWorker<Void,Void> draw = new SwingWorker<Void, Void>() {
-		//	@Override
-		//	protected Void doInBackground() throws Exception {
-				Integer color;
-				Random r = new Random();
-				try {
-					for(int xI=LDBound.x; xI<=PGBound.x && xI < img.getWidth();xI+=1) {
-						for(int yI=LDBound.y;yI<=PGBound.y && yI < img.getHeight();yI+=1) {
-							//if(!scM.stillActive(thisI))
-								//return;
-							color = colorMap.colorOf(getValueAt(xI, yI), parameters);
-							if(color == null) {
-								img.setRGB(xI, yI, rgbToHex((xI+yI)%40<20 ? Color.MAGENTA : new Color(230,230,230)));
-								continue;
-							}
-							img.setRGB(xI, yI, color);
-						}
+	private void setColor(int key, CmplxToColor colorMap, Point LDBound, Point PGBound, double... parameters) {
+
+		Integer color;
+		BufferedImage imgBuffer = new BufferedImage(PGBound.x - LDBound.x + 1, PGBound.y - LDBound.y + 1, img.getType());
+		
+		Coordinates oldCoords = obraz.coords.clone();
+		
+		try {
+			for(int xI=LDBound.x; xI<=PGBound.x && xI < img.getWidth();xI+=1) {
+				if(!scM.stillActive(key))
+					return;
+				for(int yI=LDBound.y;yI<=PGBound.y && yI < img.getHeight();yI+=1) {
+					color = colorMap.colorOf(getValueAt(xI, yI, oldCoords), parameters);
+					if(color == null) {
+						imgBuffer.setRGB(xI - LDBound.x, yI - LDBound.y, rgbToHex((xI+yI)%40<20 ? Color.MAGENTA : new Color(230,230,230)));
+						continue;
 					}
-					//Graphics2D g2D = img.createGraphics();
-					//Image res = imgSmaller.getScaledInstance(img.getWidth(), img.getHeight(), Image.SCALE_SMOOTH);
-			        //g2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-			        //g2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-			        //g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-					//g2D.drawImage(imgSmaller, 0, 0,img.getWidth(),img.getHeight(), null);
-					//g2D.dispose();
-		//			return null;
-				} catch (Exception e) {
-					e.printStackTrace();
-		//			return null;
+					imgBuffer.setRGB(xI - LDBound.x, yI - LDBound.y, color);
 				}
-		//	}
+			}
+	
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		SwingUtilities.invokeLater(new Runnable() {
 			
-		//	@Override
-		//	protected void done() {
-				repaint();
-		//	}
-		//};
-		//draw.execute();
+			@Override
+			public void run() {
+				Graphics2D g2d = img.createGraphics();
+				//g2d.clearRect(0, 0, img.getWidth(), img.getHeight());
+				g2d.drawImage(imgBuffer, LDBound.x,LDBound.y, null);
+				g2d.dispose();
+			}
+		});
 
 	}
 	
-	public void setColor(CmplxToColor colorMap, double... parameters) {
-		setColor(colorMap, new Point(0,0), new Point(img.getWidth(), img.getHeight()), parameters);
+
+
+	void setColor(int key) {
+		setColor(key, colorMap, new Point(0,0), new Point(img.getWidth(), img.getHeight()), colorMapParams);
+	}
+	
+	private void change(int key) {
+		change(key, function, obraz.coords, colorMap, colorMapParams);
 	}
 	
 	static int[] HSLToRGB(double[] HSL) {
@@ -663,12 +518,12 @@ public class Graph extends JPanel{
 	public Complex integralOfCurve() {
 		final int div = 100;
 		Complex ret = new Complex(0);
-		for(LinkedList<Complex> i: foreGround.krzywa) {
-			Complex z0 = i.getFirst();
-			for(Complex z : i) {
+		for(ComplexPolyCurve i: foreGround.krzywe) {
+			Complex z0 = i.getVert().getFirst();
+			for(Complex z : i.getVert()) {
 				Complex delta = Complex.mult(Complex.subt(z, z0), new Complex(1.0/div));
 				for(int j = 0;j<div;j++) {
-					Complex val = getValueAt(coords.cmplxToPoint( Complex.add(z0, Complex.mult(Complex.subt(z, z0), new Complex(((double)j)/div)) )));
+					Complex val = getValueAt(obraz.coords.cmplxToPoint( Complex.add(z0, Complex.mult(Complex.subt(z, z0), new Complex(((double)j)/div)) )));
 					if(! (val == null))
 						ret.add(Complex.mult(delta,val ));
 					}
@@ -679,8 +534,7 @@ public class Graph extends JPanel{
 	}
 	
 	public void setRES(int r) {
-		RES = r;
-		values = new Complex[RES][RES];
+		values = new Values(r, obraz);
 	}
 	
 	class Foreground extends JPanel{
@@ -692,7 +546,7 @@ public class Graph extends JPanel{
 		Complex marker;
 		Complex[] rect;
 		private static final int MARKERWIDTH = 12;
-		LinkedList<LinkedList<Complex>> krzywa = new LinkedList<LinkedList<Complex>>();
+		LinkedList<ComplexPolyCurve> krzywe = new LinkedList<ComplexPolyCurve>();
 		boolean osie = false;
 		final static int LICZBAOSI = 5; 
 		
@@ -701,124 +555,84 @@ public class Graph extends JPanel{
 		}
 		
 		public void resetCurve(){
-			krzywa = new LinkedList<LinkedList<Complex>>();
+			krzywe = new LinkedList<ComplexPolyCurve>();
 		}
+		
+		public void addNewCurve(ComplexPolyCurve curve) {
+			krzywe.add(curve);
+		}
+		
 		
 		public void addNewCurve() {
-			krzywa.add(null);
+			addNewCurve(null);
 		}
-		
+
 		public void addPointToCurve(Complex z) {
-			if(krzywa.getLast() == null) {
-				krzywa.set(krzywa.size()-1,new LinkedList<Complex>());
+			if(krzywe.getLast() == null) {
+				krzywe.set(krzywe.size()-1,new ComplexPolyCurve());
 			}
-			Point wsp = coords.cmplxToPoint(z);
-			if(krzywa.getLast().size() > 1 && coords.cmplxToPoint(krzywa.getLast().getLast()).distanceSq(wsp.getX(), wsp.getY()) <  getWidth() *getHeight() / 100 / 100 / 10) {
-				//System.out.println("tyle Mniej: " + tyleMniej++);
-				return;
-			}
-			
-			//System.out.println("tyle: " + tyle++);
-			krzywa.getLast().add(z);
+			krzywe.getLast().addPoint(z);
 		}
 				
+		
 		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
+			
 			Graphics2D g2D = (Graphics2D)g;
 			g2D.setColor(szyba);
 			g2D.fillRect(0, 0, getWidth(), getHeight());
 			g.setFont(new Font(getFont().getName(), getFont().getStyle(), getFont().getSize() - 6 + (getWidth()+getHeight())/200 ));
 			
-			if(marker != null && !Double.isNaN(marker.x) && !Double.isNaN(marker.y)) {
-				Point wsp = coords.cmplxToPoint(marker);
-				g2D.setColor(Color.red);
-				g2D.fillOval(wsp.x - MARKERWIDTH/2, wsp.y-MARKERWIDTH/2,MARKERWIDTH , MARKERWIDTH);
-				g2D.setColor(Color.black);
-				g2D.setStroke(new BasicStroke(2));
-				g2D.drawOval(wsp.x - MARKERWIDTH/2, wsp.y-MARKERWIDTH/2,MARKERWIDTH , MARKERWIDTH);
-			}
 			
-			for(LinkedList<Complex> podKrzywa : krzywa) {
-				if(podKrzywa != null) {
-					Point p = coords.cmplxToPoint( podKrzywa.get(0) );
-					Point pLast = p;
-					Point pLast2 = pLast;
-					Point pLast3 = pLast2;
-					for(int i=0;i<podKrzywa.size()+2;i++) {
-						if(i < podKrzywa.size()) {
-							p = coords.cmplxToPoint( podKrzywa.get(i) );
-						}
-						g2D.setColor(new Color(240,240,240,15));
-						g2D.setStroke(new BasicStroke(6));
-						g2D.drawLine(pLast.x, pLast.y, p.x, p.y);
-						
-						
-						g2D.setColor(new Color(190,190,190,50));
-						g2D.setStroke(new BasicStroke(4));
-						g2D.drawLine(pLast2.x, pLast2.y, pLast.x, pLast.y);
-						
-						g2D.setColor(new Color(50,50,50, 240));
-						g2D.setStroke(new BasicStroke(2));
-						g2D.drawLine(pLast3.x, pLast3.y, pLast2.x, pLast2.y);
-						
-						pLast3 = pLast2;
-						pLast2 = pLast;
-						pLast = p;
-					}
+			for(ComplexPolyCurve curve : krzywe) {
+				if(curve != null) {
+					g2D.setStroke(new BasicStroke(2));
+					g2D.setColor(Color.black);
+					curve.drawWthOutline(g2D, obraz, osie);
 				}
 			}
 			
 			if(rect != null) {
-				g2D.setColor(Color.BLACK);
-				g2D.setStroke(new BasicStroke(2));
-				//Point[] rectP = new Point[] {coords.cmplxToPoint(rect[0]), coords.cmplxToPoint(rect[1])};
-				/*g2D.drawLine(rectP[0].x,rectP[0].y, rectP[0].x, rectP[1].y);
-				g2D.drawLine(rectP[0].x, rectP[1].y, rectP[1].x, rectP[1].y);
-				g2D.drawLine(rectP[1].x, rectP[1].y, rectP[1].x, rectP[0].y);
-				g2D.drawLine(rectP[1].x, rectP[0].y, rectP[0].x, rectP[0].y);*/
-				g2D.setColor(Color.red);
-				drawWillBeLine(g2D, rect[0], new Complex(rect[0].x, rect[1].y), 100);
-				g2D.setColor(Color.yellow);
-				drawWillBeLine(g2D, rect[0], new Complex(rect[1].x, rect[0].y), 100);
-				g2D.setColor(Color.black);
-				drawWillBeLine(g2D, rect[1], new Complex(rect[1].x, rect[0].y), 100);
-				g2D.setColor(Color.blue);
-				drawWillBeLine(g2D, rect[1], new Complex(rect[0].x, rect[1].y), 100);
-				g2D.setColor(Color.black);
+				drawZoomInHelper(g2D);
+			}
+			
+			if(marker != null && !Double.isNaN(marker.x) && !Double.isNaN(marker.y)) {
+				drawMarker(g2D);
 			}
 			
 			if(osie) {
-				g2D.setColor(Color.BLACK);
-				for(int i=0;i<LICZBAOSI+1;i++) {
-					g2D.setColor(Color.BLACK);
-					g2D.setStroke(new BasicStroke((getWidth() + getHeight())/2 < 400 ? 1 : (float)1.5));
-					//g2D.setStroke(new BasicStroke((float)1));
-					int x = getWidth()*i/(LICZBAOSI+1);
-					int y = getHeight()*i/(LICZBAOSI+1);
-					g2D.drawLine(0, y, getWidth(), y);
-					g2D.drawLine(x, 0, x, getHeight());
-				}
-				for(int i=1;i<LICZBAOSI+1;i+=2) {
-					int x = getWidth()*i/(LICZBAOSI+1);
-					int y = getHeight()*i/(LICZBAOSI+1);
-					int strx, stry;
-					String str;
-					str = coords.pointToCmplx(new Point(x, getHeight()/2)).printE(3,2);
-					strx = x+4;
-					stry = getHeight()/2 - 5;
-					drawStringWthHighlight(g2D, str, strx, stry);
-					str = coords.pointToCmplx(new Point(getWidth() / 2, y)).printE(3, 2);//Complex.toStr(coords.pointToCmplx(new Point(getWidth() / 2, y)).y, 2, 2);
-					strx = getWidth()/2+5;
-					stry = y-5;
-					if(!(y==getHeight()/2))
-						drawStringWthHighlight(g2D, str, strx, stry);
-
-				}
+				drawGrid(g2D);
 			}
 
 		}
 
+		private void drawMarker(Graphics2D g2D) {
+			Point wsp = obraz.coords.cmplxToPoint(marker);
+			g2D.setColor(Color.red);
+			g2D.fillOval(wsp.x - MARKERWIDTH/2, wsp.y-MARKERWIDTH/2,MARKERWIDTH , MARKERWIDTH);
+			g2D.setColor(Color.black);
+			g2D.setStroke(new BasicStroke(2));
+			g2D.drawOval(wsp.x - MARKERWIDTH/2, wsp.y-MARKERWIDTH/2,MARKERWIDTH , MARKERWIDTH);
+		}
+		
+		private void drawZoomInHelper(Graphics2D g2D) {
+			g2D.setColor(Color.BLACK);
+			g2D.setStroke(new BasicStroke((float) 1.5));
+			//g2D.setStroke(new BasicStroke(2));
+			PolyCurve<Point> obRect = new PolyCurve<Point>(new LinkedList<Point>(List.of(
+					new Point(0,0),
+					new Point(0, img.getHeight()),
+					new Point(img.getWidth(),img.getHeight()),
+					new Point(img.getWidth(), 0),
+					new Point(0, 0)
+					)));
+			ComplexPolyCurve ob = new ComplexPolyCurve ( ComplexCurve.create(obraz.coords, rect[0], rect[1], 
+					obRect).toPoly(obraz.coords.accOfSmallerAr()) );
+			//g2D.setStroke(new BasicStroke(2));
+			ob.drawWthOutline(g2D, obraz, osie);
+		}
+		
 		private String temp(Color r) {
 			if(r.equals(Color.red))
 				return "\033[0;31m";
@@ -831,20 +645,49 @@ public class Graph extends JPanel{
 			return "\033[0m";
 		}
 		
+		private void drawGrid(Graphics2D g2D) {
+			g2D.setColor(Color.BLACK);
+			for(int i=0;i<LICZBAOSI+1;i++) {
+				g2D.setColor(Color.BLACK);
+				g2D.setStroke(new BasicStroke((getWidth() + getHeight())/2 < 400 ? 1 : (float)1.5));
+				//g2D.setStroke(new BasicStroke((float)1));
+				int x = getWidth()*i/(LICZBAOSI+1);
+				int y = getHeight()*i/(LICZBAOSI+1);
+				g2D.drawLine(0, y, getWidth(), y);
+				g2D.drawLine(x, 0, x, getHeight());
+			}
+			for(int i=1;i<LICZBAOSI+1;i+=2) {
+				int x = getWidth()*i/(LICZBAOSI+1);
+				int y = getHeight()*i/(LICZBAOSI+1);
+				int strx, stry;
+				String str;
+				str = obraz.coords.pointToCmplx(new Point(x, getHeight()/2)).printE(3,2);
+				strx = x+4;
+				stry = getHeight()/2 - 5;
+				drawStringWthHighlight(g2D, str, strx, stry);
+				str = obraz.coords.pointToCmplx(new Point(getWidth() / 2, y)).printE(3, 2);//Complex.toStr(coords.pointToCmplx(new Point(getWidth() / 2, y)).y, 2, 2);
+				strx = getWidth()/2+5;
+				stry = y-5;
+				if(!(y==getHeight()/2))
+					drawStringWthHighlight(g2D, str, strx, stry);
+
+			}
+		}
+		
 		private void drawWillBeLine(Graphics2D g2D, Complex begginig, Complex end, int dok) {
 			//rysuje coś co po zmienieniu granic wykresu przez przeciągnięcie będzie odcinkiem
 			Complex[] krzyw = new Complex[dok+1];
-			Point beggAf = coords.cmplxToPoint(begginig, rect[0], rect[1]);
-			Point endAf = coords.cmplxToPoint(end, rect[0], rect[1]);
+			Point beggAf = obraz.coords.cmplxToPoint(begginig, rect[0], rect[1]);
+			Point endAf = obraz.coords.cmplxToPoint(end, rect[0], rect[1]);
 			//System.out.println(temp(g2D.getColor()) +  begginig + ", " + end + ", "+ rect[0] +", "+ rect[1]+", "+beggAf+", "+endAf + temp(new Color(2,3,5)));
 			for(int i = 0;i<dok+1;i++) {
 				int onLinex = (int)(beggAf.x + ((double)i)/dok * (endAf.x - beggAf.x));
 				int onLiney = (int)(beggAf.y + ((double)i)/dok * (endAf.y - beggAf.y));
-				krzyw[i] = coords.pointToCmplx(new Point(onLinex, onLiney), rect[0], rect[1]);
+				krzyw[i] = obraz.coords.pointToCmplx(new Point(onLinex, onLiney), rect[0], rect[1]);
 			}
-			Point pLast = coords.cmplxToPoint( krzyw[0] );
+			Point pLast = obraz.coords.cmplxToPoint( krzyw[0] );
 			for(Complex z : krzyw) {
-				Point p = coords.cmplxToPoint(z);
+				Point p = obraz.coords.cmplxToPoint(z);
 				g2D.drawLine(pLast.x, pLast.y, p.x, p.y);
 				pLast = p;
 			}
@@ -860,6 +703,7 @@ public class Graph extends JPanel{
 			g.setColor(new Color(50,0,0));
 			g.drawString(txt, x, y);
 		}
+
 	}
 
 	interface CmplxToColor{
@@ -867,28 +711,6 @@ public class Graph extends JPanel{
 		double[] defaultParams();
 		String[] paramsNames();
 		String name();
-	}
-	 
-	interface Coordinates{
-		Complex pointToCmplx(Point p, Complex lewyDolny, Complex prawyGorny);
-		Point cmplxToPoint(Complex z, Complex lewyDolny, Complex prawyGorny);
-		//wykorzystywane przy powiększaniu / pomniejszaniu
-		Complex[] powiekszenie(Point p, Complex lewyDolny, Complex prawyGorny, double alpha);
-		Complex getPG();
-		Complex getLD();
-		void setPG(Complex PG);
-		void setLD(Complex LD);
-		default Complex pointToCmplx(Point p) {
-			return pointToCmplx(p, getLD(), getPG());
-		};
-		default Point cmplxToPoint(Complex z) {
-			return cmplxToPoint(z, getLD(), getPG());
-		};
-		default void noweZewn(Point p, double alpha) {
-			Complex[] noweRogi = powiekszenie(p, getLD(), getPG(), alpha);
-			setLD(noweRogi[0]);
-			setPG(noweRogi[1]);
-		}
 	}
 
 }

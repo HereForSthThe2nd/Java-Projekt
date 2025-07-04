@@ -6,7 +6,7 @@ package funkcja;
 
 import java.util.LinkedList;
 
-import Inne.Complex;
+import inne.Complex;
 
 //publiczne tymczasowo na cele testow
 public class FuncNumConst extends Function {

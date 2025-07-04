@@ -1,11 +1,11 @@
-package Inne;
+package inne;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class Complex implements Serializable{
+public class Complex implements Serializable, Cloneable{
 	/**
 	 * 
 	 */
@@ -15,47 +15,19 @@ public class Complex implements Serializable{
 	public static final Complex NaN = new Complex(Double.NaN, Double.NaN);
 	public static final Complex i = new Complex(0,1);
 	
-	public Complex copy() {
+	public Complex clone() {
 		return new Complex(x, y);
 	}
 	
 	public void print() {
 		System.out.println(x + " + i" + y);
 	}
-	
-	static public String toStr(double a, int doubleAcc, int whenToShorten) {
-		//dla doubla
-		String format = "%."+doubleAcc;
-		if((Math.abs(a) < Math.pow(10, whenToShorten) && Math.abs(a) >= Math.pow(10, -whenToShorten)) || a == 0) {
-			format += "f";
-			return String.format(format, a);
-		}
-		format += "e";
-		return String.format(format, a);
-	}
-	
+		
 	@Override
 	public String toString() {
 		return print(2);
 	}
-	
-	//TODO: chyba usunąć
-	static public Double readStr(String str) {
-		try {
-	
-			str = str.replaceAll("\\s+", "");
-			
-			int eind = str.indexOf("e");
-			if(eind == -1)
-				return Double.parseDouble(str);
-		//TODO
-			return 1.0;
-			
-		}catch(NumberFormatException e){
-			return null;
-		}
-	}
-	
+		
 	public String print(int doubleAcc) {
 		
 		DecimalFormat noplus = new DecimalFormat("0."+(new String(new char[doubleAcc])).replace("\0", "#"), DecimalFormatSymbols.getInstance(Locale.US));
@@ -77,13 +49,13 @@ public class Complex implements Serializable{
 		if(equals(new Complex(0)))
 			return "0";
 		if(x == 0)
-			return toStr(y, doubleAcc, whenToShorten);
+			return Numbers.toStr(y, doubleAcc, whenToShorten);
 		if(y == 0)
-			return toStr(x, doubleAcc, whenToShorten);
+			return Numbers.toStr(x, doubleAcc, whenToShorten);
 		if(y > 0)
-			return toStr(x, doubleAcc, whenToShorten)+" + i"+toStr(y, doubleAcc, whenToShorten);
+			return Numbers.toStr(x, doubleAcc, whenToShorten)+" + i"+Numbers.toStr(y, doubleAcc, whenToShorten);
 		if(y < 0)
-			return toStr(x, doubleAcc, whenToShorten)+" - i"+toStr(-y, doubleAcc, whenToShorten);
+			return Numbers.toStr(x, doubleAcc, whenToShorten)+" - i"+Numbers.toStr(-y, doubleAcc, whenToShorten);
 		return x + ", i" + y;
 	}
 		
@@ -91,13 +63,13 @@ public class Complex implements Serializable{
 		if(equals(new Complex(0)))
 			return "0";
 		if(Math.abs(x) < 10e-12)
-			return toStr(y, doubleAcc, whenToShorten);
+			return Numbers.toStr(y, doubleAcc, whenToShorten);
 		if(Math.abs(y) < 10e-12)
-			return toStr(x, doubleAcc, whenToShorten);
+			return Numbers.toStr(x, doubleAcc, whenToShorten);
 		if(y > 0)
-			return toStr(x, doubleAcc, whenToShorten)+" + i"+toStr(y, doubleAcc, whenToShorten);
+			return Numbers.toStr(x, doubleAcc, whenToShorten)+" + i"+Numbers.toStr(y, doubleAcc, whenToShorten);
 		if(y < 0)
-			return toStr(x, doubleAcc, whenToShorten)+" - i"+toStr(-y, doubleAcc, whenToShorten);
+			return Numbers.toStr(x, doubleAcc, whenToShorten)+" - i"+Numbers.toStr(-y, doubleAcc, whenToShorten);
 		return x + ", i" + y;
 	}
 	

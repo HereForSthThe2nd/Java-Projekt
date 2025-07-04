@@ -7,8 +7,8 @@ package funkcja;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import Inne.Complex;
-import Inne.Pair;
+import inne.Complex;
+import inne.Pair;
 
 class FuncSum extends Function {
 	/**

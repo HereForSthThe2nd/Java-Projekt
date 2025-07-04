@@ -1,4 +1,4 @@
-package Inne;
+package inne;
 
 //jednak nie będę potrzebował, ale zostawię wrazie co
 public class Polynomial {
